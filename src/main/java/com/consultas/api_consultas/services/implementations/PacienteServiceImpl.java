@@ -51,4 +51,5 @@ public class PacienteServiceImpl implements PacienteService {
     public void removerPorId(Long id) {
         repository.deleteById(id);
     }
+
 }

@@ -26,18 +26,19 @@ public class Consulta {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal preco;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    private Medico medico;
-
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    private Paciente paciente;
-
     @Column(length = 200, nullable = false)
     private String motivo;
 
     @Column(length = 9, nullable = false)
     @Enumerated(EnumType.STRING)
     private StatusConsulta status;
+
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    private Medico medico;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    private Paciente paciente;
 
 
     public Consulta(LocalDateTime dataAtendimento, BigDecimal preco, Medico medico, Paciente paciente, String motivo, StatusConsulta status) {
