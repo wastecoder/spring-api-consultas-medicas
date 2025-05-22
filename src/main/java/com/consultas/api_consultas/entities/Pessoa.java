@@ -1,9 +1,11 @@
 package com.consultas.api_consultas.entities;
 
 import jakarta.persistence.*;
+import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @MappedSuperclass
+@Data
 @NoArgsConstructor
 public abstract class Pessoa {
 
