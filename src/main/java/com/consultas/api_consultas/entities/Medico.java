@@ -4,6 +4,7 @@ import com.consultas.api_consultas.enums.SiglaCrm;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Entity
 @Table(
@@ -13,14 +14,9 @@ import lombok.Data;
         )
 )
 @Data
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-public class Medico {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(length = 100, nullable = false)
-    private String nome;
+public class Medico extends Pessoa {
 
     @Column(length = 2, nullable = false)
     @Enumerated(EnumType.STRING)
@@ -32,29 +28,12 @@ public class Medico {
     @Column(length = 50, nullable = false)
     private String especialidade;
 
-    @Column(length = 50, nullable = false, unique = true)
-    private String email;
 
-    @Column(length = 11)
-    private String telefone;
-
-    @Column(nullable = false)
-    private Boolean ativo;
-
-
-    @PrePersist
-    public void prePersist() {
-        if (ativo == null) {
-            ativo = true;
-        }
-    }
-
-    public Medico(String nome, SiglaCrm crmSigla, String crmDigitos, String especialidade, String email, String telefone) {
-        this.nome = nome;
+    public Medico(String nome, String email, String telefone, SiglaCrm crmSigla, String crmDigitos, String especialidade) {
+        super(nome, email, telefone);
         this.crmSigla = crmSigla;
         this.crmDigitos = crmDigitos;
         this.especialidade = especialidade;
-        this.email = email;
-        this.telefone = telefone;
     }
+
 }
