@@ -2,9 +2,9 @@ package com.consultas.api_consultas.entities;
 
 import com.consultas.api_consultas.enums.SiglaCrm;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Entity
 @Table(
@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
 )
 @Data
 @EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
+@NoArgsConstructor
 public class Medico extends Pessoa {
 
     @Column(length = 2, nullable = false)

@@ -23,7 +23,7 @@ public class Consulta {
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataAgendamento;
 
-    @Column(precision = 10, scale = 2)
+    @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal preco;
 
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
