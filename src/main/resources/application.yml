@@ -1,0 +1,13 @@
+### PERFIL ATIVO DA APLICAÇÃO
+# - dev      >>> Ativa o arquivo: application-dev.yml
+# - test     >>> Ativa o arquivo: application-test.yml
+# - docker   >>> Ativa o arquivo: application-docker.yml
+
+### OBSERVAÇÕES:
+# - Você não precisa alterar este valor manualmente.
+# - Nos testes, o perfil será definido automaticamente pela anotação: @ActiveProfiles("test")
+# - No Docker, o perfil será definido pela variável de ambiente: SPRING_PROFILES_ACTIVE=docker
+
+spring:
+  profiles:
+    active: dev

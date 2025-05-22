@@ -1,0 +1,15 @@
+### Perfil para DOCKER: PostgreSQL
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres:5432/${DB_NAME}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+  jpa:
+    show-sql: true
+    open-in-view: false
+    hibernate:
+      ddl-auto: update # Se for usar em produção: primeira vez = create; depois = validate
+    properties:
+      hibernate:
+        format_sql: true
