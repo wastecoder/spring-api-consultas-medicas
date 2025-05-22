@@ -34,8 +34,7 @@ public class MedicoServiceImpl implements MedicoService {
 
     @Override
     public Medico atualizar(Long id, Medico medicoAtualizado) {
-        Medico medicoExistente = repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Médico com ID [" + id + "] não encontrado"));
+        Medico medicoExistente = this.buscarPorId(id);
 
         medicoExistente.setNome(medicoAtualizado.getNome());
         medicoExistente.setEmail(medicoAtualizado.getEmail());
