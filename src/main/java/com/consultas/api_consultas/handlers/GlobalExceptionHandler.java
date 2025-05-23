@@ -2,6 +2,7 @@ package com.consultas.api_consultas.handlers;
 
 import com.consultas.api_consultas.dtos.respostas.ErrorResponse;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.time.OffsetDateTime;
 import java.util.stream.Collectors;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -19,6 +21,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUncaughtException(final Exception ex) {
         var status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        log.error("Erro inesperado não tratado", ex);
 
         ErrorResponse exception = new ErrorResponse(
                 "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
@@ -35,12 +39,13 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
         var status = HttpStatus.BAD_REQUEST;
 
-        // Pega todas as mensagens de erro dos campos inválidos
         String mensagens = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining("; "));
+
+        log.warn("Erro de validação: {}", mensagens);
 
         ErrorResponse exception = new ErrorResponse(
                 mensagens,
@@ -56,6 +61,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(BusinessRuleException.class)
     public ResponseEntity<ErrorResponse> handleBusinessRule(final BusinessRuleException ex) {
         var status = HttpStatus.BAD_REQUEST;
+
+        log.warn("Violação de regra de negócio: {}", ex.getMessage());
 
         ErrorResponse exception = new ErrorResponse(
                 ex.getMessage(),
