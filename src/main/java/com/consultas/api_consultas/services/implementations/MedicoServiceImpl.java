@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.repositories.MedicoRepository;
 import com.consultas.api_consultas.services.MedicoService;
 import jakarta.persistence.EntityNotFoundException;
@@ -52,7 +53,7 @@ public class MedicoServiceImpl implements MedicoService {
     public void removerPorId(Long id) {
         Medico medicoExistente = this.buscarPorId(id);
         if (Boolean.TRUE.equals(medicoExistente.getAtivo())) {
-            throw new RuntimeException("Médico deve estar inativo para ser excluído.");
+            throw new BusinessRuleException("Médico deve estar inativo para ser excluído.");
         }
         repository.deleteById(id);
     }
