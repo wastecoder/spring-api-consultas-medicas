@@ -100,4 +100,27 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(exception, status);
     }
 
+    // Ocorre quando há violação de integridade no banco, como duplicidade em campos únicos
+    // Ex: tentativa de cadastrar um médico com crmSigla e crmDigitos já existentes
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> handleDatabaseConstraintViolation(DataIntegrityViolationException ex) {
+        var status = HttpStatus.CONFLICT;
+
+        String mensagem = "Violação de dados únicos. Verifique se já existe um registro com os mesmos valores.";
+
+        if (ex.getMostSpecificCause().getMessage().contains("uk_medico_crm")) {
+            mensagem = "Já existe um médico cadastrado com esse CRM (sigla e dígitos).";
+        }
+
+        log.warn("Constraint violada: {}", mensagem);
+
+        ErrorResponse exception = new ErrorResponse(
+                mensagem,
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(exception, status);
+    }
+
 }
