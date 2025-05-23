@@ -2,9 +2,12 @@ package com.consultas.api_consultas.handlers;
 
 import com.consultas.api_consultas.dtos.respostas.ErrorResponse;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -66,6 +69,30 @@ public class GlobalExceptionHandler {
 
         ErrorResponse exception = new ErrorResponse(
                 ex.getMessage(),
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(exception, status);
+    }
+
+    // Ocorre quando é enviado um valor inválido para um campo enum
+    // Ex: envio de "A" para o campo crmSigla, que espera um valor como "SP", "RJ", etc.
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidEnumValue(HttpMessageNotReadableException ex) {
+        var status = HttpStatus.BAD_REQUEST;
+
+        String mensagem = "Valor inválido fornecido para um dos campos. Verifique se os valores estão corretos.";
+
+        if (ex.getCause() instanceof InvalidFormatException invalid) {
+            var campo = invalid.getPath().get(0).getFieldName();
+            mensagem = "Valor inválido para o campo [" + campo + "].";
+        }
+
+        log.warn("Enum inválido: {}", mensagem);
+
+        ErrorResponse exception = new ErrorResponse(
+                mensagem,
                 status,
                 OffsetDateTime.now()
         );
