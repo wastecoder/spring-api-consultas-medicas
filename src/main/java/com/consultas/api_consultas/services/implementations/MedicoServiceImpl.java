@@ -39,7 +39,7 @@ public class MedicoServiceImpl implements MedicoService {
         medicoExistente.setNome(medicoAtualizado.getNome());
         medicoExistente.setEmail(medicoAtualizado.getEmail());
         medicoExistente.setTelefone(medicoAtualizado.getTelefone());
-        medicoExistente.setAtivo(medicoAtualizado.getAtivo());
+        medicoExistente.setAtivo(medicoExistente.getAtivo());           //Não altera o ativo ao editar - para isso, use os endpoints de ativar e inativar
 
         medicoExistente.setCrmSigla(medicoAtualizado.getCrmSigla());
         medicoExistente.setCrmDigitos(medicoAtualizado.getCrmDigitos());
@@ -50,7 +50,31 @@ public class MedicoServiceImpl implements MedicoService {
 
     @Override
     public void removerPorId(Long id) {
+        Medico medicoExistente = this.buscarPorId(id);
+        if (Boolean.TRUE.equals(medicoExistente.getAtivo())) {
+            throw new RuntimeException("Médico deve estar inativo para ser excluído.");
+        }
         repository.deleteById(id);
+    }
+
+    @Override
+    public void inativarPorId(Long id) {
+        Medico medicoExistente = this.buscarPorId(id);
+
+        if (Boolean.TRUE.equals(medicoExistente.getAtivo())) {
+            medicoExistente.setAtivo(false);
+            repository.save(medicoExistente);
+        }
+    }
+
+    @Override
+    public void ativarPorId(Long id) {
+        Medico medicoExistente = this.buscarPorId(id);
+
+        if (Boolean.FALSE.equals(medicoExistente.getAtivo())) {
+            medicoExistente.setAtivo(true);
+            repository.save(medicoExistente);
+        }
     }
 
 }
