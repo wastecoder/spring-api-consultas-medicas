@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.entities.Paciente;
+import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.repositories.PacienteRepository;
 import com.consultas.api_consultas.services.PacienteService;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,7 +40,7 @@ public class PacienteServiceImpl implements PacienteService {
         pacienteExistente.setNome(pacienteAtualizado.getNome());
         pacienteExistente.setEmail(pacienteAtualizado.getEmail());
         pacienteExistente.setTelefone(pacienteAtualizado.getTelefone());
-        pacienteExistente.setAtivo(pacienteAtualizado.getAtivo());
+//        pacienteExistente.setAtivo(pacienteExistente.getAtivo());           //Não altera o ativo ao editar
 
         pacienteExistente.setCpf(pacienteAtualizado.getCpf());
         pacienteExistente.setDataNascimento(pacienteAtualizado.getDataNascimento());
@@ -49,7 +50,32 @@ public class PacienteServiceImpl implements PacienteService {
 
     @Override
     public void removerPorId(Long id) {
+        Paciente pacienteExistente = this.buscarPorId(id);
+        if (Boolean.TRUE.equals(pacienteExistente.getAtivo())) {
+            throw new BusinessRuleException("Paciente deve estar inativo para ser excluído.");
+        }
         repository.deleteById(id);
+    }
+
+
+    @Override
+    public void inativarPorId(Long id) {
+        Paciente pacienteExistente = this.buscarPorId(id);
+
+        if (Boolean.TRUE.equals(pacienteExistente.getAtivo())) {
+            pacienteExistente.setAtivo(false);
+            repository.save(pacienteExistente);
+        }
+    }
+
+    @Override
+    public void ativarPorId(Long id) {
+        Paciente pacienteExistente = this.buscarPorId(id);
+
+        if (Boolean.FALSE.equals(pacienteExistente.getAtivo())) {
+            pacienteExistente.setAtivo(true);
+            repository.save(pacienteExistente);
+        }
     }
 
 }

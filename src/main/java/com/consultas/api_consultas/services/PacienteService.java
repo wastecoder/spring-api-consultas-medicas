@@ -16,4 +16,8 @@ public interface PacienteService {
 
     void removerPorId(Long id);
 
+    void inativarPorId(Long id);
+
+    void ativarPorId(Long id);
+
 }
