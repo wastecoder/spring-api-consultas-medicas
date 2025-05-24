@@ -149,9 +149,16 @@ public class GlobalExceptionHandler {
         var status = HttpStatus.CONFLICT;
 
         String mensagem = "Violação de dados únicos. Verifique se já existe um registro com os mesmos valores.";
+        String causa = exception.getMostSpecificCause().getMessage();
 
-        if (exception.getMostSpecificCause().getMessage().contains("uk_medico_crm")) {
+        if (causa.contains("uk_medico_crm")) {
             mensagem = "Já existe um médico cadastrado com esse CRM (sigla e dígitos).";
+        } else if (causa.contains("uk_medico_email")) {
+            mensagem = "Já existe um médico cadastrado com esse e-mail.";
+        } else if (causa.contains("uk_paciente_email")) {
+            mensagem = "Já existe um paciente cadastrado com esse e-mail.";
+        } else if (causa.contains("uk_paciente_cpf")) {
+            mensagem = "Já existe um paciente cadastrado com esse CPF.";
         }
 
         log.warn("Constraint violada: {}", mensagem);
