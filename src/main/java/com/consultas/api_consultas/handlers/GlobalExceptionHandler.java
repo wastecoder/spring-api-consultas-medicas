@@ -5,7 +5,6 @@ import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,27 +24,27 @@ public class GlobalExceptionHandler {
     // Ocorre quando uma exceção inesperada não tratada cai no sistema
     // Ex: Qualquer erro que não tenha um tratamento específico neste Handler
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleUncaughtException(final Exception ex) {
+    public ResponseEntity<ErrorResponse> handleUncaughtException(final Exception exception) {
         var status = HttpStatus.INTERNAL_SERVER_ERROR;
 
-        log.error("Erro inesperado não tratado", ex);
+        log.error("Erro inesperado não tratado", exception);
 
-        ErrorResponse exception = new ErrorResponse(
+        ErrorResponse response = new ErrorResponse(
                 "Ocorreu um erro inesperado. Por favor, tente novamente mais tarde.",
                 status,
                 OffsetDateTime.now()
         );
 
-        return new ResponseEntity<>(exception, status);
+        return new ResponseEntity<>(response, status);
     }
 
     // Ocorre quando um ou mais campos da requisição falham na validação (@Valid)
     // Ex: um campo obrigatório está ausente ou um valor inválido foi enviado
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException exception) {
         var status = HttpStatus.BAD_REQUEST;
 
-        String mensagens = ex.getBindingResult()
+        String mensagens = exception.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
@@ -53,117 +52,117 @@ public class GlobalExceptionHandler {
 
         log.warn("Erro de validação: {}", mensagens);
 
-        ErrorResponse exception = new ErrorResponse(
+        ErrorResponse response = new ErrorResponse(
                 mensagens,
                 status,
                 OffsetDateTime.now()
         );
 
-        return new ResponseEntity<>(exception, status);
+        return new ResponseEntity<>(response, status);
     }
 
     // Ocorre quando uma regra de negócio é violada explicitamente no código
     // Ex: tentativa de excluir um médico ainda ativo
     @ExceptionHandler(BusinessRuleException.class)
-    public ResponseEntity<ErrorResponse> handleBusinessRule(final BusinessRuleException ex) {
+    public ResponseEntity<ErrorResponse> handleBusinessRule(final BusinessRuleException exception) {
         var status = HttpStatus.BAD_REQUEST;
 
-        log.warn("Violação de regra de negócio: {}", ex.getMessage());
+        log.warn("Violação de regra de negócio: {}", exception.getMessage());
 
-        ErrorResponse exception = new ErrorResponse(
-                ex.getMessage(),
+        ErrorResponse response = new ErrorResponse(
+                exception.getMessage(),
                 status,
                 OffsetDateTime.now()
         );
 
-        return new ResponseEntity<>(exception, status);
+        return new ResponseEntity<>(response, status);
     }
 
     // Ocorre quando a entidade requisitada não existe no banco de dados
     // Ex: buscar um médico por ID que não está cadastrado
     @ExceptionHandler(EntityNotFoundException.class)
-    public ResponseEntity<ErrorResponse> handleEntityNotFound(final EntityNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleEntityNotFound(final EntityNotFoundException exception) {
         var status = HttpStatus.NOT_FOUND;
 
-        log.warn("Recurso não encontrado: {}", ex.getMessage());
+        log.warn("Recurso não encontrado: {}", exception.getMessage());
 
-        ErrorResponse exception = new ErrorResponse(
-                ex.getMessage(),
+        ErrorResponse response = new ErrorResponse(
+                exception.getMessage(),
                 status,
                 OffsetDateTime.now()
         );
 
-        return new ResponseEntity<>(exception, status);
+        return new ResponseEntity<>(response, status);
     }
 
     // Ocorre quando o tipo de dado enviado não é compatível com o esperado pelo endpoint
     // Ex: envio de uma string "abc" para um campo que espera um número, como Long ou Integer
     // Essa exceção é lançada apenas em parâmetros de rota ou query (PathVariable ou RequestParam), não em dados do corpo (RequestBody)
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<ErrorResponse> handleTypeMismatch(final MethodArgumentTypeMismatchException ex) {
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(final MethodArgumentTypeMismatchException exception) {
         var status = HttpStatus.BAD_REQUEST;
 
-        String campo = ex.getPropertyName();
-        String tipoEsperado = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "desconhecido";
+        String campo = exception.getPropertyName();
+        String tipoEsperado = exception.getRequiredType() != null ? exception.getRequiredType().getSimpleName() : "desconhecido";
 
         String mensagem = String.format("Valor inválido para o campo [%s]. Tipo esperado: [%s].", campo, tipoEsperado);
 
-        log.warn("Tipo de dado incompatível: campo [{}], valor [{}], tipo esperado [{}]", campo, ex.getValue(), tipoEsperado);
+        log.warn("Tipo de dado incompatível: campo [{}], valor [{}], tipo esperado [{}]", campo, exception.getValue(), tipoEsperado);
 
-        ErrorResponse exception = new ErrorResponse(
+        ErrorResponse response = new ErrorResponse(
                 mensagem,
                 status,
                 OffsetDateTime.now()
         );
 
-        return new ResponseEntity<>(exception, status);
+        return new ResponseEntity<>(response, status);
     }
 
     // Ocorre quando é enviado um valor inválido para um campo enum
     // Ex: envio de "A" para o campo crmSigla, que espera um valor como "SP", "RJ", etc.
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleInvalidEnumValue(HttpMessageNotReadableException ex) {
+    public ResponseEntity<ErrorResponse> handleInvalidEnumValue(HttpMessageNotReadableException exception) {
         var status = HttpStatus.BAD_REQUEST;
 
         String mensagem = "Valor inválido fornecido para um dos campos. Verifique se os valores estão corretos.";
 
-        if (ex.getCause() instanceof InvalidFormatException invalid) {
+        if (exception.getCause() instanceof InvalidFormatException invalid) {
             var campo = invalid.getPath().get(0).getFieldName();
             mensagem = "Valor inválido para o campo [" + campo + "].";
         }
 
         log.warn("Enum inválido: {}", mensagem);
 
-        ErrorResponse exception = new ErrorResponse(
+        ErrorResponse response = new ErrorResponse(
                 mensagem,
                 status,
                 OffsetDateTime.now()
         );
 
-        return new ResponseEntity<>(exception, status);
+        return new ResponseEntity<>(response, status);
     }
 
     // Ocorre quando há violação de integridade no banco, como duplicidade em campos únicos
     // Ex: tentativa de cadastrar um médico com crmSigla e crmDigitos já existentes
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorResponse> handleDatabaseConstraintViolation(DataIntegrityViolationException ex) {
+    public ResponseEntity<ErrorResponse> handleDatabaseConstraintViolation(DataIntegrityViolationException exception) {
         var status = HttpStatus.CONFLICT;
 
         String mensagem = "Violação de dados únicos. Verifique se já existe um registro com os mesmos valores.";
 
-        if (ex.getMostSpecificCause().getMessage().contains("uk_medico_crm")) {
+        if (exception.getMostSpecificCause().getMessage().contains("uk_medico_crm")) {
             mensagem = "Já existe um médico cadastrado com esse CRM (sigla e dígitos).";
         }
 
         log.warn("Constraint violada: {}", mensagem);
 
-        ErrorResponse exception = new ErrorResponse(
+        ErrorResponse response = new ErrorResponse(
                 mensagem,
                 status,
                 OffsetDateTime.now()
         );
 
-        return new ResponseEntity<>(exception, status);
+        return new ResponseEntity<>(response, status);
     }
 
 }
