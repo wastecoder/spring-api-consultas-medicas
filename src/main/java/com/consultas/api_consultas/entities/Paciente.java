@@ -8,12 +8,18 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @Entity
+@Table(
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_paciente_cpf", columnNames = "cpf"),
+                @UniqueConstraint(name = "uk_paciente_email", columnNames = "email")
+        }
+)
 @Data
 @EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
 public class Paciente extends Pessoa {
 
-    @Column(length = 11, nullable = false, unique = true)
+    @Column(length = 11, nullable = false)
     private String cpf;
 
     @Column(nullable = false)

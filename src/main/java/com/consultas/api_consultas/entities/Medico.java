@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 
 @Entity
 @Table(
-        uniqueConstraints = @UniqueConstraint(
-                name = "uk_medico_crm",
-                columnNames = {"crmSigla", "crmDigitos"}
-        )
+        uniqueConstraints = {
+                @UniqueConstraint(name = "uk_medico_crm", columnNames = {"crmSigla", "crmDigitos"}),
+                @UniqueConstraint(name = "uk_medico_email", columnNames = "email")
+        }
 )
 @Data
 @EqualsAndHashCode(callSuper = true)
