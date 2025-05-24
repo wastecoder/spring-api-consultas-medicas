@@ -6,7 +6,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Data
@@ -18,7 +21,13 @@ public class Consulta {
     private Long id;
 
     @Column(nullable = false)
-    private LocalDateTime dataAtendimento;
+    private LocalDate dataAtendimento;
+
+    @Column(nullable = false)
+    private LocalTime horarioAtendimento;
+
+    @Column(nullable = false)
+    private Duration duracaoEmMinutos;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime dataAgendamento;
@@ -41,15 +50,38 @@ public class Consulta {
     private Paciente paciente;
 
 
-    public Consulta(LocalDateTime dataAtendimento, BigDecimal preco, Medico medico, Paciente paciente, String motivo, StatusConsulta status) {
+    @PrePersist
+    public void definirDataAgendamento() {
+        this.dataAgendamento = LocalDateTime.now();
+    }
+
+    public Consulta(
+            LocalDate dataAtendimento,
+            LocalTime horarioAtendimento,
+            Duration duracaoEmMinutos,
+            BigDecimal preco,
+            String motivo,
+            Medico medico,
+            Paciente paciente,
+            StatusConsulta status
+    ) {
         this.dataAtendimento = dataAtendimento;
+        this.horarioAtendimento = horarioAtendimento;
+        this.duracaoEmMinutos = duracaoEmMinutos;
         this.preco = preco;
+        this.motivo = motivo;
         this.medico = medico;
         this.paciente = paciente;
-        this.motivo = motivo;
         this.status = status;
+    }
 
-        this.dataAgendamento = LocalDateTime.now();
+
+    public LocalDateTime getInicio() {
+        return LocalDateTime.of(dataAtendimento, horarioAtendimento);
+    }
+
+    public LocalDateTime getFim() {
+        return getInicio().plus(duracaoEmMinutos);
     }
 
 }
