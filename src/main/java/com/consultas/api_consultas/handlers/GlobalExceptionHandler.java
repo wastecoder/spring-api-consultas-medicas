@@ -5,6 +5,7 @@ import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.hibernate.TypeMismatchException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.OffsetDateTime;
 import java.util.stream.Collectors;
@@ -87,6 +89,29 @@ public class GlobalExceptionHandler {
 
         ErrorResponse exception = new ErrorResponse(
                 ex.getMessage(),
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(exception, status);
+    }
+
+    // Ocorre quando o tipo de dado enviado não é compatível com o esperado pelo endpoint
+    // Ex: envio de uma string "abc" para um campo que espera um número, como Long ou Integer
+    // Essa exceção é lançada apenas em parâmetros de rota ou query (PathVariable ou RequestParam), não em dados do corpo (RequestBody)
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(final MethodArgumentTypeMismatchException ex) {
+        var status = HttpStatus.BAD_REQUEST;
+
+        String campo = ex.getPropertyName();
+        String tipoEsperado = ex.getRequiredType() != null ? ex.getRequiredType().getSimpleName() : "desconhecido";
+
+        String mensagem = String.format("Valor inválido para o campo [%s]. Tipo esperado: [%s].", campo, tipoEsperado);
+
+        log.warn("Tipo de dado incompatível: campo [{}], valor [{}], tipo esperado [{}]", campo, ex.getValue(), tipoEsperado);
+
+        ErrorResponse exception = new ErrorResponse(
+                mensagem,
                 status,
                 OffsetDateTime.now()
         );
