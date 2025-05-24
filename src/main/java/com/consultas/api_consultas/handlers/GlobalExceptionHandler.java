@@ -3,6 +3,7 @@ package com.consultas.api_consultas.handlers;
 import com.consultas.api_consultas.dtos.respostas.ErrorResponse;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
@@ -66,6 +67,23 @@ public class GlobalExceptionHandler {
         var status = HttpStatus.BAD_REQUEST;
 
         log.warn("Violação de regra de negócio: {}", ex.getMessage());
+
+        ErrorResponse exception = new ErrorResponse(
+                ex.getMessage(),
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(exception, status);
+    }
+
+    // Ocorre quando a entidade requisitada não existe no banco de dados
+    // Ex: buscar um médico por ID que não está cadastrado
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<ErrorResponse> handleEntityNotFound(final EntityNotFoundException ex) {
+        var status = HttpStatus.NOT_FOUND;
+
+        log.warn("Recurso não encontrado: {}", ex.getMessage());
 
         ErrorResponse exception = new ErrorResponse(
                 ex.getMessage(),
