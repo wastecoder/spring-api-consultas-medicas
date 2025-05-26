@@ -1,10 +1,11 @@
 package com.consultas.api_consultas.dtos.respostas;
 
 import com.consultas.api_consultas.entities.Medico;
-import lombok.Data;
+import com.consultas.api_consultas.enums.SiglaCrm;
+import lombok.Getter;
 
-@Data
-public class MedicoDetalhadoDto {
+@Getter
+public class MedicoResposta {
 
     private Long id;
 
@@ -12,7 +13,9 @@ public class MedicoDetalhadoDto {
 
     private String email;
 
-    private String crm;
+    private SiglaCrm crmSigla;
+
+    private String crmDigitos;
 
     private String especialidade;
 
@@ -20,11 +23,13 @@ public class MedicoDetalhadoDto {
 
     private Boolean ativo;
 
-    public MedicoDetalhadoDto(Medico medico) {
+
+    public MedicoResposta(Medico medico) {
         this.id = medico.getId();
         this.nome = medico.getNome();
         this.email = medico.getEmail();
-        this.crm = "CRM/" + medico.getCrmSigla() + " " + medico.getCrmDigitos();
+        this.crmSigla = medico.getCrmSigla();
+        this.crmDigitos = medico.getCrmDigitos();
         this.especialidade = medico.getEspecialidade();
         this.telefone = medico.getTelefone();
         this.ativo = medico.getAtivo();
