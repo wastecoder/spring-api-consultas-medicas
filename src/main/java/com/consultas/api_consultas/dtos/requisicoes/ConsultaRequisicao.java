@@ -44,7 +44,7 @@ public class ConsultaRequisicao {
     private StatusConsulta status;
 
     @NotNull(message = "ID do médico é obrigatório")
-    @Positive(message = "ID do médico deve ser maior do que 0") //ID não tem como ser 0, certo?
+    @Positive(message = "ID do médico deve ser maior do que 0")
     private Long medicoId;
 
     @NotNull(message = "ID do paciente é obrigatório")
