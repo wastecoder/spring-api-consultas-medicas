@@ -63,4 +63,8 @@ public class FormatoUtils {
         return formatoMoeda.format(preco);
     }
 
+    public static String formatarStatusAtivo(Boolean ativo) {
+        return Boolean.TRUE.equals(ativo) ? "ativo" : "inativo";
+    }
+
 }
