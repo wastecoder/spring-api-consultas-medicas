@@ -1,7 +1,7 @@
 package com.consultas.api_consultas.controllers;
 
 import com.consultas.api_consultas.dtos.requisicoes.ConsultaRequisicao;
-import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
+import com.consultas.api_consultas.dtos.respostas.ConsultaRespostaFormatada;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.services.ConsultaService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,20 +30,20 @@ public class ConsultaController {
     @Operation(summary = "Cadastrar nova consulta")
     @ApiResponse(responseCode = "201", description = "Consulta cadastrada com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para cadastro", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<ConsultaResposta> salvarCadastroConsulta(@RequestBody @Valid final ConsultaRequisicao requisicao) {
+    public ResponseEntity<ConsultaRespostaFormatada> salvarCadastroConsulta(@RequestBody @Valid final ConsultaRequisicao requisicao) {
         Consulta consultaNova = requisicao.dtoParaConsulta();
         Consulta consultaSalva = consultaService.salvar(consultaNova);
-        ConsultaResposta resposta = new ConsultaResposta(consultaSalva);
+        ConsultaRespostaFormatada resposta = new ConsultaRespostaFormatada(consultaSalva);
         return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
     @GetMapping
     @Operation(summary = "Listar todas as consultas")
     @ApiResponse(responseCode = "200", description = "Lista de consultas retornada com sucesso")
-    public ResponseEntity<List<ConsultaResposta>> listarTodasConsultas() {
+    public ResponseEntity<List<ConsultaRespostaFormatada>> listarTodasConsultas() {
         List<Consulta> consultas = consultaService.buscarTodos();
-        List<ConsultaResposta> reposta = consultas.stream()
-                .map(ConsultaResposta::new)
+        List<ConsultaRespostaFormatada> reposta = consultas.stream()
+                .map(ConsultaRespostaFormatada::new)
                 .toList();
         return ResponseEntity.ok(reposta);
     }
@@ -52,9 +52,9 @@ public class ConsultaController {
     @Operation(summary = "Buscar consultas por ID")
     @ApiResponse(responseCode = "200", description = "Consulta encontrada")
     @ApiResponse(responseCode = "404", description = "Consulta não encontrada", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<ConsultaResposta> buscarConsultaPorId(@PathVariable Long id) {
+    public ResponseEntity<ConsultaRespostaFormatada> buscarConsultaPorId(@PathVariable Long id) {
         Consulta consultaRetornada = consultaService.buscarPorId(id);
-        ConsultaResposta reposta = new ConsultaResposta(consultaRetornada);
+        ConsultaRespostaFormatada reposta = new ConsultaRespostaFormatada(consultaRetornada);
         return ResponseEntity.ok(reposta);
     }
 
@@ -63,10 +63,10 @@ public class ConsultaController {
     @ApiResponse(responseCode = "200", description = "Consulta atualizada com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para edição", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "404", description = "Consulta não encontrada", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<ConsultaResposta> editarConsultaPorId(@PathVariable Long id, @RequestBody @Valid final ConsultaRequisicao requisicao) {
+    public ResponseEntity<ConsultaRespostaFormatada> editarConsultaPorId(@PathVariable Long id, @RequestBody @Valid final ConsultaRequisicao requisicao) {
         Consulta consultaAtualizada = requisicao.dtoParaConsulta();
         Consulta consultaSalva = consultaService.atualizar(id, consultaAtualizada);
-        ConsultaResposta reposta = new ConsultaResposta(consultaSalva);
+        ConsultaRespostaFormatada reposta = new ConsultaRespostaFormatada(consultaSalva);
         return ResponseEntity.ok(reposta);
     }
 
