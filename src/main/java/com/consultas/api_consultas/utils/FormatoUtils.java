@@ -1,5 +1,7 @@
 package com.consultas.api_consultas.utils;
 
+import com.consultas.api_consultas.enums.SiglaCrm;
+
 import java.math.BigDecimal;
 import java.text.NumberFormat;
 import java.time.LocalDate;
@@ -65,6 +67,10 @@ public class FormatoUtils {
 
     public static String formatarStatusAtivo(Boolean ativo) {
         return Boolean.TRUE.equals(ativo) ? "ativo" : "inativo";
+    }
+
+    public static String formatarCrm(SiglaCrm sigla, String digitos) {
+        return "CRM/" + sigla + " " + digitos;
     }
 
 }
