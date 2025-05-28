@@ -1,7 +1,7 @@
 package com.consultas.api_consultas.controllers;
 
 import com.consultas.api_consultas.dtos.requisicoes.PacienteRequisicao;
-import com.consultas.api_consultas.dtos.respostas.PacienteRespostaFormatada;
+import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.services.PacienteService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,20 +30,20 @@ public class PacienteController {
     @Operation(summary = "Cadastrar novo paciente")
     @ApiResponse(responseCode = "201", description = "Paciente cadastrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para cadastro", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<PacienteRespostaFormatada> salvarCadastroPaciente(@RequestBody @Valid final PacienteRequisicao requisicao) {
+    public ResponseEntity<PacienteResposta> salvarCadastroPaciente(@RequestBody @Valid final PacienteRequisicao requisicao) {
         Paciente pacienteNovo = requisicao.dtoParaPaciente();
         Paciente pacienteSalvo = pacienteService.salvar(pacienteNovo);
-        PacienteRespostaFormatada dto = new PacienteRespostaFormatada(pacienteSalvo);
+        PacienteResposta dto = new PacienteResposta(pacienteSalvo);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
     @GetMapping
     @Operation(summary = "Listar todos os pacientes")
     @ApiResponse(responseCode = "200", description = "Lista de pacientes retornada com sucesso")
-    public ResponseEntity<List<PacienteRespostaFormatada>> listarTodosPacientes() {
+    public ResponseEntity<List<PacienteResposta>> listarTodosPacientes() {
         List<Paciente> pacientes = pacienteService.buscarTodos();
-        List<PacienteRespostaFormatada> dtos = pacientes.stream()
-                .map(PacienteRespostaFormatada::new)
+        List<PacienteResposta> dtos = pacientes.stream()
+                .map(PacienteResposta::new)
                 .toList();
         return ResponseEntity.ok(dtos);
     }
@@ -52,9 +52,9 @@ public class PacienteController {
     @Operation(summary = "Buscar paciente por ID")
     @ApiResponse(responseCode = "200", description = "Paciente encontrado")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<PacienteRespostaFormatada> buscarPacientePorId(@PathVariable Long id) {
+    public ResponseEntity<PacienteResposta> buscarPacientePorId(@PathVariable Long id) {
         Paciente pacienteRetornado = pacienteService.buscarPorId(id);
-        PacienteRespostaFormatada dto = new PacienteRespostaFormatada(pacienteRetornado);
+        PacienteResposta dto = new PacienteResposta(pacienteRetornado);
         return ResponseEntity.ok(dto);
     }
 
@@ -64,10 +64,10 @@ public class PacienteController {
     @ApiResponse(responseCode = "400", description = "Dados inválidos para edição", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "409", description = "Já existe um paciente cadastrado com o mesmo e-mail", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<PacienteRespostaFormatada> editarPacientePorId(@PathVariable Long id, @RequestBody @Valid final PacienteRequisicao requisicao) {
+    public ResponseEntity<PacienteResposta> editarPacientePorId(@PathVariable Long id, @RequestBody @Valid final PacienteRequisicao requisicao) {
         Paciente pacienteAtualizado = requisicao.dtoParaPaciente();
         Paciente pacienteSalvo = pacienteService.atualizar(id, pacienteAtualizado);
-        PacienteRespostaFormatada dto = new PacienteRespostaFormatada(pacienteSalvo);
+        PacienteResposta dto = new PacienteResposta(pacienteSalvo);
         return ResponseEntity.ok(dto);
     }
 

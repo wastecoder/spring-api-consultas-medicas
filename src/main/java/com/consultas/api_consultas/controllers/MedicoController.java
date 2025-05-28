@@ -1,7 +1,7 @@
 package com.consultas.api_consultas.controllers;
 
 import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
-import com.consultas.api_consultas.dtos.respostas.MedicoRespostaFormatada;
+import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.services.MedicoService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,20 +30,20 @@ public class MedicoController {
     @Operation(summary = "Cadastrar novo médico")
     @ApiResponse(responseCode = "201", description = "Médico cadastrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para cadastro", content = @Content(schema = @Schema(hidden = true)))
-    public MedicoRespostaFormatada salvarCadastroMedico(@RequestBody @Valid final MedicoRequisicao requisicao) {
+    public MedicoResposta salvarCadastroMedico(@RequestBody @Valid final MedicoRequisicao requisicao) {
         Medico medicoNovo = requisicao.dtoParaMedico();
         Medico medicoSalvo = medicoService.salvar(medicoNovo);
-        return new MedicoRespostaFormatada(medicoSalvo);
+        return new MedicoResposta(medicoSalvo);
     }
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     @Operation(summary = "Listar todos os médicos")
     @ApiResponse(responseCode = "200", description = "Lista de médicos retornada com sucesso")
-    public List<MedicoRespostaFormatada> listarTodosMedicos() {
+    public List<MedicoResposta> listarTodosMedicos() {
         List<Medico> medicos = medicoService.buscarTodos();
         return medicos.stream()
-                .map(MedicoRespostaFormatada::new)
+                .map(MedicoResposta::new)
                 .toList();
     }
 
@@ -52,9 +52,9 @@ public class MedicoController {
     @Operation(summary = "Buscar médico por ID")
     @ApiResponse(responseCode = "200", description = "Médico encontrado")
     @ApiResponse(responseCode = "404", description = "Médico não encontrado", content = @Content(schema = @Schema(hidden = true)))
-    public MedicoRespostaFormatada buscarMedicoPorId(@PathVariable Long id) {
+    public MedicoResposta buscarMedicoPorId(@PathVariable Long id) {
         Medico medico = medicoService.buscarPorId(id);
-        return new MedicoRespostaFormatada(medico);
+        return new MedicoResposta(medico);
     }
 
     @PutMapping("/{id}")
@@ -64,10 +64,10 @@ public class MedicoController {
     @ApiResponse(responseCode = "400", description = "Dados inválidos para edição", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "404", description = "Médico não encontrado", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "409", description = "Já existe um médico cadastrado com o mesmo CRM ou e-mail", content = @Content(schema = @Schema(hidden = true)))
-    public MedicoRespostaFormatada editarPorId(@PathVariable Long id, @RequestBody @Valid final MedicoRequisicao requisicao) {
+    public MedicoResposta editarPorId(@PathVariable Long id, @RequestBody @Valid final MedicoRequisicao requisicao) {
         Medico medicoAtualizado = requisicao.dtoParaMedico();
         Medico medicoSalvo = medicoService.atualizar(id, medicoAtualizado);
-        return new MedicoRespostaFormatada(medicoSalvo);
+        return new MedicoResposta(medicoSalvo);
     }
 
     @DeleteMapping("/{id}")
