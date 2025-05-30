@@ -34,6 +34,14 @@ public class MedicoServiceImpl implements MedicoService {
     }
 
     @Override
+    public List<Medico> buscarPorAtivo(Boolean ativo) {
+        if (ativo == null) {
+            return repository.findByAtivoTrue();
+        }
+        return repository.findByAtivo(ativo);
+    }
+
+    @Override
     public Medico atualizar(Long id, Medico medicoAtualizado) {
         Medico medicoExistente = this.buscarPorId(id);
 

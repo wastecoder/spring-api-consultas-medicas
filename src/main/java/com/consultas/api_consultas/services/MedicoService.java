@@ -12,6 +12,8 @@ public interface MedicoService {
 
     Medico buscarPorId(Long id);
 
+    List<Medico> buscarPorAtivo(Boolean ativo);
+
     Medico atualizar(Long id, Medico medicoAtualizado);
 
     void removerPorId(Long id);
