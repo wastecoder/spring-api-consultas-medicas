@@ -51,8 +51,9 @@ public class Consulta {
 
 
     @PrePersist
-    public void definirDataAgendamento() {
+    public void definirDataAgendamentoEStatusConsulta() {
         this.dataAgendamento = LocalDateTime.now();
+        this.status = StatusConsulta.AGENDADA;
     }
 
     public Consulta(
@@ -62,8 +63,7 @@ public class Consulta {
             BigDecimal preco,
             String motivo,
             Medico medico,
-            Paciente paciente,
-            StatusConsulta status
+            Paciente paciente
     ) {
         this.dataAtendimento = dataAtendimento;
         this.horarioAtendimento = horarioAtendimento;
@@ -72,7 +72,6 @@ public class Consulta {
         this.motivo = motivo;
         this.medico = medico;
         this.paciente = paciente;
-        this.status = status;
     }
 
 
