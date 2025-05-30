@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.dtos.requisicoes;
 
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import jakarta.validation.constraints.*;
 import lombok.Data;
@@ -30,9 +31,8 @@ public class MedicoRequisicao {
     )
     private String crmDigitos;
 
-    @NotBlank(message = "Especialidade é obrigatória")
-    @Size(min = 5, max = 50, message = "Especialidade deve ter entre 5 a 50 caracteres")
-    private String especialidade;
+    @NotNull(message = "Especialidade é obrigatória")
+    private Especialidade especialidade;
 
     @NotBlank(message = "Telefone é obrigatório")
     @Size(min = 10, max = 11, message = "Telefone deve ter entre 10 a 11 números")
