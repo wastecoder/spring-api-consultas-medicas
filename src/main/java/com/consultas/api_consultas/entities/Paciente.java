@@ -1,5 +1,6 @@
 package com.consultas.api_consultas.entities;
 
+import com.consultas.api_consultas.enums.Sexo;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,12 +23,17 @@ public class Paciente extends Pessoa {
     @Column(length = 11, nullable = false)
     private String cpf;
 
+    @Column(length = 9, nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Sexo sexo;
+
     @Column(nullable = false)
     private LocalDate dataNascimento;
 
 
-    public Paciente(String nome, String email, String telefone, String cpf, LocalDate dataNascimento) {
+    public Paciente(String nome, String email, String telefone, String cpf, Sexo sexo, LocalDate dataNascimento) {
         super(nome, email, telefone);
+        this.sexo = sexo;
         this.cpf = cpf;
         this.dataNascimento = dataNascimento;
     }

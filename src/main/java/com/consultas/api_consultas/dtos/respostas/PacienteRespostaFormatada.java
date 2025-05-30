@@ -15,6 +15,8 @@ public class PacienteRespostaFormatada {
 
     private String cpf;
 
+    private String sexo;
+
     private String dataNascimento;
 
     private String telefone;
@@ -27,6 +29,7 @@ public class PacienteRespostaFormatada {
         this.nome = paciente.getNome();
         this.email = paciente.getEmail();
         this.cpf = FormatoUtils.formatarCpf(paciente.getCpf());
+        this.sexo = paciente.getSexo().name();
         this.dataNascimento = FormatoUtils.formatarData(paciente.getDataNascimento());
         this.telefone = FormatoUtils.formatarTelefone(paciente.getTelefone());
         this.ativo = FormatoUtils.formatarStatusAtivo(paciente.getAtivo());

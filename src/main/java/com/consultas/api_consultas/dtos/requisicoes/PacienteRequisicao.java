@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.dtos.requisicoes;
 
 import com.consultas.api_consultas.entities.Paciente;
+import com.consultas.api_consultas.enums.Sexo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -33,6 +34,9 @@ public class PacienteRequisicao {
     )
     private String cpf;
 
+    @NotNull(message = "Sexo é obrigatório")
+    private Sexo sexo;
+
     @NotNull(message = "Data de nascimento é obrigatória")
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate dataNascimento;
@@ -50,6 +54,7 @@ public class PacienteRequisicao {
         paciente.setNome(this.getNome());
         paciente.setEmail(this.getEmail());
         paciente.setCpf(this.getCpf());
+        paciente.setSexo(this.getSexo());
         paciente.setDataNascimento(this.getDataNascimento());
         paciente.setTelefone(this.getTelefone());
         return paciente;

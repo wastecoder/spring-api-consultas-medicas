@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.dtos.respostas;
 
 import com.consultas.api_consultas.entities.Paciente;
+import com.consultas.api_consultas.enums.Sexo;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -16,6 +17,8 @@ public class PacienteResposta {
 
     private String cpf;
 
+    private Sexo sexo;
+
     private LocalDate dataNascimento;
 
     private String telefone;
@@ -27,7 +30,8 @@ public class PacienteResposta {
         this.id = paciente.getId();
         this.nome = paciente.getNome();
         this.email = paciente.getEmail();
-        this.cpf = paciente.getEmail();
+        this.cpf = paciente.getCpf();
+        this.sexo = paciente.getSexo();
         this.dataNascimento = paciente.getDataNascimento();
         this.telefone = paciente.getTelefone();
         this.ativo = paciente.getAtivo();
