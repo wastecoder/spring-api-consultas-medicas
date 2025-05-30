@@ -38,10 +38,12 @@ public class MedicoController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Listar todos os médicos")
+    @Operation(summary = "Listar médicos, podendo filtrar por ativo")
     @ApiResponse(responseCode = "200", description = "Lista de médicos retornada com sucesso")
-    public List<MedicoResposta> listarTodosMedicos() {
-        List<Medico> medicos = medicoService.buscarTodos();
+    public List<MedicoResposta> listarMedicos(
+            @RequestParam(value = "ativo", required = false) Boolean ativo
+    ) {
+        List<Medico> medicos = medicoService.buscarPorAtivo(ativo);
         return medicos.stream()
                 .map(MedicoResposta::new)
                 .toList();
