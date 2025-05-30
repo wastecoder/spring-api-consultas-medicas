@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services;
 
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.enums.SiglaCrm;
 
 import java.util.List;
 
@@ -12,7 +13,7 @@ public interface MedicoService {
 
     Medico buscarPorId(Long id);
 
-    List<Medico> buscarPorNomeEAtivo(String nome, Boolean ativo);
+    List<Medico> buscarMedicos(String nome, SiglaCrm crmSigla, String crmDigitos, Boolean ativo);
 
     Medico atualizar(Long id, Medico medicoAtualizado);
 

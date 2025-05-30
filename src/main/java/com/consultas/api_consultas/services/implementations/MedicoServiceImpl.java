@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.repositories.MedicoRepository;
 import com.consultas.api_consultas.services.MedicoService;
@@ -34,12 +35,22 @@ public class MedicoServiceImpl implements MedicoService {
     }
 
     @Override
-    public List<Medico> buscarPorNomeEAtivo(String nome, Boolean ativo) {
-        Boolean filtroAtivo = (ativo != null) ? ativo : true;
+    public List<Medico> buscarMedicos(String nome, SiglaCrm crmSigla, String crmDigitos, Boolean ativo) {
+        boolean nomeInformado = nome != null && !nome.trim().isEmpty();
+        boolean crmInformado = crmSigla != null && crmDigitos != null && !crmDigitos.trim().isEmpty();
+        boolean filtroAtivo = (ativo != null) ? ativo : true;
 
-        if (nome != null && !nome.trim().isEmpty()) {
-            return repository.findByNomeContainingIgnoreCaseAndAtivo(nome, ativo);
+        // Prioridade 1: ativo + nome
+        if (nomeInformado) {
+            return repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo);
         }
+
+        // Prioridade 2: ativo + CRM (Sigla + Dígitos)
+        if (crmInformado) {
+            return repository.findByCrmSiglaAndCrmDigitosAndAtivo(crmSigla, crmDigitos, filtroAtivo);
+        }
+
+        // Prioridade 3: ativo ou nenhum filtro
         return repository.findByAtivo(filtroAtivo);
     }
 
