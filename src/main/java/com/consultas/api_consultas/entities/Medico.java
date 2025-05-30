@@ -1,5 +1,6 @@
 package com.consultas.api_consultas.entities;
 
+import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -26,10 +27,11 @@ public class Medico extends Pessoa {
     private String crmDigitos;
 
     @Column(length = 50, nullable = false)
-    private String especialidade;
+    @Enumerated(EnumType.STRING)
+    private Especialidade especialidade;
 
 
-    public Medico(String nome, String email, String telefone, SiglaCrm crmSigla, String crmDigitos, String especialidade) {
+    public Medico(String nome, String email, String telefone, SiglaCrm crmSigla, String crmDigitos, Especialidade especialidade) {
         super(nome, email, telefone);
         this.crmSigla = crmSigla;
         this.crmDigitos = crmDigitos;

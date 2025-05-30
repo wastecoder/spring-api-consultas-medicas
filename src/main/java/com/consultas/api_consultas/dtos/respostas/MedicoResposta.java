@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.dtos.respostas;
 
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import lombok.Getter;
 
@@ -17,7 +18,7 @@ public class MedicoResposta {
 
     private String crmDigitos;
 
-    private String especialidade;
+    private Especialidade especialidade;
 
     private String telefone;
 

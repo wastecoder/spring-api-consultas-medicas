@@ -27,7 +27,7 @@ public class MedicoRespostaFormatada {
         this.nome = medico.getNome();
         this.email = medico.getEmail();
         this.crm = FormatoUtils.formatarCrm(medico.getCrmSigla(), medico.getCrmDigitos());
-        this.especialidade = medico.getEspecialidade();
+        this.especialidade = medico.getEspecialidade().name();
         this.telefone = FormatoUtils.formatarTelefone(medico.getTelefone());
         this.ativo = FormatoUtils.formatarStatusAtivo(medico.getAtivo());
     }
