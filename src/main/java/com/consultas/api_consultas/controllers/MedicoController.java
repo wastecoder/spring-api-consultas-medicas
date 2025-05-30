@@ -3,6 +3,7 @@ package com.consultas.api_consultas.controllers;
 import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
 import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.services.MedicoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -38,13 +39,15 @@ public class MedicoController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    @Operation(summary = "Listar médicos, podendo filtrar por nome e ativo")
+    @Operation(summary = "Listar médicos, podendo filtrar por nome, CRM (sigla + dígitos) e ativo")
     @ApiResponse(responseCode = "200", description = "Lista de médicos retornada com sucesso")
     public List<MedicoResposta> listarMedicos(
             @RequestParam(value = "nome", required = false) String nome,
+            @RequestParam(value = "crmSigla", required = false) SiglaCrm crmSigla,
+            @RequestParam(value = "crmDigitos", required = false) String crmDigitos,
             @RequestParam(value = "ativo", required = false) Boolean ativo
     ) {
-        List<Medico> medicos = medicoService.buscarPorNomeEAtivo(nome, ativo);
+        List<Medico> medicos = medicoService.buscarMedicos(nome, crmSigla, crmDigitos, ativo);
         return medicos.stream()
                 .map(MedicoResposta::new)
                 .toList();
