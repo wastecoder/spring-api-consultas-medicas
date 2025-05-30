@@ -12,7 +12,7 @@ public interface MedicoService {
 
     Medico buscarPorId(Long id);
 
-    List<Medico> buscarPorAtivo(Boolean ativo);
+    List<Medico> buscarPorNomeEAtivo(String nome, Boolean ativo);
 
     Medico atualizar(Long id, Medico medicoAtualizado);
 

@@ -34,11 +34,13 @@ public class MedicoServiceImpl implements MedicoService {
     }
 
     @Override
-    public List<Medico> buscarPorAtivo(Boolean ativo) {
-        if (ativo == null) {
-            return repository.findByAtivoTrue();
+    public List<Medico> buscarPorNomeEAtivo(String nome, Boolean ativo) {
+        Boolean filtroAtivo = (ativo != null) ? ativo : true;
+
+        if (nome != null && !nome.trim().isEmpty()) {
+            return repository.findByNomeContainingIgnoreCaseAndAtivo(nome, ativo);
         }
-        return repository.findByAtivo(ativo);
+        return repository.findByAtivo(filtroAtivo);
     }
 
     @Override
