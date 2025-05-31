@@ -47,7 +47,8 @@ public class MedicoServiceImpl implements MedicoService {
 
         // Prioridade 2: ativo + CRM (Sigla + Dígitos)
         if (crmInformado) {
-            return repository.findByCrmSiglaAndCrmDigitosAndAtivo(crmSigla, crmDigitos, filtroAtivo);
+            return repository.findByCrmSiglaAndCrmDigitosAndAtivo(crmSigla, crmDigitos, filtroAtivo)
+                    .map(List::of).orElseGet(List::of);
         }
 
         // Prioridade 3: ativo ou nenhum filtro
