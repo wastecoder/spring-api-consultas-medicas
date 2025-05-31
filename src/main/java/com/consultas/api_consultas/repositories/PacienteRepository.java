@@ -16,7 +16,7 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
     List<Paciente> findByAtivo(boolean ativo, Sort sort);
 
     // Pesquisa por CPF
-    Optional<Paciente> findByCpf(String cpf, Sort sort);
+    Optional<Paciente> findByCpf(String cpf);
 
     // Filtro combinado: ativo + nome (parcial e ignorando maiúsculas/minúsculas)
     List<Paciente> findByNomeContainingIgnoreCaseAndAtivo(String nome, boolean ativo, Sort sort);
