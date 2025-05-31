@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
@@ -23,13 +24,15 @@ class MedicoRepositoryTest {
     @Autowired
     MedicoRepository medicoRepository;
 
+    private final Sort ORDENAR_POR_NOME = Sort.by("nome").ascending();
+
     @BeforeEach
     void setUp() {
-        var medicosCadastrados = cadastrarQuatroMedicos();
+        var medicosCadastrados = cadastrarCincoMedicos();
         desativarSegundaMetadeDosMedicos(medicosCadastrados);
     }
 
-    private List<Medico> cadastrarQuatroMedicos() {
+    private List<Medico> cadastrarCincoMedicos() {
         return medicoRepository.saveAll(List.of(
                 new Medico("Joao Pedro", "joao.pedro@medexample.com", "11912345678", SiglaCrm.SP, "123456", Especialidade.CARDIOLOGIA),
                 new Medico("Maria Luiza", "maria.luiza@medexample.com", "85977889900", SiglaCrm.CE, "654321", Especialidade.ORTOPEDIA),
@@ -55,7 +58,7 @@ class MedicoRepositoryTest {
         @Test
         @DisplayName("Deve retornar apenas médicos ativos")
         void shouldReturnOnlyActiveDoctors() {
-            var medicos = medicoRepository.findByAtivo(true);
+            var medicos = medicoRepository.findByAtivo(true, ORDENAR_POR_NOME);
 
             assertEquals(2, medicos.size());
             assertEquals("Joao Pedro", medicos.get(0).getNome());
@@ -66,12 +69,12 @@ class MedicoRepositoryTest {
         @Test
         @DisplayName("Deve retornar apenas médicos inativos")
         void shouldReturnOnlyInactiveDoctors() {
-            var medicos = medicoRepository.findByAtivo(false);
+            var medicos = medicoRepository.findByAtivo(false, ORDENAR_POR_NOME);
 
             assertEquals(3, medicos.size());
-            assertEquals("Joao Vitor", medicos.get(0).getNome());
-            assertEquals("Maria Clara", medicos.get(1).getNome());
-            assertEquals("Joao Kleber", medicos.get(2).getNome());
+            assertEquals("Joao Kleber", medicos.get(0).getNome());
+            assertEquals("Joao Vitor", medicos.get(1).getNome());
+            assertEquals("Maria Clara", medicos.get(2).getNome());
             assertFalse(medicos.stream().allMatch(Medico::getAtivo));
         }
     }
@@ -81,7 +84,7 @@ class MedicoRepositoryTest {
         @Test
         @DisplayName("Deve retornar as 'Maria' entre os médicos ativos")
         void shouldReturnActiveDoctorsByPartialName() {
-            var medicos = medicoRepository.findByNomeContainingIgnoreCaseAndAtivo("Maria", true);
+            var medicos = medicoRepository.findByNomeContainingIgnoreCaseAndAtivo("Maria", true, ORDENAR_POR_NOME);
 
             assertEquals(1, medicos.size());
             assertEquals("Maria Luiza", medicos.get(0).getNome());
@@ -91,11 +94,11 @@ class MedicoRepositoryTest {
         @Test
         @DisplayName("Deve retornar os 'Joao' entre os médicos inativos")
         void shouldReturnInactiveDoctorsByPartialName() {
-            var medicos = medicoRepository.findByNomeContainingIgnoreCaseAndAtivo("Joao", false);
+            var medicos = medicoRepository.findByNomeContainingIgnoreCaseAndAtivo("Joao", false, ORDENAR_POR_NOME);
 
             assertEquals(2, medicos.size());
-            assertEquals("Joao Vitor", medicos.get(0).getNome());
-            assertEquals("Joao Kleber", medicos.get(1).getNome());
+            assertEquals("Joao Kleber", medicos.get(0).getNome());
+            assertEquals("Joao Vitor", medicos.get(1).getNome());
             assertFalse(medicos.stream().allMatch(Medico::getAtivo));
         }
     }
@@ -106,7 +109,7 @@ class MedicoRepositoryTest {
         @DisplayName("Deve retornar o médico ativo com CRM 'SP 123456'")
         void shouldReturnActiveDoctorByCrm() {
             Medico medico = medicoRepository
-                    .findByCrmSiglaAndCrmDigitosAndAtivo(SiglaCrm.SP, "123456", true)
+                    .findByCrmSiglaAndCrmDigitos(SiglaCrm.SP, "123456")
                     .orElseThrow(() -> new AssertionError("Médico não encontrado"));
 
             assertEquals(SiglaCrm.SP, medico.getCrmSigla());
@@ -119,7 +122,7 @@ class MedicoRepositoryTest {
         @DisplayName("Deve retornar o médico inativo com CRM 'MG 222333'")
         void shouldReturnInactiveDoctorByCrm() {
             Medico medico = medicoRepository
-                    .findByCrmSiglaAndCrmDigitosAndAtivo(SiglaCrm.MG, "222333", false)
+                    .findByCrmSiglaAndCrmDigitos(SiglaCrm.MG, "222333")
                     .orElseThrow(() -> new AssertionError("Médico não encontrado"));
 
             assertEquals(SiglaCrm.MG, medico.getCrmSigla());
@@ -129,10 +132,10 @@ class MedicoRepositoryTest {
         }
 
         @Test
-        @DisplayName("Não deve retornar médico ativo com CRM inexistente")
+        @DisplayName("Não deve retornar médico com CRM inexistente")
         void shouldNotReturnActiveDoctorByCrm() {
             Optional<Medico> optional = medicoRepository
-                    .findByCrmSiglaAndCrmDigitosAndAtivo(SiglaCrm.AC, "000000", true);
+                    .findByCrmSiglaAndCrmDigitos(SiglaCrm.AC, "000000");
 
             assertTrue(optional.isEmpty());
         }
