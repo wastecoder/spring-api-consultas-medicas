@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services;
 
 import com.consultas.api_consultas.entities.Paciente;
+import com.consultas.api_consultas.enums.Sexo;
 
 import java.util.List;
 
@@ -11,6 +12,8 @@ public interface PacienteService {
     List<Paciente> buscarTodos();
 
     Paciente buscarPorId(Long id);
+
+    List<Paciente> buscarPacientes(String nome, String cpf, Sexo sexo, Boolean ativo);
 
     Paciente atualizar(Long id, Paciente pacienteAtualizado);
 
