@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MedicoRepository extends JpaRepository<Medico, Long> {
@@ -16,8 +17,7 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
     // Filtro combinado: ativo + nome (parcial e ignorando maiúsculas/minúsculas)
     List<Medico> findByNomeContainingIgnoreCaseAndAtivo(String nome, Boolean ativo);
 
-
     // Filtro combinado: ativo + CRM (sigla + dígitos)
-    List<Medico> findByCrmSiglaAndCrmDigitosAndAtivo(SiglaCrm crmSigla, String crmDigitos, Boolean ativo);
+    Optional<Medico> findByCrmSiglaAndCrmDigitosAndAtivo(SiglaCrm crmSigla, String crmDigitos, Boolean ativo);
 
 }
