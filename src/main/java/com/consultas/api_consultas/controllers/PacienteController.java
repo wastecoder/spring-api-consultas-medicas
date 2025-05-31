@@ -3,6 +3,7 @@ package com.consultas.api_consultas.controllers;
 import com.consultas.api_consultas.dtos.requisicoes.PacienteRequisicao;
 import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
+import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.services.PacienteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -38,10 +39,15 @@ public class PacienteController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todos os pacientes")
+    @Operation(summary = "Listar pacientes, podendo filtrar por nome, CPF, sexo e ativo")
     @ApiResponse(responseCode = "200", description = "Lista de pacientes retornada com sucesso")
-    public ResponseEntity<List<PacienteResposta>> listarTodosPacientes() {
-        List<Paciente> pacientes = pacienteService.buscarTodos();
+    public ResponseEntity<List<PacienteResposta>> listarTodosPacientes(
+            @RequestParam(required = false) String nome,
+            @RequestParam(required = false) String cpf,
+            @RequestParam(required = false) Sexo sexo,
+            @RequestParam(required = false) Boolean ativo
+    ) {
+        List<Paciente> pacientes = pacienteService.buscarPacientes(nome, cpf, sexo, ativo);
         List<PacienteResposta> dtos = pacientes.stream()
                 .map(PacienteResposta::new)
                 .toList();
