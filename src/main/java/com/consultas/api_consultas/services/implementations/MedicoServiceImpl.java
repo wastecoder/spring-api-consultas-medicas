@@ -7,6 +7,7 @@ import com.consultas.api_consultas.repositories.MedicoRepository;
 import com.consultas.api_consultas.services.MedicoService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -40,19 +41,21 @@ public class MedicoServiceImpl implements MedicoService {
         boolean crmInformado = crmSigla != null && crmDigitos != null && !crmDigitos.trim().isEmpty();
         boolean filtroAtivo = (ativo != null) ? ativo : true;
 
+        Sort ordenarPorNome = Sort.by("nome").ascending();
+
         // Prioridade 1: ativo + nome
         if (nomeInformado) {
-            return repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo);
+            return repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo, ordenarPorNome);
         }
 
         // Prioridade 2: ativo + CRM (Sigla + Dígitos)
         if (crmInformado) {
-            return repository.findByCrmSiglaAndCrmDigitosAndAtivo(crmSigla, crmDigitos, filtroAtivo)
+            return repository.findByCrmSiglaAndCrmDigitos(crmSigla, crmDigitos)
                     .map(List::of).orElseGet(List::of);
         }
 
         // Prioridade 3: ativo ou nenhum filtro
-        return repository.findByAtivo(filtroAtivo);
+        return repository.findByAtivo(filtroAtivo, ordenarPorNome);
     }
 
     @Override
