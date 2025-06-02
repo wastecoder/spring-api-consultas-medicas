@@ -93,7 +93,9 @@ public class PacienteServiceImpl implements PacienteService {
         pacienteExistente.setCpf(pacienteAtualizado.getCpf());
         pacienteExistente.setDataNascimento(pacienteAtualizado.getDataNascimento());
 
-        return repository.save(pacienteExistente);
+        Paciente pacienteSalvo = repository.save(pacienteExistente);
+        log.info("Paciente ID {} atualizado com sucesso", id);
+        return pacienteSalvo;
     }
 
     @Override
