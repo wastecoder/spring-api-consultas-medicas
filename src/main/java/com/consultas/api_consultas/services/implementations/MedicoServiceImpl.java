@@ -89,7 +89,9 @@ public class MedicoServiceImpl implements MedicoService {
         medicoExistente.setCrmDigitos(medicoAtualizado.getCrmDigitos());
         medicoExistente.setEspecialidade(medicoAtualizado.getEspecialidade());
 
-        return repository.save(medicoExistente);
+        Medico medicoSalvo = repository.save(medicoExistente);
+        log.info("Médico ID {} atualizado com sucesso", id);
+        return medicoSalvo;
     }
 
     @Override
