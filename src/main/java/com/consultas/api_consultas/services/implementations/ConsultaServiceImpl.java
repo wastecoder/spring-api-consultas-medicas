@@ -10,6 +10,7 @@ import com.consultas.api_consultas.services.MedicoService;
 import com.consultas.api_consultas.services.PacienteService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ConsultaServiceImpl implements ConsultaService {
 
     private final ConsultaRepository repository;
@@ -27,23 +29,36 @@ public class ConsultaServiceImpl implements ConsultaService {
 
     @Override
     public Consulta salvar(Consulta consultaNova) {
+        log.info("Salvando nova consulta para médico ID {} e paciente ID {}",
+                consultaNova.getMedico().getId(), consultaNova.getPaciente().getId());
+
         validarRelacionamentos(consultaNova);
         return repository.save(consultaNova);
     }
 
     @Override
     public List<Consulta> buscarTodos() {
+        log.info("Buscando todas as consultas");
+
         return repository.findAll();
     }
 
     @Override
     public Consulta buscarPorId(Long id) {
+        log.info("Buscando consulta por ID: {}", id);
+
         return repository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Consulta com ID [" + id + "] não encontrada"));
+                .orElseThrow(() -> {
+                    log.warn("Consulta com ID [{}] não encontrada", id);
+                    return new EntityNotFoundException("Consulta com ID [" + id + "] não encontrada");
+                });
     }
 
     @Override
     public List<Consulta> buscarConsultas(Long medicoId, Long pacienteId, LocalDate dataAtendimento, StatusConsulta statusConsulta) {
+        log.info("Buscando consultas com filtros - Médico ID: {}, Paciente ID: {}, Data: {}, Status: {}",
+                medicoId, pacienteId, dataAtendimento, statusConsulta);
+
         boolean temMedico = medicoId != null;
         boolean temPaciente = pacienteId != null;
         boolean temDataAtendimento = dataAtendimento != null;
@@ -53,11 +68,13 @@ public class ConsultaServiceImpl implements ConsultaService {
 
         // Prioridade 1: data atendimento + status
         if (temDataAtendimento) {
+            log.debug("Filtro aplicado: dataAtendimento + status");
             return repository.findByDataAtendimentoAndStatus(dataAtendimento, status, ordernarPorMaisRecente);
         }
 
         // Prioridade 2: medico + paciente + status
         if (temMedico && temPaciente) {
+            log.debug("Filtro aplicado: medico + paciente + status");
             Medico medico = medicoService.buscarPorId(medicoId);
             Paciente paciente = pacienteService.buscarPorId(pacienteId);
             return repository.findByMedicoAndPacienteAndStatus(medico, paciente, status, ordernarPorMaisRecente);
@@ -65,22 +82,26 @@ public class ConsultaServiceImpl implements ConsultaService {
 
         // Prioridade 3: medico + status
         if (temMedico) {
+            log.debug("Filtro aplicado: medico + status");
             Medico medico = medicoService.buscarPorId(medicoId);
             return repository.findByMedicoAndStatus(medico, status, ordernarPorMaisRecente);
         }
 
         // Prioridade 4: paciente + status
         if (temPaciente) {
+            log.debug("Filtro aplicado: paciente + status");
             Paciente paciente = pacienteService.buscarPorId(pacienteId);
             return repository.findByPacienteAndStatus(paciente, status, ordernarPorMaisRecente);
         }
 
-        // Prioridade 5: status ou nenhum filtro
+        log.debug("Filtro aplicado: apenas status ou nenhum filtro");
         return repository.findByStatus(status, ordernarPorMaisRecente);
     }
 
     @Override
     public Consulta atualizar(Long id, Consulta consultaAtualizada) {
+        log.info("Atualizando consulta ID: {}", id);
+
         Consulta consultaExistente = this.buscarPorId(id);
         validarRelacionamentos(consultaAtualizada);
 
@@ -93,21 +114,27 @@ public class ConsultaServiceImpl implements ConsultaService {
         consultaExistente.setMedico(consultaAtualizada.getMedico());
         consultaExistente.setPaciente(consultaAtualizada.getPaciente());
 
-        repository.save(consultaExistente);
-        return this.buscarPorId(id);        //Se retornar o save() dará LazyException
+        Consulta consultaSalva = repository.save(consultaExistente);
+        log.info("Consulta ID {} atualizada com sucesso", id);
+        return consultaSalva;
     }
 
     @Override
     public void removerPorId(Long id) {
-        this.buscarPorId(id);           // lança EntityNotFoundException se não existir
+        log.info("Removendo consulta ID: {}", id);
+
+        this.buscarPorId(id); // lança exceção se não encontrar
         repository.deleteById(id);
+        log.info("Consulta ID {} removida com sucesso", id);
     }
 
     private void validarRelacionamentos(Consulta consulta) {
         Long medicoId = consulta.getMedico().getId();
-        medicoService.buscarPorId(medicoId);
-
         Long pacienteId = consulta.getPaciente().getId();
+
+        log.debug("Validando relacionamentos - Médico ID: {}, Paciente ID: {}", medicoId, pacienteId);
+
+        medicoService.buscarPorId(medicoId);
         pacienteService.buscarPorId(pacienteId);
     }
 
