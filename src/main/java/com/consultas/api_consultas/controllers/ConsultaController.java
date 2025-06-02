@@ -3,6 +3,7 @@ package com.consultas.api_consultas.controllers;
 import com.consultas.api_consultas.dtos.requisicoes.ConsultaRequisicao;
 import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
 import com.consultas.api_consultas.entities.Consulta;
+import com.consultas.api_consultas.enums.StatusConsulta;
 import com.consultas.api_consultas.services.ConsultaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @RestController
@@ -38,10 +40,15 @@ public class ConsultaController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar todas as consultas")
+    @Operation(summary = "Listar consultas, podendo filtrar por data atendimento, medico, paciente e status")
     @ApiResponse(responseCode = "200", description = "Lista de consultas retornada com sucesso")
-    public ResponseEntity<List<ConsultaResposta>> listarTodasConsultas() {
-        List<Consulta> consultas = consultaService.buscarTodos();
+    public ResponseEntity<List<ConsultaResposta>> listarTodasConsultas(
+            @RequestParam(required = false) LocalDate dataAtendimento,
+            @RequestParam(required = false) Long medicoId,
+            @RequestParam(required = false) Long pacienteId,
+            @RequestParam(required = false) StatusConsulta status
+            ) {
+        List<Consulta> consultas = consultaService.buscarConsultas(medicoId, pacienteId, dataAtendimento, status);
         List<ConsultaResposta> reposta = consultas.stream()
                 .map(ConsultaResposta::new)
                 .toList();
