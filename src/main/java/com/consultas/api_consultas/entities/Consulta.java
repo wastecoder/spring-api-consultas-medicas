@@ -43,10 +43,12 @@ public class Consulta {
     private StatusConsulta status;
 
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    // OBS: o recomendado e usar "fetch = FetchType.LAZY"
+    // Mas, com seu uso, precisa criar JPQL ou Native SQL
+    @ManyToOne(optional = false)
     private Medico medico;
 
-    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @ManyToOne(optional = false)
     private Paciente paciente;
 
 

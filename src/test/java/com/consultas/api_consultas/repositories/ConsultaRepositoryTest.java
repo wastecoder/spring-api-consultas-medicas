@@ -7,7 +7,6 @@ import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.enums.StatusConsulta;
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -22,7 +21,6 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,8 +43,6 @@ class ConsultaRepositoryTest {
 
     private Paciente pacienteAna;
     private Paciente pacienteInexistente;
-
-    private Consulta consultaAgendadaMaria;
 
     private final Sort ORDENAR_POR_MAIS_PROXIMO = Sort.by("dataAtendimento").ascending();
 
@@ -89,12 +85,10 @@ class ConsultaRepositoryTest {
     }
 
     private void cadastrarDuasConsultasAgendadas() {
-        List<Consulta> consultas = consultaRepository.saveAll(List.of(
+        consultaRepository.saveAll(List.of(
                 new Consulta(LocalDate.of(2025, 2, 2), LocalTime.of(9, 0), Duration.ofMinutes(60), new BigDecimal("210.00"), "Avaliação de dor torácica", medicoJoao, pacienteAna),
                 new Consulta(LocalDate.of(2025, 1, 1), LocalTime.of(10, 0), Duration.ofMinutes(10), new BigDecimal("195.99"), "Dor no joelho ao caminhar", medicaMaria, pacienteAna)
         ));
-
-        consultaAgendadaMaria = consultas.get(1);
     }
 
     private void cadastrarDuasConsultasCanceladasERealizadas() {
@@ -119,46 +113,6 @@ class ConsultaRepositoryTest {
         consultaRepository.saveAll(consultas);
     }
 
-
-    @Nested
-    class findAllWithMedicoAndPacienteTests {
-        @Test
-        @DisplayName("Deve retornar todas consultas")
-        void shouldReturnAllAppointments() {
-            var consultas = consultaRepository.findAllWithMedicoAndPaciente();
-
-            assertEquals(6, consultas.size());
-        }
-    }
-
-    @Nested
-    class findByIdWithMedicoAndPacienteTests {
-        @Test
-        @DisplayName("Deve retornar a consulta com ID existente")
-        void shouldReturnAppointmentById() {
-            var idValido = consultaAgendadaMaria.getId();
-
-            var consulta = consultaRepository
-                    .findByIdWithMedicoAndPaciente(idValido)
-                    .orElseThrow(() -> new EntityNotFoundException("Consulta não encontrada"));
-
-            assertEquals(idValido, consulta.getId());
-            assertEquals(LocalDate.of(2025, 1, 1), consulta.getDataAtendimento());
-            assertEquals(medicaMaria.getId(), consulta.getMedico().getId());
-            assertEquals(pacienteAna.getId(), consulta.getPaciente().getId());
-        }
-
-        @Test
-        @DisplayName("Não deve retornar a consulta com ID inexistente")
-        void shouldNotReturnAppointmentById() {
-            var idInvalido = 99L;
-
-            Optional<Consulta> optional = consultaRepository
-                    .findByIdWithMedicoAndPaciente(idInvalido);
-
-            assertTrue(optional.isEmpty());
-        }
-    }
 
     @Nested
     class findByStatusTests {
