@@ -5,6 +5,7 @@ import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.repositories.MedicoRepository;
 import com.consultas.api_consultas.services.MedicoService;
+import com.consultas.api_consultas.services.rules.MedicoRules;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import java.util.List;
 public class MedicoServiceImpl implements MedicoService {
 
     private final MedicoRepository repository;
+    private final MedicoRules medicoRules;
 
 
     @Override
@@ -112,6 +114,8 @@ public class MedicoServiceImpl implements MedicoService {
         log.info("Inativando médico ID: {}", id);
 
         Medico medicoExistente = this.buscarPorId(id);
+        medicoRules.verificarSeNaoTemConsultasFuturas(medicoExistente);
+
         if (Boolean.TRUE.equals(medicoExistente.getAtivo())) {
             medicoExistente.setAtivo(false);
             repository.save(medicoExistente);
