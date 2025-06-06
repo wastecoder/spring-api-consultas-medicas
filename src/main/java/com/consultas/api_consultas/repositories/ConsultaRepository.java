@@ -32,4 +32,7 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
     // Filtro entre datas + status
     List<Consulta> findByDataAtendimentoBetweenAndStatus(LocalDate inicio, LocalDate fim, StatusConsulta status, Sort sort);
 
+    // Retorna true se o médico possui ao menos uma consulta com o status especificado
+    boolean existsByMedicoAndStatus(Medico medico, StatusConsulta status);
+
 }
