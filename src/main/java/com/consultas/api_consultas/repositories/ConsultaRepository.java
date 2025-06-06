@@ -35,4 +35,7 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
     // Retorna true se o médico possui ao menos uma consulta com o status especificado
     boolean existsByMedicoAndStatus(Medico medico, StatusConsulta status);
 
+    // Retorna true se o paciente possui ao menos uma consulta com o status especificado
+    boolean existsByPacienteAndStatus(Paciente paciente, StatusConsulta status);
+
 }
