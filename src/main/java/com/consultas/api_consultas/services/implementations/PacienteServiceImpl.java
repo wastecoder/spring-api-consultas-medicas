@@ -5,6 +5,7 @@ import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.repositories.PacienteRepository;
 import com.consultas.api_consultas.services.PacienteService;
+import com.consultas.api_consultas.services.rules.PacienteRules;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +20,7 @@ import java.util.List;
 public class PacienteServiceImpl implements PacienteService {
 
     private final PacienteRepository repository;
+    private final PacienteRules pacienteRules;
 
 
     @Override
@@ -116,6 +118,8 @@ public class PacienteServiceImpl implements PacienteService {
         log.info("Inativando paciente ID: {}", id);
 
         Paciente pacienteExistente = this.buscarPorId(id);
+        pacienteRules.verificarSeNaoTemConsultasFuturas(pacienteExistente);
+
         if (Boolean.TRUE.equals(pacienteExistente.getAtivo())) {
             pacienteExistente.setAtivo(false);
             repository.save(pacienteExistente);
