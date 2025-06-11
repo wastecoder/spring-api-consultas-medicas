@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.controllers;
 
-import com.consultas.api_consultas.dtos.requisicoes.ConsultaRequisicao;
+import com.consultas.api_consultas.dtos.requisicoes.ConsultaAtualizacaoDto;
+import com.consultas.api_consultas.dtos.requisicoes.ConsultaCadastroDto;
 import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.enums.StatusConsulta;
@@ -32,7 +33,7 @@ public class ConsultaController {
     @Operation(summary = "Cadastrar nova consulta")
     @ApiResponse(responseCode = "201", description = "Consulta cadastrada com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para cadastro", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<ConsultaResposta> salvarCadastroConsulta(@RequestBody @Valid final ConsultaRequisicao requisicao) {
+    public ResponseEntity<ConsultaResposta> salvarCadastroConsulta(@RequestBody @Valid final ConsultaCadastroDto requisicao) {
         Consulta consultaNova = requisicao.dtoParaConsulta();
         Consulta consultaSalva = consultaService.salvar(consultaNova);
         ConsultaResposta resposta = new ConsultaResposta(consultaSalva);
@@ -70,7 +71,7 @@ public class ConsultaController {
     @ApiResponse(responseCode = "200", description = "Consulta atualizada com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para edição", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "404", description = "Consulta não encontrada", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<ConsultaResposta> editarConsultaPorId(@PathVariable Long id, @RequestBody @Valid final ConsultaRequisicao requisicao) {
+    public ResponseEntity<ConsultaResposta> editarConsultaPorId(@PathVariable Long id, @RequestBody @Valid final ConsultaAtualizacaoDto requisicao) {
         Consulta consultaAtualizada = requisicao.dtoParaConsulta();
         Consulta consultaSalva = consultaService.atualizar(id, consultaAtualizada);
         ConsultaResposta reposta = new ConsultaResposta(consultaSalva);

@@ -4,17 +4,16 @@ import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.StatusConsulta;
+import com.consultas.api_consultas.utils.ConversorEntradaUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 
 import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 @Getter
-public class ConsultaRequisicao {
+public class ConsultaAtualizacaoDto {
 
     @NotNull(message = "Data de atendimento é obrigatória")
     @JsonFormat(pattern = "yyyy-MM-dd")
@@ -52,19 +51,11 @@ public class ConsultaRequisicao {
     private Long pacienteId;
 
 
-    public LocalTime converterHorarioParaLocalTime() {
-        return LocalTime.parse(this.horarioAtendimento);
-    }
-
-    public Duration converterDuracaoParaDuration() {
-        return Duration.ofMinutes(this.duracaoEmMinutos);
-    }
-
     public Consulta dtoParaConsulta() {
         Consulta consulta = new Consulta();
         consulta.setDataAtendimento(this.getDataAtendimento());
-        consulta.setHorarioAtendimento(this.converterHorarioParaLocalTime());
-        consulta.setDuracaoEmMinutos(this.converterDuracaoParaDuration());
+        consulta.setHorarioAtendimento(ConversorEntradaUtils.converterStringParaLocalTime(this.horarioAtendimento));
+        consulta.setDuracaoEmMinutos(ConversorEntradaUtils.converterIntegerParaDuration(this.duracaoEmMinutos));
         consulta.setPreco(this.getPreco());
         consulta.setMotivo(this.getMotivo());
         consulta.setStatus(this.getStatus());
