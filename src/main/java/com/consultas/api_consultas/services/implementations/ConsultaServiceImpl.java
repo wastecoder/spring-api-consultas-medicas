@@ -8,6 +8,7 @@ import com.consultas.api_consultas.repositories.ConsultaRepository;
 import com.consultas.api_consultas.services.ConsultaService;
 import com.consultas.api_consultas.services.MedicoService;
 import com.consultas.api_consultas.services.PacienteService;
+import com.consultas.api_consultas.services.rules.ConsultaRules;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,6 +26,7 @@ public class ConsultaServiceImpl implements ConsultaService {
     private final ConsultaRepository repository;
     private final MedicoService medicoService;
     private final PacienteService pacienteService;
+    private final ConsultaRules consultaRules;
 
 
     @Override
@@ -33,6 +35,8 @@ public class ConsultaServiceImpl implements ConsultaService {
                 consultaNova.getMedico().getId(), consultaNova.getPaciente().getId());
 
         validarRelacionamentos(consultaNova);
+        consultaRules.validarCadastro(consultaNova);
+
         return repository.save(consultaNova);
     }
 
@@ -114,6 +118,8 @@ public class ConsultaServiceImpl implements ConsultaService {
         consultaExistente.setMedico(consultaAtualizada.getMedico());
         consultaExistente.setPaciente(consultaAtualizada.getPaciente());
 
+        consultaRules.validarAtualizacao(consultaExistente, consultaAtualizada);
+
         Consulta consultaSalva = repository.save(consultaExistente);
         log.info("Consulta ID {} atualizada com sucesso", id);
         return consultaSalva;
@@ -134,8 +140,8 @@ public class ConsultaServiceImpl implements ConsultaService {
 
         log.debug("Validando relacionamentos - Médico ID: {}, Paciente ID: {}", medicoId, pacienteId);
 
-        medicoService.buscarPorId(medicoId);
-        pacienteService.buscarPorId(pacienteId);
+        consulta.setMedico(medicoService.buscarPorId(medicoId));
+        consulta.setPaciente(pacienteService.buscarPorId(pacienteId));
     }
 
 }
