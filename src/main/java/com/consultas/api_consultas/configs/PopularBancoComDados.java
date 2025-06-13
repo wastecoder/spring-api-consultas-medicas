@@ -17,9 +17,11 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.time.DayOfWeek;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.List;
 
 /**
@@ -152,43 +154,51 @@ public class PopularBancoComDados implements CommandLineRunner {
                 .toList();
     }
 
+    private LocalDate pegarProximaSegundaFeira() {
+        return LocalDate.now().with(TemporalAdjusters.nextOrSame(DayOfWeek.MONDAY));
+    }
+
     private void cadastrarConsultas(List<Medico> medicos, List<Paciente> pacientes) {
+        LocalDate proximaSegundaFeira = pegarProximaSegundaFeira();
+
         consultaRepository.saveAll(List.of(
-                new Consulta(LocalDate.now().plusDays(1), LocalTime.of(8, 0), Duration.ofMinutes(30), new BigDecimal("200.50"), "Consulta infantil de rotina", medicos.get(0), pacientes.get(0)),
-                new Consulta(LocalDate.now().plusDays(2), LocalTime.of(10, 0), Duration.ofMinutes(45), new BigDecimal("225.75"), "Consulta infantil de rotina", medicos.get(0), pacientes.get(0)),
+                new Consulta(proximaSegundaFeira.plusDays(1), LocalTime.of(8, 0), Duration.ofMinutes(30), new BigDecimal("200.50"), "Consulta infantil de rotina", medicos.get(0), pacientes.get(0)),
+                new Consulta(proximaSegundaFeira.plusDays(2), LocalTime.of(10, 0), Duration.ofMinutes(45), new BigDecimal("225.75"), "Consulta infantil de rotina", medicos.get(0), pacientes.get(0)),
 
-                new Consulta(LocalDate.now().plusDays(1), LocalTime.of(9, 0), Duration.ofMinutes(30), new BigDecimal("210.00"), "Avaliação de dor torácica", medicos.get(1), pacientes.get(1)),
-                new Consulta(LocalDate.now().plusDays(2), LocalTime.of(11, 0), Duration.ofMinutes(60), new BigDecimal("240.25"), "Avaliação de dor torácica", medicos.get(1), pacientes.get(1)),
+                new Consulta(proximaSegundaFeira.plusDays(1), LocalTime.of(9, 0), Duration.ofMinutes(30), new BigDecimal("210.00"), "Avaliação de dor torácica", medicos.get(1), pacientes.get(1)),
+                new Consulta(proximaSegundaFeira.plusDays(2), LocalTime.of(11, 0), Duration.ofMinutes(60), new BigDecimal("240.25"), "Avaliação de dor torácica", medicos.get(1), pacientes.get(1)),
 
-                new Consulta(LocalDate.now().plusDays(1), LocalTime.of(10, 0), Duration.ofMinutes(30), new BigDecimal("195.99"), "Dor no joelho ao caminhar", medicos.get(2), pacientes.get(2)),
-                new Consulta(LocalDate.now().plusDays(2), LocalTime.of(14, 0), Duration.ofMinutes(45), new BigDecimal("220.00"), "Dor no joelho ao caminhar", medicos.get(2), pacientes.get(2)),
+                new Consulta(proximaSegundaFeira.plusDays(1), LocalTime.of(10, 0), Duration.ofMinutes(30), new BigDecimal("195.99"), "Dor no joelho ao caminhar", medicos.get(2), pacientes.get(2)),
+                new Consulta(proximaSegundaFeira.plusDays(2), LocalTime.of(14, 0), Duration.ofMinutes(45), new BigDecimal("220.00"), "Dor no joelho ao caminhar", medicos.get(2), pacientes.get(2)),
 
-                new Consulta(LocalDate.now().plusDays(1), LocalTime.of(11, 0), Duration.ofMinutes(30), new BigDecimal("180.50"), "Manchas na pele", medicos.get(3), pacientes.get(3)),
-                new Consulta(LocalDate.now().plusDays(3), LocalTime.of(9, 30), Duration.ofMinutes(30), new BigDecimal("205.75"), "Manchas na pele", medicos.get(3), pacientes.get(3)),
+                new Consulta(proximaSegundaFeira.plusDays(1), LocalTime.of(11, 0), Duration.ofMinutes(30), new BigDecimal("180.50"), "Manchas na pele", medicos.get(3), pacientes.get(3)),
+                new Consulta(proximaSegundaFeira.plusDays(3), LocalTime.of(9, 30), Duration.ofMinutes(30), new BigDecimal("205.75"), "Manchas na pele", medicos.get(3), pacientes.get(3)),
 
-                new Consulta(LocalDate.now().plusDays(1), LocalTime.of(14, 0), Duration.ofMinutes(30), new BigDecimal("210.00"), "Avaliação de ansiedade", medicos.get(4), pacientes.get(4)),
-                new Consulta(LocalDate.now().plusDays(3), LocalTime.of(10, 30), Duration.ofMinutes(45), new BigDecimal("230.99"), "Avaliação de ansiedade", medicos.get(4), pacientes.get(4)),
+                new Consulta(proximaSegundaFeira.plusDays(1), LocalTime.of(14, 0), Duration.ofMinutes(30), new BigDecimal("210.00"), "Avaliação de ansiedade", medicos.get(4), pacientes.get(4)),
+                new Consulta(proximaSegundaFeira.plusDays(3), LocalTime.of(10, 30), Duration.ofMinutes(45), new BigDecimal("230.99"), "Avaliação de ansiedade", medicos.get(4), pacientes.get(4)),
 
-                new Consulta(LocalDate.now().plusDays(1), LocalTime.of(15, 0), Duration.ofMinutes(30), new BigDecimal("190.00"), "Dores de cabeça frequentes", medicos.get(5), pacientes.get(5)),
-                new Consulta(LocalDate.now().plusDays(3), LocalTime.of(11, 30), Duration.ofMinutes(60), new BigDecimal("215.25"), "Dores de cabeça frequentes", medicos.get(5), pacientes.get(5)),
+                new Consulta(proximaSegundaFeira.plusDays(1), LocalTime.of(15, 0), Duration.ofMinutes(30), new BigDecimal("190.00"), "Dores de cabeça frequentes", medicos.get(5), pacientes.get(5)),
+                new Consulta(proximaSegundaFeira.plusDays(3), LocalTime.of(11, 30), Duration.ofMinutes(60), new BigDecimal("215.25"), "Dores de cabeça frequentes", medicos.get(5), pacientes.get(5)),
 
-                new Consulta(LocalDate.now().plusDays(1), LocalTime.of(16, 0), Duration.ofMinutes(30), new BigDecimal("185.00"), "Dificuldade para enxergar", medicos.get(6), pacientes.get(6)),
-                new Consulta(LocalDate.now().plusDays(4), LocalTime.of(9, 0), Duration.ofMinutes(45), new BigDecimal("205.80"), "Dificuldade para enxergar", medicos.get(6), pacientes.get(6)),
+                new Consulta(proximaSegundaFeira.plusDays(1), LocalTime.of(16, 0), Duration.ofMinutes(30), new BigDecimal("185.00"), "Dificuldade para enxergar", medicos.get(6), pacientes.get(6)),
+                new Consulta(proximaSegundaFeira.plusDays(4), LocalTime.of(9, 0), Duration.ofMinutes(45), new BigDecimal("205.80"), "Dificuldade para enxergar", medicos.get(6), pacientes.get(6)),
 
-                new Consulta(LocalDate.now().plusDays(2), LocalTime.of(8, 30), Duration.ofMinutes(30), new BigDecimal("175.25"), "Requisição de exame de imagem", medicos.get(7), pacientes.get(7)),
-                new Consulta(LocalDate.now().plusDays(4), LocalTime.of(10, 0), Duration.ofMinutes(45), new BigDecimal("198.50"), "Requisição de exame de imagem", medicos.get(7), pacientes.get(7)),
+                new Consulta(proximaSegundaFeira.plusDays(2), LocalTime.of(8, 30), Duration.ofMinutes(30), new BigDecimal("175.25"), "Requisição de exame de imagem", medicos.get(7), pacientes.get(7)),
+                new Consulta(proximaSegundaFeira.plusDays(4), LocalTime.of(10, 0), Duration.ofMinutes(45), new BigDecimal("198.50"), "Requisição de exame de imagem", medicos.get(7), pacientes.get(7)),
 
-                new Consulta(LocalDate.now().plusDays(2), LocalTime.of(9, 30), Duration.ofMinutes(30), new BigDecimal("220.30"), "Alterações no hemograma", medicos.get(8), pacientes.get(8)),
-                new Consulta(LocalDate.now().plusDays(4), LocalTime.of(11, 0), Duration.ofMinutes(60), new BigDecimal("250.99"), "Alterações no hemograma", medicos.get(8), pacientes.get(8)),
+                new Consulta(proximaSegundaFeira.plusDays(2), LocalTime.of(9, 30), Duration.ofMinutes(30), new BigDecimal("220.30"), "Alterações no hemograma", medicos.get(8), pacientes.get(8)),
+                new Consulta(proximaSegundaFeira.plusDays(4), LocalTime.of(11, 0), Duration.ofMinutes(60), new BigDecimal("250.99"), "Alterações no hemograma", medicos.get(8), pacientes.get(8)),
 
-                new Consulta(LocalDate.now().plusDays(2), LocalTime.of(10, 30), Duration.ofMinutes(30), new BigDecimal("210.15"), "Sintomas de infecção recorrente", medicos.get(9), pacientes.get(9)),
-                new Consulta(LocalDate.now().plusDays(4), LocalTime.of(14, 0), Duration.ofMinutes(45), new BigDecimal("240.60"), "Sintomas de infecção recorrente", medicos.get(9), pacientes.get(9))
+                new Consulta(proximaSegundaFeira.plusDays(2), LocalTime.of(10, 30), Duration.ofMinutes(30), new BigDecimal("210.15"), "Sintomas de infecção recorrente", medicos.get(9), pacientes.get(9)),
+                new Consulta(proximaSegundaFeira.plusDays(4), LocalTime.of(14, 0), Duration.ofMinutes(45), new BigDecimal("240.60"), "Sintomas de infecção recorrente", medicos.get(9), pacientes.get(9))
         ));
     }
 
     private void cadastrarConsultasCanceladasERealizadas(List<Medico> medicos, List<Paciente> pacientes) {
+        LocalDate proximaSegundaFeira = pegarProximaSegundaFeira();
+
         Consulta realizada1 = new Consulta(
-                LocalDate.now().minusDays(10),
+                proximaSegundaFeira.minusDays(10),
                 LocalTime.of(10, 0),
                 Duration.ofMinutes(30),
                 new BigDecimal("220.50"),
@@ -198,7 +208,7 @@ public class PopularBancoComDados implements CommandLineRunner {
         );
 
         Consulta realizada2 = new Consulta(
-                LocalDate.now().minusDays(8),
+                proximaSegundaFeira.minusDays(8),
                 LocalTime.of(14, 0),
                 Duration.ofMinutes(45),
                 new BigDecimal("250.75"),
@@ -208,7 +218,7 @@ public class PopularBancoComDados implements CommandLineRunner {
         );
 
         Consulta cancelada1 = new Consulta(
-                LocalDate.now().minusDays(6),
+                proximaSegundaFeira.minusDays(6),
                 LocalTime.of(9, 30),
                 Duration.ofMinutes(30),
                 new BigDecimal("180.00"),
@@ -218,7 +228,7 @@ public class PopularBancoComDados implements CommandLineRunner {
         );
 
         Consulta cancelada2 = new Consulta(
-                LocalDate.now().minusDays(4),
+                proximaSegundaFeira.minusDays(4),
                 LocalTime.of(15, 0),
                 Duration.ofMinutes(60),
                 new BigDecimal("310.90"),
