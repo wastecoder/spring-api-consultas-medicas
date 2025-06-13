@@ -15,6 +15,7 @@ import java.time.*;
 public class ConsultaRules {
 
     private final ConsultaRepository consultaRepository;
+    private final Clock clock;
 
 
     public void validarCadastro(Consulta consultaNova) {
@@ -100,7 +101,7 @@ public class ConsultaRules {
      */
     void validarTransicaoAposHorario(Consulta consultaAntiga, StatusConsulta novoStatus) {
         LocalDateTime dataHoraConsulta = LocalDateTime.of(consultaAntiga.getDataAtendimento(), consultaAntiga.getHorarioAtendimento());
-        boolean consultaNoPassado = LocalDateTime.now().isAfter(dataHoraConsulta);
+        boolean consultaNoPassado = LocalDateTime.now(clock).isAfter(dataHoraConsulta);
 
         if (consultaAntiga.getStatus() == StatusConsulta.AGENDADA
                 && consultaNoPassado

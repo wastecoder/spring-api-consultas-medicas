@@ -20,9 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.time.Duration;
-import java.time.LocalDate;
-import java.time.LocalTime;
+import java.time.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -53,6 +51,13 @@ class ConsultaRulesTest {
 
     @BeforeEach
     void setUp() {
+        // LocalDate.now(clock) sempre retornará 12/06/2025 - 10:00
+        Clock relogioFixo = Clock.fixed(
+                LocalDateTime.of(2025, 6, 12, 10, 0).toInstant(ZoneOffset.UTC),
+                ZoneId.of("UTC")
+        );
+        consultaRules = new ConsultaRules(consultaRepository, relogioFixo);
+
         cadastrarUmMedicoAtivo();
         cadastrarUmMedicoInativo();
 
@@ -96,7 +101,7 @@ class ConsultaRulesTest {
 
     private void cadastrarConsultasNoPassado() {
         consultaAgendadaOntem = new Consulta(
-                LocalDate.now().minusDays(1),
+                LocalDate.of(2025, 6, 11),
                 LocalTime.of(10, 0),
                 Duration.ofMinutes(30),
                 BigDecimal.TEN,
