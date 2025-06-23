@@ -68,4 +68,15 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
         """, nativeQuery = true)
     boolean existeConflitoPaciente(Long pacienteId, LocalDate data, LocalTime inicio, LocalTime fim, Long consultaId);
 
+
+    // Relatorios
+
+    // Retorna a quantidade de cada status de consulta
+    @Query(value = """
+        SELECT status, COUNT(*) AS total
+        FROM consulta
+        GROUP BY status
+    """, nativeQuery = true)
+    List<Object[]> contarConsultasPorStatus();
+
 }
