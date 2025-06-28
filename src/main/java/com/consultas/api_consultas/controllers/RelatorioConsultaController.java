@@ -3,7 +3,6 @@ package com.consultas.api_consultas.controllers;
 import com.consultas.api_consultas.dtos.respostas.relatorios.consultas.*;
 import com.consultas.api_consultas.services.RelatorioConsultaService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -24,7 +23,6 @@ public class RelatorioConsultaController {
 
     @GetMapping("/consultas-por-status")
     @Operation(summary = "Relatório de consultas por status", description = "Retorna a quantidade de consultas agrupadas por status: AGENDADA, CANCELADA e REALIZADA")
-    @ApiResponse(responseCode = "200", description = "Relatório gerado com sucesso")
     public ResponseEntity<ConsultasPorStatusDto> getConsultasPorStatus() {
         return ResponseEntity.ok(service.gerarRelatorioConsultasPorStatus());
     }

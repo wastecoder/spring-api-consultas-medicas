@@ -172,4 +172,22 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(response, status);
     }
 
+    // Ocorre quando é lançado um IllegalArgumentException no código, geralmente por parâmetros inválidos em métodos de serviço
+    // Ex: fornecimento de um mês fora do intervalo 1-12 em filtros de relatórios
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErrorResponse> handleIllegalArgument(final IllegalArgumentException exception) {
+        var status = HttpStatus.BAD_REQUEST;
+        String mensagem = exception.getMessage();
+
+        log.warn("Argumento inválido: {}", mensagem);
+
+        ErrorResponse response = new ErrorResponse(
+                mensagem,
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(response, status);
+    }
+
 }
