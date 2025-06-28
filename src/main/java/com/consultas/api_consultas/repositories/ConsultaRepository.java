@@ -79,4 +79,40 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
     """, nativeQuery = true)
     List<Object[]> contarConsultasPorStatus();
 
+    // Retorna a quantidade de consultas por mês
+    @Query(value = """
+        SELECT EXTRACT(MONTH FROM data_atendimento) AS mes, COUNT(*) AS total
+        FROM consulta
+        GROUP BY mes
+        ORDER BY mes
+    """, nativeQuery = true)
+    List<Object[]> contarConsultasPorMes();
+
+    // Retorna a quantidade de consultas por ano
+    @Query(value = """
+        SELECT EXTRACT(YEAR FROM data_atendimento) AS ano, COUNT(*) AS total
+        FROM consulta
+        GROUP BY ano
+        ORDER BY ano
+    """, nativeQuery = true)
+    List<Object[]> contarConsultasPorAno();
+
+    // Retorna a quantidade de consultas por especialidade médica
+    @Query("""
+        SELECT c.medico.especialidade, COUNT(c.id)
+        FROM Consulta c
+        GROUP BY c.medico.especialidade
+        ORDER BY c.medico.especialidade
+    """)
+    List<Object[]> contarConsultasPorEspecialidade();
+
+    // Retorna todas as consultas de um paciente específico
+    List<Consulta> findByPacienteId(Long id);
+
+    // Retorna todas as consultas de um médico específico
+    List<Consulta> findByMedicoId(Long id);
+
+    // Retorna todas as consultas num intervalo de datas
+    List<Consulta> findByDataAtendimentoBetween(LocalDate inicio, LocalDate fim);
+
 }
