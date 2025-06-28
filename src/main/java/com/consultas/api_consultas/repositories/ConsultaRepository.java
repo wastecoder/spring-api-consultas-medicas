@@ -69,7 +69,7 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
     boolean existeConflitoPaciente(Long pacienteId, LocalDate data, LocalTime inicio, LocalTime fim, Long consultaId);
 
 
-    // Relatorios
+    // >>> Relatorios - Grupo: Consultas
 
     // Retorna a quantidade de cada status de consulta
     @Query(value = """
@@ -114,5 +114,51 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
 
     // Retorna todas as consultas num intervalo de datas
     List<Consulta> findByDataAtendimentoBetween(LocalDate inicio, LocalDate fim);
+
+
+    // >>> Relatorios - Grupo: Medicos
+
+    // Retorna a quantidade de consultas realizadas por médico
+    @Query("""
+        SELECT c.medico.id, c.medico.nome, COUNT(c.id)
+        FROM Consulta c
+        WHERE c.status = 'REALIZADA'
+        GROUP BY c.medico.id, c.medico.nome
+        ORDER BY COUNT(c.id) DESC, c.medico.nome ASC
+    """)
+    List<Object[]> contarConsultasRealizadasPorMedico();
+
+    // Retorna os médicos com mais consultas em um determinado mês e ano
+    @Query("""
+        SELECT c.medico.id, c.medico.nome, COUNT(c.id)
+        FROM Consulta c
+        WHERE MONTH(c.dataAtendimento) = :mes
+          AND YEAR(c.dataAtendimento) = :ano
+        GROUP BY c.medico.id, c.medico.nome
+        ORDER BY COUNT(c.id) DESC, c.medico.nome ASC
+    """)
+    List<Object[]> medicosComMaisConsultasNoMes(int mes, int ano);
+
+    // Calcula a taxa de cancelamento por médico (em percentual), considerando apenas médicos com pelo menos um cancelamento
+    @Query(value = """
+        SELECT c.medico_id AS id, m.nome,
+               COUNT(CASE WHEN c.status = 'CANCELADA' THEN 1 END) * 1.0 / COUNT(c.id) * 100 AS taxa
+        FROM consulta c
+        JOIN medico m ON m.id = c.medico_id
+        GROUP BY c.medico_id, m.nome
+        HAVING COUNT(CASE WHEN c.status = 'CANCELADA' THEN 1 END) > 0
+        ORDER BY taxa DESC
+    """, nativeQuery = true)
+    List<Object[]> calcularTaxaCancelamentoPorMedico();
+
+    // Calcula o faturamento total por médico, somando o preço das consultas realizadas
+    @Query("""
+        SELECT c.medico.id, c.medico.nome, SUM(c.preco)
+        FROM Consulta c
+        WHERE c.status = 'REALIZADA'
+        GROUP BY c.medico.id, c.medico.nome
+        ORDER BY SUM(c.preco) DESC, c.medico.nome ASC
+    """)
+    List<Object[]> calcularFaturamentoPorMedico();
 
 }
