@@ -1,4 +1,4 @@
-package com.consultas.api_consultas.dtos.respostas;
+package com.consultas.api_consultas.dtos.respostas.relatorios.consultas;
 
 public record ConsultasPorStatusDto(
         long agendada,
