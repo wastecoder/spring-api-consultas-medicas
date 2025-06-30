@@ -161,4 +161,36 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
     """)
     List<Object[]> calcularFaturamentoPorMedico();
 
+
+    // >>> Relatorios - Grupo: Pacientes
+
+    // Retorna o histórico de consultas (agendadas, realizadas e canceladas) de um paciente
+    @Query("""
+        SELECT c.id, c.dataAtendimento, c.horarioAtendimento, c.status, c.medico
+        FROM Consulta c
+        WHERE c.paciente.id = :id
+        ORDER BY c.dataAtendimento DESC, c.horarioAtendimento DESC
+    """)
+    List<Object[]> buscarHistoricoPorPaciente(Long id);
+
+    // Retorna a quantidade de cancelamentos realizados por paciente
+    @Query("""
+        SELECT c.paciente.id, c.paciente.nome, COUNT(c.id)
+        FROM Consulta c
+        WHERE c.status = 'CANCELADA'
+        GROUP BY c.paciente.id, c.paciente.nome
+        ORDER BY COUNT(c.id) DESC, c.paciente.nome ASC
+    """)
+    List<Object[]> contarCancelamentosPorPaciente();
+
+    // Retorna os pacientes com maior número de consultas num período
+    @Query("""
+        SELECT c.paciente.id, c.paciente.nome, COUNT(c.id)
+        FROM Consulta c
+        WHERE c.dataAtendimento BETWEEN :inicio AND :fim
+        GROUP BY c.paciente.id, c.paciente.nome
+        ORDER BY COUNT(c.id) DESC, c.paciente.nome ASC
+    """)
+    List<Object[]> pacientesComMaisConsultasPorPeriodo(LocalDate inicio, LocalDate fim);
+
 }
