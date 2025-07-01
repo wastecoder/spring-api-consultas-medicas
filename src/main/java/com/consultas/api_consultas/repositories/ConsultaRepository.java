@@ -193,4 +193,56 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
     """)
     List<Object[]> pacientesComMaisConsultasPorPeriodo(LocalDate inicio, LocalDate fim);
 
+
+    // >>> Relatorios - Grupo: Produtividade
+
+    // Retorna a quantidade de consultas por mês, filtrando pelo status informado
+    @Query("""
+        SELECT YEAR(c.dataAtendimento), MONTH(c.dataAtendimento), COUNT(c.id)
+        FROM Consulta c
+        WHERE c.status = :status
+        GROUP BY YEAR(c.dataAtendimento), MONTH(c.dataAtendimento)
+        ORDER BY YEAR(c.dataAtendimento), MONTH(c.dataAtendimento)
+    """)
+    List<Object[]> totalConsultasPorMes(StatusConsulta status);
+
+    // Retorna o total de consultas com status REALIZADA
+    @Query("""
+        SELECT COUNT(c) FROM Consulta c
+        WHERE c.status = 'REALIZADA'
+    """)
+    long contarConsultasRealizadas();
+
+    // Retorna a data da primeira e da última consulta realizada
+    @Query("""
+        SELECT MIN(c.dataAtendimento), MAX(c.dataAtendimento)
+        FROM Consulta c
+        WHERE c.status = 'REALIZADA'
+    """)
+    Object intervaloConsultasRealizadas();
+
+    // Retorna o tempo médio de duração das consultas realizadas (em minutos)
+    @Query(value = """
+        SELECT AVG(duracao_em_minutos)
+        FROM consulta
+        WHERE status = 'REALIZADA'
+    """, nativeQuery = true)
+    Double tempoMedioDuracaoConsultas();
+
+    // Retorna o tempo médio entre agendamento e atendimento (em minutos)
+    @Query(value = """
+        SELECT AVG(EXTRACT(EPOCH FROM (data_atendimento - data_agendamento)) / 60)
+        FROM consulta
+        WHERE status = 'REALIZADA'
+    """, nativeQuery = true)
+    Double tempoMedioEsperaEmMinutos();
+
+    // Retorna a taxa de comparecimento: realizadas ÷ (realizadas + agendadas)
+    @Query("""
+        SELECT 
+            (SELECT COUNT(c) FROM Consulta c WHERE c.status = 'REALIZADA') * 1.0 / 
+            (SELECT COUNT(c) FROM Consulta c WHERE c.status = 'AGENDADA' OR c.status = 'REALIZADA') * 100
+    """)
+    Double taxaComparecimento();
+
 }
