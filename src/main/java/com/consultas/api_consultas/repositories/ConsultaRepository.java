@@ -245,4 +245,34 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
     """)
     Double taxaComparecimento();
 
+
+    // >>> Relatorios - Grupo: Operacional
+
+    // Retorna as consultas com data de atendimento igual à data informada
+    @Query("""
+        SELECT c.id, c.horarioAtendimento, c.medico.nome, c.paciente.nome, c.status
+        FROM Consulta c
+        WHERE c.dataAtendimento = :data
+        ORDER BY c.horarioAtendimento, c.medico.nome
+    """)
+    List<Object[]> buscarConsultasPorData(LocalDate data);
+
+    // Retorna as consultas entre a data atual e os próximos 7 dias
+    @Query("""
+        SELECT c.id, c.dataAtendimento, c.medico.nome, c.paciente.nome, c.status
+        FROM Consulta c
+        WHERE c.dataAtendimento BETWEEN :hoje AND :limite
+        ORDER BY c.dataAtendimento, c.horarioAtendimento, c.medico.nome
+    """)
+    List<Object[]> buscarConsultasProximosDias(LocalDate hoje, LocalDate limite);
+
+    // Retorna as consultas agendadas no passado que ainda não foram realizadas
+    @Query("""
+        SELECT c.id, c.dataAtendimento, c.medico.nome, c.paciente.nome
+        FROM Consulta c
+        WHERE c.status = 'AGENDADA' AND c.dataAtendimento < CURRENT_DATE
+        ORDER BY c.dataAtendimento, c.horarioAtendimento
+    """)
+    List<Object[]> buscarConsultasPendentes();
+
 }
