@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -274,5 +275,72 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
         ORDER BY c.dataAtendimento, c.horarioAtendimento
     """)
     List<Object[]> buscarConsultasPendentes();
+
+
+    // >>> Relatorios - Grupo: Financeiro
+
+    // Retorna o faturamento total agrupado por ano e mês
+    @Query("""
+        SELECT YEAR(c.dataAtendimento), MONTH(c.dataAtendimento), SUM(c.preco)
+        FROM Consulta c
+        WHERE c.status = 'REALIZADA'
+        GROUP BY YEAR(c.dataAtendimento), MONTH(c.dataAtendimento)
+        ORDER BY YEAR(c.dataAtendimento), MONTH(c.dataAtendimento)
+    """)
+    List<Object[]> faturamentoMensal();
+
+    // Retorna o faturamento total por médico (apenas consultas realizadas)
+    @Query("""
+        SELECT c.medico.id, c.medico.nome, SUM(c.preco)
+        FROM Consulta c
+        WHERE c.status = 'REALIZADA'
+        GROUP BY c.medico.id, c.medico.nome
+        ORDER BY SUM(c.preco) DESC, c.medico.nome ASC
+    """)
+    List<Object[]> faturamentoPorMedico();
+
+    // Retorna o faturamento total por especialidade (apenas consultas realizadas)
+    @Query("""
+        SELECT c.medico.especialidade, SUM(c.preco)
+        FROM Consulta c
+        WHERE c.status = 'REALIZADA'
+        GROUP BY c.medico.especialidade
+        HAVING SUM(c.preco) > 0
+        ORDER BY SUM(c.preco) DESC
+    """)
+    List<Object[]> faturamentoPorEspecialidade();
+
+    // Retorna o faturamento total entre duas datas (apenas consultas realizadas)
+    @Query("""
+        SELECT SUM(c.preco)
+        FROM Consulta c
+        WHERE c.status = 'REALIZADA' AND c.dataAtendimento BETWEEN :inicio AND :fim
+    """)
+    BigDecimal faturamentoPorPeriodo(LocalDate inicio, LocalDate fim);
+
+    // Retorna o total perdido com cancelamentos
+    @Query("""
+        SELECT SUM(c.preco)
+        FROM Consulta c
+        WHERE c.status = 'CANCELADA'
+    """)
+    BigDecimal perdasComCancelamentos();
+
+    // Retorna a perda mensal com cancelamentos agrupada por ano e mês
+    @Query("""
+        SELECT YEAR(c.dataAtendimento), MONTH(c.dataAtendimento), SUM(c.preco)
+        FROM Consulta c
+        WHERE c.status = 'CANCELADA'
+        GROUP BY YEAR(c.dataAtendimento), MONTH(c.dataAtendimento)
+        ORDER BY YEAR(c.dataAtendimento), MONTH(c.dataAtendimento)
+    """)
+    List<Object[]> perdaMensalComCancelamentos();
+
+    @Query("""
+        SELECT SUM(c.preco)
+        FROM Consulta c
+        WHERE c.status = 'CANCELADA' AND c.dataAtendimento BETWEEN :inicio AND :fim
+    """)
+    BigDecimal perdaPorPeriodo(LocalDate inicio, LocalDate fim);
 
 }
