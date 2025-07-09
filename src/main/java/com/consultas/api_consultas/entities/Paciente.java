@@ -31,6 +31,11 @@ public class Paciente extends Pessoa {
     private LocalDate dataNascimento;
 
 
+    @OneToOne
+    @JoinColumn(name = "usuarioId", unique = true)
+    private Usuario usuario;
+
+
     public Paciente(String nome, String email, String telefone, String cpf, Sexo sexo, LocalDate dataNascimento) {
         super(nome, email, telefone);
         this.sexo = sexo;
