@@ -31,6 +31,11 @@ public class Medico extends Pessoa {
     private Especialidade especialidade;
 
 
+    @OneToOne
+    @JoinColumn(name = "usuarioId", unique = true)
+    private Usuario usuario;
+
+
     public Medico(String nome, String email, String telefone, SiglaCrm crmSigla, String crmDigitos, Especialidade especialidade) {
         super(nome, email, telefone);
         this.crmSigla = crmSigla;
