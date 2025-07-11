@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.repositories;
 
 import com.consultas.api_consultas.entities.Paciente;
+import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Sexo;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -24,6 +25,8 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     // Filtro combinado: ativo + sexo
     List<Paciente> findBySexoAndAtivo(Sexo sexo, boolean ativo, Sort sort);
+
+    Optional<Paciente> findByUsuario(Usuario usuario);
 
 
     // >>> Relatorios - Grupo: Pacientes

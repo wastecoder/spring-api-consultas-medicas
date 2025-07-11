@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.entities.Paciente;
+import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.repositories.PacienteRepository;
@@ -141,6 +142,12 @@ public class PacienteServiceImpl implements PacienteService {
         } else {
             log.debug("Paciente ID {} já está ativo", id);
         }
+    }
+
+    @Override
+    public Paciente buscarPorUsuario(Usuario usuario) {
+        return repository.findByUsuario(usuario)
+                .orElseThrow(() -> new EntityNotFoundException("Paciente associado ao usuário não encontrado"));
     }
 
 }

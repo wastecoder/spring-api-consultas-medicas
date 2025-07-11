@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.repositories;
 
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -21,6 +22,8 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
 
     // Filtro combinado: CRM (sigla + dígitos)
     Optional<Medico> findByCrmSiglaAndCrmDigitos(SiglaCrm crmSigla, String crmDigitos);
+
+    Optional<Medico> findByUsuario(Usuario usuario);
 
 
     // >>> Relatorios - Grupo: Medicos
