@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.repositories.MedicoRepository;
@@ -137,6 +138,12 @@ public class MedicoServiceImpl implements MedicoService {
         } else {
             log.debug("Médico ID {} já está ativo", id);
         }
+    }
+
+    @Override
+    public Medico buscarPorUsuario(Usuario usuario) {
+        return repository.findByUsuario(usuario)
+                .orElseThrow(() -> new EntityNotFoundException("Médico associado ao usuário não encontrado"));
     }
 
 }

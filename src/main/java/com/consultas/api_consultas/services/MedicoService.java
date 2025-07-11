@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services;
 
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.SiglaCrm;
 
 import java.util.List;
@@ -22,5 +23,7 @@ public interface MedicoService {
     void inativarPorId(Long id);
 
     void ativarPorId(Long id);
+
+    Medico buscarPorUsuario(Usuario usuario);
 
 }
