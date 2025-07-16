@@ -15,7 +15,9 @@ public class SwaggerConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        final String schemeName = "basicAuth";
+        final String schemeName = "Bearer";
+        String bearerFormat = "JWT";
+        String scheme = "bearer";
 
         return new OpenAPI()
                 .info(new Info()
@@ -36,8 +38,11 @@ public class SwaggerConfig {
                                 schemeName,
                                 new SecurityScheme()
                                         .name(schemeName)
+                                        .description("Cole apenas o token JWT. Não inclua 'Bearer '")
                                         .type(SecurityScheme.Type.HTTP)
-                                        .scheme("basic")
+                                        .bearerFormat(bearerFormat)
+                                        .in(SecurityScheme.In.HEADER)
+                                        .scheme(scheme)
                         )
                 );
     }
