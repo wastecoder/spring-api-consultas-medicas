@@ -103,7 +103,7 @@ public class SecurityConfig {
                         null,
                         "admin",
                         encoder.encode("123456"),
-                        Funcao.RECEPCIONISTA,
+                        Funcao.ADMIN,
                         true
                 )));
     }
