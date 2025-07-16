@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class MedicoController {
 
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Cadastrar novo médico")
     @ApiResponse(responseCode = "201", description = "Médico cadastrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para cadastro", content = @Content(schema = @Schema(hidden = true)))
@@ -39,6 +41,7 @@ public class MedicoController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Listar médicos, podendo filtrar por nome, CRM (sigla + dígitos) e ativo")
     @ApiResponse(responseCode = "200", description = "Lista de médicos retornada com sucesso")
     public ResponseEntity<List<MedicoResposta>> listarMedicos(
@@ -55,6 +58,7 @@ public class MedicoController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Buscar médico por ID")
     @ApiResponse(responseCode = "200", description = "Médico encontrado")
     @ApiResponse(responseCode = "404", description = "Médico não encontrado", content = @Content(schema = @Schema(hidden = true)))
@@ -65,6 +69,7 @@ public class MedicoController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Editar dados de um médico por ID")
     @ApiResponse(responseCode = "200", description = "Médico atualizado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para edição", content = @Content(schema = @Schema(hidden = true)))
@@ -78,6 +83,7 @@ public class MedicoController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Excluir médico por ID")
     @ApiResponse(responseCode = "204", description = "Médico excluído com sucesso")
     @ApiResponse(responseCode = "400", description = "Médico deve estar inativo para ser excluído")
@@ -88,6 +94,7 @@ public class MedicoController {
     }
 
     @PatchMapping("/inativar/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Inativar médico por ID")
     @ApiResponse(responseCode = "204", description = "Médico inativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Médico não encontrado")
@@ -97,6 +104,7 @@ public class MedicoController {
     }
 
     @PatchMapping("/ativar/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Ativar médico por ID")
     @ApiResponse(responseCode = "204", description = "Médico ativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Médico não encontrado")
