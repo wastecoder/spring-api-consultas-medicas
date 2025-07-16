@@ -11,7 +11,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -22,6 +21,8 @@ import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
+import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.io.InputStream;
@@ -51,16 +52,18 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // MEDICO:
-                        .requestMatchers("/medicos/**").hasAnyRole("MEDICO", "RECEPCIONISTA")
+                        .requestMatchers("/medicos/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
                         // PACIENTE:
-                        .requestMatchers("/pacientes/**").hasAnyRole("PACIENTE", "RECEPCIONISTA")
+                        .requestMatchers("/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
 
-                        // RECEPCIONISTA: tudo
-                        .anyRequest().hasRole("RECEPCIONISTA")
+                        // FALLBACK: ADMIN e/ou RECEPCIONISTA
+                        .anyRequest().hasAnyRole("ADMIN", "RECEPCIONISTA")
                 )
-                .oauth2ResourceServer(
-                        conf -> conf.jwt(Customizer.withDefaults())
+                .oauth2ResourceServer(conf -> conf
+                        .jwt(jwt -> jwt
+                                .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                        )
                 );
 
         return http.build();
@@ -93,6 +96,18 @@ public class SecurityConfig {
         var jwks = new ImmutableJWKSet<>(new JWKSet(jwk));
 
         return new NimbusJwtEncoder(jwks);
+    }
+
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter grantedAuthoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        grantedAuthoritiesConverter.setAuthorityPrefix("");
+        grantedAuthoritiesConverter.setAuthoritiesClaimName("scope");
+
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+
+        return jwtAuthenticationConverter;
     }
 
     @Bean
