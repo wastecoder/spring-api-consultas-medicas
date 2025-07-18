@@ -2,6 +2,7 @@ package com.consultas.api_consultas.configs;
 
 import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Funcao;
+import com.consultas.api_consultas.handlers.CustomAccessDeniedHandler;
 import com.consultas.api_consultas.repositories.UsuarioRepository;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -10,6 +11,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -40,7 +42,7 @@ import java.security.spec.X509EncodedKeySpec;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler accessDeniedHandler) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable) // Usado em cookies
                 .authorizeHttpRequests(auth -> auth
@@ -57,10 +59,15 @@ public class SecurityConfig {
                         .requestMatchers("/medicos/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
                         // PACIENTE:
-                        .requestMatchers("/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
+                        .requestMatchers(HttpMethod.GET, "/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
+                        .requestMatchers(HttpMethod.PUT, "/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
+                        .requestMatchers("/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
                         // FALLBACK: ADMIN e/ou RECEPCIONISTA
                         .anyRequest().hasAnyRole("ADMIN", "RECEPCIONISTA")
+                )
+                .exceptionHandling(ex -> ex
+                        .accessDeniedHandler(accessDeniedHandler)
                 )
                 .oauth2ResourceServer(conf -> conf
                         .jwt(jwt -> jwt
