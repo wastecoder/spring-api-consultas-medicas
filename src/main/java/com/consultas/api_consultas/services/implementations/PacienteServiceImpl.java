@@ -7,10 +7,12 @@ import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.repositories.PacienteRepository;
 import com.consultas.api_consultas.services.PacienteService;
 import com.consultas.api_consultas.services.rules.PacienteRules;
+import com.consultas.api_consultas.utils.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -22,6 +24,7 @@ public class PacienteServiceImpl implements PacienteService {
 
     private final PacienteRepository repository;
     private final PacienteRules pacienteRules;
+    private final SecurityUtil securityUtil;
 
 
     @Override
@@ -42,11 +45,18 @@ public class PacienteServiceImpl implements PacienteService {
     public Paciente buscarPorId(Long id) {
         log.info("Buscando paciente por ID: {}", id);
 
-        return repository.findById(id)
+        Paciente paciente = repository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Paciente com ID [{}] não encontrado", id);
                     return new EntityNotFoundException("Paciente com ID [" + id + "] não encontrado");
                 });
+
+
+        if (!securityUtil.canAccessPatient(paciente)) {
+            throw new AccessDeniedException("Você não tem permissão para acessar este paciente");
+        }
+
+        return paciente;
     }
 
     @Override

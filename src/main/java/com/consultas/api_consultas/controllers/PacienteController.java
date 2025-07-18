@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class PacienteController {
 
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Cadastrar novo paciente")
     @ApiResponse(responseCode = "201", description = "Paciente cadastrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para cadastro", content = @Content(schema = @Schema(hidden = true)))
@@ -39,6 +41,7 @@ public class PacienteController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Listar pacientes, podendo filtrar por nome, CPF, sexo e ativo")
     @ApiResponse(responseCode = "200", description = "Lista de pacientes retornada com sucesso")
     public ResponseEntity<List<PacienteResposta>> listarTodosPacientes(
@@ -55,6 +58,7 @@ public class PacienteController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA', 'PACIENTE')")
     @Operation(summary = "Buscar paciente por ID")
     @ApiResponse(responseCode = "200", description = "Paciente encontrado")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado", content = @Content(schema = @Schema(hidden = true)))
@@ -65,6 +69,7 @@ public class PacienteController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA', 'PACIENTE')")
     @Operation(summary = "Editar dados de um paciente por ID")
     @ApiResponse(responseCode = "200", description = "Paciente atualizado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para edição", content = @Content(schema = @Schema(hidden = true)))
@@ -78,6 +83,7 @@ public class PacienteController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Excluir paciente por ID")
     @ApiResponse(responseCode = "204", description = "Paciente excluído com sucesso")
     @ApiResponse(responseCode = "400", description = "Paciente deve estar inativo para ser excluído")
@@ -88,6 +94,7 @@ public class PacienteController {
     }
 
     @PatchMapping("/inativar/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Inativar paciente por ID")
     @ApiResponse(responseCode = "204", description = "Paciente inativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
@@ -97,6 +104,7 @@ public class PacienteController {
     }
 
     @PatchMapping("/ativar/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Ativar paciente por ID")
     @ApiResponse(responseCode = "204", description = "Paciente ativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
