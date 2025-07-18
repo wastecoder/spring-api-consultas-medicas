@@ -9,6 +9,7 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -180,6 +181,24 @@ public class GlobalExceptionHandler {
         String mensagem = exception.getMessage();
 
         log.warn("Argumento inválido: {}", mensagem);
+
+        ErrorResponse response = new ErrorResponse(
+                mensagem,
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(response, status);
+    }
+
+    // Ocorre quando um usuário autenticado tenta acessar um recurso para o qual não possui permissão
+    // Ex: paciente tentando editar os dados de outro paciente
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException exception) {
+        var status = HttpStatus.FORBIDDEN;
+        String mensagem = "Você não tem permissão para realizar esta operação.";
+
+        log.warn("Acesso negado: {}", exception.getMessage());
 
         ErrorResponse response = new ErrorResponse(
                 mensagem,
