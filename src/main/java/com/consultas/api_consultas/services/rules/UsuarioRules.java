@@ -62,14 +62,16 @@ public class UsuarioRules {
     }
 
     public void desassociarUsuarioDePessoa(Usuario usuario) {
+        String username = usuario.getUsername();
+
         if (usuario.getFuncao() == Funcao.MEDICO) {
-            Medico medico = medicoService.buscarPorUsuario(usuario);
+            Medico medico = medicoService.buscarPorUsernameEAtivo(username, true);
             medico.setUsuario(null);
             medicoService.salvar(medico);
         }
 
         if (usuario.getFuncao() == Funcao.PACIENTE) {
-            Paciente paciente = pacienteService.buscarPorUsuario(usuario);
+            Paciente paciente = pacienteService.buscarPorUsernameEAtivo(username, true);
             paciente.setUsuario(null);
             pacienteService.salvar(paciente);
         }

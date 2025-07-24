@@ -155,8 +155,8 @@ public class PacienteServiceImpl implements PacienteService {
     }
 
     @Override
-    public Paciente buscarPorUsuario(Usuario usuario) {
-        return repository.findByUsuario(usuario)
+    public Paciente buscarPorUsernameEAtivo(String username, Boolean ativo) {
+        return repository.findByUsuarioUsernameAndAtivo(username, ativo)
                 .orElseThrow(() -> new EntityNotFoundException("Paciente associado ao usuário não encontrado"));
     }
 
