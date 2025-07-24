@@ -196,7 +196,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AccessDeniedException.class)
     public ResponseEntity<ErrorResponse> handleAccessDeniedException(AccessDeniedException exception) {
         var status = HttpStatus.FORBIDDEN;
-        String mensagem = "Você não tem permissão para realizar esta operação.";
+        String mensagem = exception.getMessage();
 
         log.warn("Acesso negado: {}", exception.getMessage());
 

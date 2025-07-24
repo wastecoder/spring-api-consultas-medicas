@@ -9,10 +9,12 @@ import com.consultas.api_consultas.services.ConsultaService;
 import com.consultas.api_consultas.services.MedicoService;
 import com.consultas.api_consultas.services.PacienteService;
 import com.consultas.api_consultas.services.rules.ConsultaRules;
+import com.consultas.api_consultas.utils.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -27,12 +29,17 @@ public class ConsultaServiceImpl implements ConsultaService {
     private final MedicoService medicoService;
     private final PacienteService pacienteService;
     private final ConsultaRules consultaRules;
+    private final SecurityUtil securityUtil;
 
 
     @Override
     public Consulta salvar(Consulta consultaNova) {
         log.info("Salvando nova consulta para médico ID {} e paciente ID {}",
                 consultaNova.getMedico().getId(), consultaNova.getPaciente().getId());
+
+        if (securityUtil.isPatient() && !securityUtil.isSamePatient(consultaNova.getPaciente())) {
+            throw new AccessDeniedException("Você só pode agendar consultas para você mesmo.");
+        }
 
         validarRelacionamentos(consultaNova);
         consultaRules.validarCadastro(consultaNova);
@@ -44,6 +51,10 @@ public class ConsultaServiceImpl implements ConsultaService {
     public List<Consulta> buscarTodos() {
         log.info("Buscando todas as consultas");
 
+        if (!securityUtil.isAdmin() && !securityUtil.isReceptionist()) {
+            throw new AccessDeniedException("Apenas administradores ou recepcionistas podem acessar todas as consultas.");
+        }
+
         return repository.findAll();
     }
 
@@ -51,11 +62,17 @@ public class ConsultaServiceImpl implements ConsultaService {
     public Consulta buscarPorId(Long id) {
         log.info("Buscando consulta por ID: {}", id);
 
-        return repository.findById(id)
+        Consulta consulta = repository.findById(id)
                 .orElseThrow(() -> {
                     log.warn("Consulta com ID [{}] não encontrada", id);
                     return new EntityNotFoundException("Consulta com ID [" + id + "] não encontrada");
                 });
+
+        if (!securityUtil.canAccessAppointment(consulta)) {
+            throw new AccessDeniedException("Você não tem permissão para acessar esta consulta.");
+        }
+
+        return consulta;
     }
 
     @Override
@@ -81,6 +98,11 @@ public class ConsultaServiceImpl implements ConsultaService {
             log.debug("Filtro aplicado: medico + paciente + status");
             Medico medico = medicoService.buscarPorId(medicoId);
             Paciente paciente = pacienteService.buscarPorId(pacienteId);
+
+            if (!securityUtil.canAccessDoctor(medico) || !securityUtil.canAccessPatient(paciente)) {
+                throw new AccessDeniedException("Acesso negado a médico ou paciente especificado.");
+            }
+
             return repository.findByMedicoAndPacienteAndStatus(medico, paciente, status, ordernarPorMaisRecente);
         }
 
@@ -88,6 +110,11 @@ public class ConsultaServiceImpl implements ConsultaService {
         if (temMedico) {
             log.debug("Filtro aplicado: medico + status");
             Medico medico = medicoService.buscarPorId(medicoId);
+
+            if (!securityUtil.canAccessDoctor(medico)) {
+                throw new AccessDeniedException("Você não tem permissão para acessar as consultas desse médico.");
+            }
+
             return repository.findByMedicoAndStatus(medico, status, ordernarPorMaisRecente);
         }
 
@@ -95,6 +122,11 @@ public class ConsultaServiceImpl implements ConsultaService {
         if (temPaciente) {
             log.debug("Filtro aplicado: paciente + status");
             Paciente paciente = pacienteService.buscarPorId(pacienteId);
+
+            if (!securityUtil.canAccessPatient(paciente)) {
+                throw new AccessDeniedException("Você não tem permissão para acessar as consultas desse paciente.");
+            }
+
             return repository.findByPacienteAndStatus(paciente, status, ordernarPorMaisRecente);
         }
 
@@ -129,7 +161,12 @@ public class ConsultaServiceImpl implements ConsultaService {
     public void removerPorId(Long id) {
         log.info("Removendo consulta ID: {}", id);
 
-        this.buscarPorId(id); // lança exceção se não encontrar
+        Consulta consulta = this.buscarPorId(id); // lança exceção se não encontrar e valida autorização
+
+        if (!podeEditarConsulta(consulta)) {
+            throw new AccessDeniedException("Você não tem permissão para excluir esta consulta.");
+        }
+
         repository.deleteById(id);
         log.info("Consulta ID {} removida com sucesso", id);
     }
@@ -142,6 +179,11 @@ public class ConsultaServiceImpl implements ConsultaService {
 
         consulta.setMedico(medicoService.buscarPorId(medicoId));
         consulta.setPaciente(pacienteService.buscarPorId(pacienteId));
+    }
+
+    private boolean podeEditarConsulta(Consulta consulta) {
+        return securityUtil.isAdmin() ||
+                securityUtil.isReceptionist();
     }
 
 }
