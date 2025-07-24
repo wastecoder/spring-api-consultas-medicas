@@ -1,7 +1,6 @@
 package com.consultas.api_consultas.services;
 
 import com.consultas.api_consultas.entities.Paciente;
-import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Sexo;
 
 import java.util.List;
@@ -24,6 +23,6 @@ public interface PacienteService {
 
     void ativarPorId(Long id);
 
-    Paciente buscarPorUsuario(Usuario usuario);
+    Paciente buscarPorUsernameEAtivo(String username, Boolean ativo);
 
 }

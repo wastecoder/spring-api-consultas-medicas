@@ -141,8 +141,8 @@ public class MedicoServiceImpl implements MedicoService {
     }
 
     @Override
-    public Medico buscarPorUsuario(Usuario usuario) {
-        return repository.findByUsuario(usuario)
+    public Medico buscarPorUsernameEAtivo(String username, Boolean ativo) {
+        return repository.findByUsuarioUsernameAndAtivo(username, ativo)
                 .orElseThrow(() -> new EntityNotFoundException("Médico associado ao usuário não encontrado"));
     }
 
