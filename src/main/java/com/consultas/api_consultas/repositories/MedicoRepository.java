@@ -24,6 +24,8 @@ public interface MedicoRepository extends JpaRepository<Medico, Long> {
 
     Optional<Medico> findByUsuarioUsernameAndAtivo(String username, Boolean ativo);
 
+    Optional<Medico> findByUsuarioUsername(String username);
+
 
     // >>> Relatorios - Grupo: Medicos
 
