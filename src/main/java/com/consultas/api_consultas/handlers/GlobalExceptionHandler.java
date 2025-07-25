@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -199,6 +200,24 @@ public class GlobalExceptionHandler {
         String mensagem = exception.getMessage();
 
         log.warn("Acesso negado: {}", exception.getMessage());
+
+        ErrorResponse response = new ErrorResponse(
+                mensagem,
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(response, status);
+    }
+
+    // Ocorre quando as credenciais para login fornecidas são inválidas
+    // Ex: usuário ou senha incorretos no /auth/login
+    @ExceptionHandler(BadCredentialsException.class)
+    public ResponseEntity<ErrorResponse> handleBadCredentialsException(BadCredentialsException exception) {
+        var status = HttpStatus.UNAUTHORIZED;
+        String mensagem = exception.getMessage();
+
+        log.warn("Falha na autenticação: {}", exception.getMessage());
 
         ErrorResponse response = new ErrorResponse(
                 mensagem,
