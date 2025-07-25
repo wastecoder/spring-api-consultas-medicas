@@ -3,14 +3,12 @@ package com.consultas.api_consultas.utils;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.entities.Paciente;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 
 @Component
-@Slf4j
 public class SecurityUtil {
 
     public String getLoggedUsername() {
@@ -44,9 +42,7 @@ public class SecurityUtil {
     }
 
     public boolean isSamePatient(Paciente paciente) {
-        String loggedUsername = getLoggedUsername();
-        String pacienteUsername = paciente.getUsuario().getUsername();
-        log.debug("Comparando paciente: JWT username [{}] vs paciente.usuario.username [{}]", loggedUsername, pacienteUsername);
+        if (paciente == null || paciente.getUsuario() == null) return false;
 
         return isPatient() &&
                 paciente.getUsuario().getUsername().equals(getLoggedUsername());
@@ -59,9 +55,7 @@ public class SecurityUtil {
     }
 
     public boolean isSameDoctor(Medico medico) {
-        String loggedUsername = getLoggedUsername();
-        String pacienteUsername = medico.getUsuario().getUsername();
-        log.debug("Comparando medico: JWT username [{}] vs medico.usuario.username [{}]", loggedUsername, pacienteUsername);
+        if (medico == null || medico.getUsuario() == null) return false;
 
         return isDoctor() &&
                 medico.getUsuario().getUsername().equals(getLoggedUsername());
