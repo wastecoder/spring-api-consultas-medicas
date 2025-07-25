@@ -27,6 +27,8 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     Optional<Paciente> findByUsuarioUsernameAndAtivo(String username, Boolean ativo);
 
+    Optional<Paciente> findByUsuarioUsername(String username);
+
 
     // >>> Relatorios - Grupo: Pacientes
 
