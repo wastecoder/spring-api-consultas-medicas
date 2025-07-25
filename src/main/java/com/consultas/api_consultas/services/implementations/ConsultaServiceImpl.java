@@ -80,6 +80,13 @@ public class ConsultaServiceImpl implements ConsultaService {
         log.info("Buscando consultas com filtros - Médico ID: {}, Paciente ID: {}, Data: {}, Status: {}",
                 medicoId, pacienteId, dataAtendimento, statusConsulta);
 
+
+        if (securityUtil.isDoctor()) {
+            medicoId = securityUtil.getLoggedDoctor().getId();
+        } else if (securityUtil.isPatient()) {
+            pacienteId = securityUtil.getLoggedPatient().getId();
+        }
+
         boolean temMedico = medicoId != null;
         boolean temPaciente = pacienteId != null;
         boolean temDataAtendimento = dataAtendimento != null;
@@ -98,11 +105,6 @@ public class ConsultaServiceImpl implements ConsultaService {
             log.debug("Filtro aplicado: medico + paciente + status");
             Medico medico = medicoService.buscarPorId(medicoId);
             Paciente paciente = pacienteService.buscarPorId(pacienteId);
-
-            if (!securityUtil.canAccessDoctor(medico) || !securityUtil.canAccessPatient(paciente)) {
-                throw new AccessDeniedException("Acesso negado a médico ou paciente especificado.");
-            }
-
             return repository.findByMedicoAndPacienteAndStatus(medico, paciente, status, ordernarPorMaisRecente);
         }
 
@@ -110,11 +112,6 @@ public class ConsultaServiceImpl implements ConsultaService {
         if (temMedico) {
             log.debug("Filtro aplicado: medico + status");
             Medico medico = medicoService.buscarPorId(medicoId);
-
-            if (!securityUtil.canAccessDoctor(medico)) {
-                throw new AccessDeniedException("Você não tem permissão para acessar as consultas desse médico.");
-            }
-
             return repository.findByMedicoAndStatus(medico, status, ordernarPorMaisRecente);
         }
 
@@ -122,11 +119,6 @@ public class ConsultaServiceImpl implements ConsultaService {
         if (temPaciente) {
             log.debug("Filtro aplicado: paciente + status");
             Paciente paciente = pacienteService.buscarPorId(pacienteId);
-
-            if (!securityUtil.canAccessPatient(paciente)) {
-                throw new AccessDeniedException("Você não tem permissão para acessar as consultas desse paciente.");
-            }
-
             return repository.findByPacienteAndStatus(paciente, status, ordernarPorMaisRecente);
         }
 
