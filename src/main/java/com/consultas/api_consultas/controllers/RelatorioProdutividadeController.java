@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
-@RequestMapping("/relatorios/paciente")
+@RequestMapping("/relatorios/produtividade")
 @RequiredArgsConstructor
 @Tag(name = "Relatórios do Produtividade", description = "Relatórios relacionados à produtividade clínica")
 public class RelatorioProdutividadeController {

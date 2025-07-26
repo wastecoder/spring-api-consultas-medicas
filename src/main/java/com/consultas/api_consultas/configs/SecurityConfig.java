@@ -77,6 +77,7 @@ public class SecurityConfig {
                         .requestMatchers("/relatorios/paciente/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/relatorios/consulta/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/relatorios/operacional/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
+                        .requestMatchers("/relatorios/produtividade/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/relatorios/financeiro/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
                         // FALLBACK: ADMIN e/ou RECEPCIONISTA
