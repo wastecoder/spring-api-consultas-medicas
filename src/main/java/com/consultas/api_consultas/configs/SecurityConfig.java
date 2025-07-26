@@ -69,8 +69,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(HttpMethod.DELETE, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
-                        // RELATÓRIOS: médico, consulta, financeiro
+                        // RELATÓRIO DE PACIENTE: paciente pode acessar consultas pessoais
+                        .requestMatchers(HttpMethod.GET, "/relatorios/paciente/historico/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
+
+                        // RELATÓRIOS: médico, paciente, consulta, financeiro
                         .requestMatchers("/relatorios/medico/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
+                        .requestMatchers("/relatorios/paciente/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/relatorios/consulta/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/relatorios/financeiro/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
