@@ -72,10 +72,11 @@ public class SecurityConfig {
                         // RELATÓRIO DE PACIENTE: paciente pode acessar consultas pessoais
                         .requestMatchers(HttpMethod.GET, "/relatorios/paciente/historico/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
 
-                        // RELATÓRIOS: médico, paciente, consulta, financeiro
+                        // RELATÓRIOS: ADMIN e/ou RECEPCIONISTA
                         .requestMatchers("/relatorios/medico/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/relatorios/paciente/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/relatorios/consulta/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
+                        .requestMatchers("/relatorios/operacional/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/relatorios/financeiro/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
                         // FALLBACK: ADMIN e/ou RECEPCIONISTA
