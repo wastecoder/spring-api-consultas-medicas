@@ -1,14 +1,19 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.dtos.respostas.relatorios.pacientes.*;
+import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.entities.Pessoa;
 import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.enums.StatusConsulta;
 import com.consultas.api_consultas.repositories.ConsultaRepository;
 import com.consultas.api_consultas.repositories.PacienteRepository;
+import com.consultas.api_consultas.services.PacienteService;
 import com.consultas.api_consultas.services.RelatorioPacienteService;
+import com.consultas.api_consultas.utils.SecurityUtil;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -22,11 +27,18 @@ public class RelatorioPacienteServiceImpl implements RelatorioPacienteService {
 
     private final ConsultaRepository consultaRepository;
     private final PacienteRepository pacienteRepository;
+    private final PacienteService pacienteService;
+    private final SecurityUtil securityUtil;
 
 
     @Override
     public List<HistoricoConsultaPacienteDto> historicoPorPaciente(Long id) {
         log.info("Gerando histórico de consultas do paciente id={}", id);
+
+        Paciente paciente = pacienteService.buscarPorId(id);
+        if (!securityUtil.canAccessPatient(paciente)) {
+            throw new AccessDeniedException("Usuário não tem permissão para acessar os dados desse paciente");
+        }
 
         return consultaRepository.buscarHistoricoPorPaciente(id)
                 .stream()
