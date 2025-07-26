@@ -69,7 +69,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(HttpMethod.DELETE, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
-                        // RELATÓRIOS: consulta, financeiro
+                        // RELATÓRIOS: médico, consulta, financeiro
+                        .requestMatchers("/relatorios/medico/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/relatorios/consulta/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers("/relatorios/financeiro/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
