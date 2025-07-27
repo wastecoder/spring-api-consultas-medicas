@@ -152,9 +152,8 @@ public class ConsultaServiceImpl implements ConsultaService {
     public void removerPorId(Long id) {
         log.info("Removendo consulta ID: {}", id);
 
-        Consulta consulta = this.buscarPorId(id); // lança exceção se não encontrar e valida autorização
-
-        if (!podeEditarConsulta(consulta)) {
+        this.buscarPorId(id); // lança exceção se não encontrar e valida autorização
+        if (!podeEditarConsulta()) {
             throw new AccessDeniedException("Você não tem permissão para excluir esta consulta.");
         }
 
@@ -172,7 +171,7 @@ public class ConsultaServiceImpl implements ConsultaService {
         consulta.setPaciente(pacienteService.buscarPorId(pacienteId));
     }
 
-    private boolean podeEditarConsulta(Consulta consulta) {
+    private boolean podeEditarConsulta() {
         return securityUtil.isAdmin() ||
                 securityUtil.isReceptionist();
     }
