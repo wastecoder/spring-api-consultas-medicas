@@ -2,9 +2,11 @@ package com.consultas.api_consultas.dtos.requisicoes;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 public class UsuarioAtualizacaoDto {
 
     @NotBlank(message = "Usuário não pode ser vazio")

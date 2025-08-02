@@ -3,11 +3,13 @@ package com.consultas.api_consultas.entities;
 import com.consultas.api_consultas.enums.Funcao;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Entity
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Usuario {

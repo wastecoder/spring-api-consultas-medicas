@@ -60,8 +60,9 @@ public class UsuarioServiceImpl implements UsuarioService {
 
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> {
-                    log.warn("Usuário com ID [{}] não encontrado", id);
-                    return new EntityNotFoundException("Usuário com ID [" + id + "] não encontrado");
+                    String mensagem = String.format("Usuário com ID [%d] não encontrado", id);
+                    log.warn(mensagem);
+                    return new EntityNotFoundException(mensagem);
                 });
     }
 

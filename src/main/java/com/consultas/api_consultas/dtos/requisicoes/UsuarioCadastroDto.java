@@ -4,9 +4,11 @@ import com.consultas.api_consultas.enums.Funcao;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 public class UsuarioCadastroDto {
 
     @NotBlank(message = "Usuário não pode ser vazio")
