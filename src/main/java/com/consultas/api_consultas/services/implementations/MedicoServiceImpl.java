@@ -1,7 +1,8 @@
 package com.consultas.api_consultas.services.implementations;
 
+import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
-import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.repositories.MedicoRepository;
@@ -10,6 +11,10 @@ import com.consultas.api_consultas.services.rules.MedicoRules;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -50,31 +55,48 @@ public class MedicoServiceImpl implements MedicoService {
     }
 
     @Override
-    public List<Medico> buscarMedicos(String nome, SiglaCrm crmSigla, String crmDigitos, Boolean ativo) {
-        log.info("Buscando médicos com filtros - Nome: {}, CRM: {} {}, Ativo: {}", nome, crmSigla, crmDigitos, ativo);
+    public PageResponse<MedicoResposta> buscarMedicos(
+            int pagina,
+            int tamanho,
+            String nome,
+            SiglaCrm crmSigla,
+            String crmDigitos,
+            Boolean ativo
+    ) {
+        log.info("Buscando médicos - Página: {}, Tamanho: {}, Nome: {}, CRM: {} {}, Ativo: {}",
+                pagina, tamanho, nome, crmSigla, crmDigitos, ativo);
 
         boolean nomeInformado = nome != null && !nome.trim().isEmpty();
         boolean crmInformado = crmSigla != null && crmDigitos != null && !crmDigitos.trim().isEmpty();
         boolean filtroAtivo = (ativo != null) ? ativo : true;
 
-        Sort ordenarPorNome = Sort.by("nome").ascending();
+        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "nome"));
 
         // Prioridade 1: ativo + nome
         if (nomeInformado) {
             log.debug("Filtro aplicado: nome + ativo");
-            return repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo, ordenarPorNome);
+            return PageResponse.from(
+                    repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo, pageable)
+                            .map(MedicoResposta::entidadeParaDto)
+            );
         }
 
         // Prioridade 2: ativo + CRM (Sigla + Dígitos)
         if (crmInformado) {
             log.debug("Filtro aplicado: CRM completo");
             return repository.findByCrmSiglaAndCrmDigitos(crmSigla, crmDigitos)
-                    .map(List::of).orElseGet(List::of);
+                    .map(medico -> PageResponse.from(
+                            new PageImpl<>(List.of(MedicoResposta.entidadeParaDto(medico)), pageable, 1)
+                    ))
+                    .orElseGet(() -> PageResponse.from(Page.empty(pageable)));
         }
 
         // Prioridade 3: ativo ou nenhum filtro
         log.debug("Filtro aplicado: apenas ativo ou nenhum filtro");
-        return repository.findByAtivo(filtroAtivo, ordenarPorNome);
+        return PageResponse.from(
+                repository.findByAtivo(filtroAtivo, pageable)
+                        .map(MedicoResposta::entidadeParaDto)
+        );
     }
 
     @Override

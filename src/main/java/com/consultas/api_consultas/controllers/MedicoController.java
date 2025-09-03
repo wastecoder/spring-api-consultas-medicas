@@ -1,5 +1,6 @@
 package com.consultas.api_consultas.controllers;
 
+import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
 import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
@@ -15,9 +16,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/medicos")
@@ -44,17 +52,16 @@ public class MedicoController {
     @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Listar médicos, podendo filtrar por nome, CRM (sigla + dígitos) e ativo")
     @ApiResponse(responseCode = "200", description = "Lista de médicos retornada com sucesso")
-    public ResponseEntity<List<MedicoResposta>> listarMedicos(
+    public ResponseEntity<PageResponse<MedicoResposta>> listarMedicos(
+            @RequestParam(defaultValue = "0") int pagina,
+            @RequestParam(defaultValue = "5") int tamanho,
             @RequestParam(value = "nome", required = false) String nome,
             @RequestParam(value = "crmSigla", required = false) SiglaCrm crmSigla,
             @RequestParam(value = "crmDigitos", required = false) String crmDigitos,
             @RequestParam(value = "ativo", required = false) Boolean ativo
     ) {
-        List<Medico> medicos = medicoService.buscarMedicos(nome, crmSigla, crmDigitos, ativo);
-        List<MedicoResposta> dtos = medicos.stream()
-                .map(MedicoResposta::new)
-                .toList();
-        return ResponseEntity.ok(dtos);
+        PageResponse<MedicoResposta> medicos = medicoService.buscarMedicos(pagina, tamanho, nome, crmSigla, crmDigitos, ativo);
+        return ResponseEntity.ok(medicos);
     }
 
     @GetMapping("/{id}")

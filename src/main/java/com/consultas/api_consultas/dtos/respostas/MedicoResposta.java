@@ -36,4 +36,9 @@ public class MedicoResposta {
         this.ativo = medico.getAtivo();
     }
 
+    public static MedicoResposta entidadeParaDto(Medico medico) {
+        return new MedicoResposta(medico);
+    }
+
+
 }
