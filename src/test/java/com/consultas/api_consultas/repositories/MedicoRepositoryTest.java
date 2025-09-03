@@ -5,17 +5,20 @@ import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -58,24 +61,26 @@ class MedicoRepositoryTest {
         @Test
         @DisplayName("Deve retornar apenas médicos ativos")
         void shouldReturnOnlyActiveDoctors() {
-            var medicos = medicoRepository.findByAtivo(true, ORDENAR_POR_NOME);
+            var pageable = PageRequest.of(0, 10, ORDENAR_POR_NOME);
+            var medicosPage = medicoRepository.findByAtivo(true, pageable);
 
-            assertEquals(2, medicos.size());
-            assertEquals("Joao Pedro", medicos.get(0).getNome());
-            assertEquals("Maria Luiza", medicos.get(1).getNome());
-            assertTrue(medicos.stream().allMatch(Medico::getAtivo));
+            assertEquals(2, medicosPage.getTotalElements());
+            assertEquals("Joao Pedro", medicosPage.getContent().get(0).getNome());
+            assertEquals("Maria Luiza", medicosPage.getContent().get(1).getNome());
+            assertTrue(medicosPage.getContent().stream().allMatch(Medico::getAtivo));
         }
 
         @Test
         @DisplayName("Deve retornar apenas médicos inativos")
         void shouldReturnOnlyInactiveDoctors() {
-            var medicos = medicoRepository.findByAtivo(false, ORDENAR_POR_NOME);
+            var pageable = PageRequest.of(0, 10, ORDENAR_POR_NOME);
+            var medicosPage = medicoRepository.findByAtivo(false, pageable);
 
-            assertEquals(3, medicos.size());
-            assertEquals("Joao Kleber", medicos.get(0).getNome());
-            assertEquals("Joao Vitor", medicos.get(1).getNome());
-            assertEquals("Maria Clara", medicos.get(2).getNome());
-            assertFalse(medicos.stream().allMatch(Medico::getAtivo));
+            assertEquals(3, medicosPage.getTotalElements());
+            assertEquals("Joao Kleber", medicosPage.getContent().get(0).getNome());
+            assertEquals("Joao Vitor", medicosPage.getContent().get(1).getNome());
+            assertEquals("Maria Clara", medicosPage.getContent().get(2).getNome());
+            assertFalse(medicosPage.getContent().stream().allMatch(Medico::getAtivo));
         }
     }
 
@@ -84,22 +89,24 @@ class MedicoRepositoryTest {
         @Test
         @DisplayName("Deve retornar as 'Maria' entre os médicos ativos")
         void shouldReturnActiveDoctorsByPartialName() {
-            var medicos = medicoRepository.findByNomeContainingIgnoreCaseAndAtivo("Maria", true, ORDENAR_POR_NOME);
+            var pageable = PageRequest.of(0, 10, ORDENAR_POR_NOME);
+            var medicosPage = medicoRepository.findByNomeContainingIgnoreCaseAndAtivo("Maria", true, pageable);
 
-            assertEquals(1, medicos.size());
-            assertEquals("Maria Luiza", medicos.get(0).getNome());
-            assertTrue(medicos.get(0).getAtivo());
+            assertEquals(1, medicosPage.getTotalElements());
+            assertEquals("Maria Luiza", medicosPage.getContent().get(0).getNome());
+            assertTrue(medicosPage.getContent().get(0).getAtivo());
         }
 
         @Test
         @DisplayName("Deve retornar os 'Joao' entre os médicos inativos")
         void shouldReturnInactiveDoctorsByPartialName() {
-            var medicos = medicoRepository.findByNomeContainingIgnoreCaseAndAtivo("Joao", false, ORDENAR_POR_NOME);
+            var pageable = PageRequest.of(0, 10, ORDENAR_POR_NOME);
+            var medicosPage = medicoRepository.findByNomeContainingIgnoreCaseAndAtivo("Joao", false, pageable);
 
-            assertEquals(2, medicos.size());
-            assertEquals("Joao Kleber", medicos.get(0).getNome());
-            assertEquals("Joao Vitor", medicos.get(1).getNome());
-            assertFalse(medicos.stream().allMatch(Medico::getAtivo));
+            assertEquals(2, medicosPage.getTotalElements());
+            assertEquals("Joao Kleber", medicosPage.getContent().get(0).getNome());
+            assertEquals("Joao Vitor", medicosPage.getContent().get(1).getNome());
+            assertFalse(medicosPage.getContent().stream().allMatch(Medico::getAtivo));
         }
     }
 
