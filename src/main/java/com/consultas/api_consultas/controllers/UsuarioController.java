@@ -14,6 +14,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,6 +29,7 @@ public class UsuarioController {
 
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Cadastrar novo usuário e associar a médico/paciente")
     public ResponseEntity<UsuarioResposta> criarUsuario(@RequestBody @Valid UsuarioCadastroDto requisicao) {
         UsuarioResposta resposta = usuarioService.salvar(requisicao);
@@ -35,6 +37,7 @@ public class UsuarioController {
     }
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Listar todos os usuários")
     @ApiResponse(responseCode = "200", description = "Lista de usuários retornada com sucesso")
     public ResponseEntity<List<UsuarioResposta>> listarUsuarios() {
@@ -47,6 +50,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Buscar usuário por ID")
     @ApiResponse(responseCode = "200", description = "Usuário encontrado")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(hidden = true)))
@@ -57,6 +61,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Editar dados de um usuário por ID")
     @ApiResponse(responseCode = "200", description = "Usuário atualizado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para edição", content = @Content(schema = @Schema(hidden = true)))
@@ -71,6 +76,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Excluir usuário por ID")
     @ApiResponse(responseCode = "204", description = "Usuário excluído com sucesso")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(hidden = true)))
@@ -80,6 +86,7 @@ public class UsuarioController {
     }
 
     @PatchMapping("/inativar/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Inativar usuário por ID")
     @ApiResponse(responseCode = "204", description = "Usuário inativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(hidden = true)))
@@ -89,6 +96,7 @@ public class UsuarioController {
     }
 
     @PatchMapping("/ativar/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Ativar usuário por ID")
     @ApiResponse(responseCode = "204", description = "Usuário ativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(hidden = true)))
