@@ -4,7 +4,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/consultas_medicas
     username: postgres
-    password: ${DB_PASSWORD}
+    password: ${DB_PASSWORD:1234}
   jpa:
 #    show-sql: true
     open-in-view: false
@@ -13,3 +13,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+jwt:
+  private-key-path: ${JWT_PRIVATE_KEY_PATH:file:./keys/jwt-private.key}
+  public-key-path: ${JWT_PUBLIC_KEY_PATH:file:./keys/jwt-public.key}
+
+admin:
+  username: ${ADMIN_USERNAME:admin}
+  password: ${ADMIN_PASSWORD:123456}

@@ -12,3 +12,11 @@ spring:
       ddl-auto: create-drop
     show-sql: true
     database-platform: org.hibernate.dialect.H2Dialect
+
+jwt:
+  private-key-path: classpath:keys/jwt-test-private.key
+  public-key-path: classpath:keys/jwt-test-public.key
+
+admin:
+  username: admin
+  password: testpass

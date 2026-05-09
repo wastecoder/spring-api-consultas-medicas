@@ -7,10 +7,11 @@ import com.consultas.api_consultas.repositories.UsuarioRepository;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.Customizer;
@@ -41,6 +42,18 @@ import java.security.spec.X509EncodedKeySpec;
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
+
+    @Value("${jwt.private-key-path}")
+    private Resource privateKeyResource;
+
+    @Value("${jwt.public-key-path}")
+    private Resource publicKeyResource;
+
+    @Value("${admin.username}")
+    private String adminUsername;
+
+    @Value("${admin.password}")
+    private String adminPassword;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler accessDeniedHandler) throws Exception {
@@ -109,14 +122,14 @@ public class SecurityConfig {
 
     @Bean
     public JwtDecoder jwtDecoder() throws Exception {
-        RSAPublicKey publicKey = readPublicKey("jwt-public.key");
+        RSAPublicKey publicKey = readPublicKey(publicKeyResource);
         return NimbusJwtDecoder.withPublicKey(publicKey).build();
     }
 
     @Bean
     public JwtEncoder jwtEncoder() throws Exception {
-        RSAPublicKey publicKey = readPublicKey("jwt-public.key");
-        RSAPrivateKey privateKey = readPrivateKey("jwt-private.key");
+        RSAPublicKey publicKey = readPublicKey(publicKeyResource);
+        RSAPrivateKey privateKey = readPrivateKey(privateKeyResource);
 
         var jwk = new RSAKey.Builder(publicKey)
                 .privateKey(privateKey)
@@ -141,18 +154,18 @@ public class SecurityConfig {
     @Bean
     public CommandLineRunner criarUsuarioInicial(UsuarioRepository repo, PasswordEncoder encoder) {
         return args -> repo
-                .findByUsername("admin")
+                .findByUsername(adminUsername)
                 .orElseGet(() -> repo.save(new Usuario(
                         null,
-                        "admin",
-                        encoder.encode("123456"),
+                        adminUsername,
+                        encoder.encode(adminPassword),
                         Funcao.ADMIN,
                         true
                 )));
     }
 
-    private RSAPublicKey readPublicKey(String path) throws Exception {
-        try (InputStream is = new ClassPathResource(path).getInputStream()) {
+    private RSAPublicKey readPublicKey(Resource resource) throws Exception {
+        try (InputStream is = resource.getInputStream()) {
             String key = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             String cleaned = key
                     .replace("-----BEGIN PUBLIC KEY-----", "")
@@ -165,8 +178,8 @@ public class SecurityConfig {
         }
     }
 
-    private RSAPrivateKey readPrivateKey(String path) throws Exception {
-        try (InputStream is = new ClassPathResource(path).getInputStream()) {
+    private RSAPrivateKey readPrivateKey(Resource resource) throws Exception {
+        try (InputStream is = resource.getInputStream()) {
             String key = new String(is.readAllBytes(), StandardCharsets.UTF_8);
             String cleaned = key
                     .replace("-----BEGIN PRIVATE KEY-----", "")
