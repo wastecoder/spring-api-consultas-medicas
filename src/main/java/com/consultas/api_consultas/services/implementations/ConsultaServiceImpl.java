@@ -132,6 +132,9 @@ public class ConsultaServiceImpl implements ConsultaService {
         Consulta consultaExistente = this.buscarPorId(id);
         validarRelacionamentos(consultaAtualizada);
 
+        LocalDate dataAtendimentoAntiga = consultaExistente.getDataAtendimento();
+        consultaRules.verificarReagendamentoNoPassado(dataAtendimentoAntiga, consultaAtualizada);
+
         consultaExistente.setDataAtendimento(consultaAtualizada.getDataAtendimento());
         consultaExistente.setHorarioAtendimento(consultaAtualizada.getHorarioAtendimento());
         consultaExistente.setDuracaoEmMinutos(consultaAtualizada.getDuracaoEmMinutos());

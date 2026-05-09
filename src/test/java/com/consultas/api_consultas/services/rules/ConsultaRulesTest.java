@@ -333,4 +333,47 @@ class ConsultaRulesTest {
 
     }
 
+    @Nested
+    @DisplayName("Reagendamento para o passado")
+    class VerificarReagendamentoNoPassado {
+
+        @Test
+        @DisplayName("Não deve lançar exceção quando a data não muda, mesmo estando no passado")
+        void devePermitirManterMesmaDataPassada() {
+            Consulta consultaAtualizada = clonarConsulta(consultaAgendadaOntem);
+            consultaAtualizada.setStatus(StatusConsulta.REALIZADA);
+
+            assertDoesNotThrow(() ->
+                    consultaRules.verificarReagendamentoNoPassado(
+                            consultaAgendadaOntem.getDataAtendimento(), consultaAtualizada));
+        }
+
+        @Test
+        @DisplayName("Não deve lançar exceção quando a data muda para hoje ou futuro")
+        void devePermitirReagendamentoParaFuturo() {
+            // Clock fixo: hoje é 12/06/2025
+            Consulta consultaAtualizada = clonarConsulta(consultaAgendadaOntem);
+            consultaAtualizada.setDataAtendimento(LocalDate.of(2025, 6, 13));
+
+            assertDoesNotThrow(() ->
+                    consultaRules.verificarReagendamentoNoPassado(
+                            consultaAgendadaOntem.getDataAtendimento(), consultaAtualizada));
+        }
+
+        @Test
+        @DisplayName("Deve lançar exceção quando a data muda para um dia no passado")
+        void deveBloquearReagendamentoParaPassado() {
+            // Clock fixo: hoje é 12/06/2025; consultaAgendadaOntem tem data 11/06/2025
+            Consulta consultaAtualizada = clonarConsulta(consultaAgendadaOntem);
+            consultaAtualizada.setDataAtendimento(LocalDate.of(2025, 6, 10));
+
+            BusinessRuleException ex = assertThrows(BusinessRuleException.class, () ->
+                    consultaRules.verificarReagendamentoNoPassado(
+                            consultaAgendadaOntem.getDataAtendimento(), consultaAtualizada));
+
+            assertEquals("Não é possível reagendar uma consulta para uma data no passado.", ex.getMessage());
+        }
+
+    }
+
 }

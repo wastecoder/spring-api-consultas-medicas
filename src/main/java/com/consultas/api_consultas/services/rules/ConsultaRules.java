@@ -34,6 +34,21 @@ public class ConsultaRules {
         validarTransicaoDeStatus(consultaAntiga, consultaAtualizada);
     }
 
+    /**
+     * 9. Bloqueia reagendamento para o passado: se a data mudou e a nova é
+     * anterior a hoje, recusa. Não interfere em atualizações que mantêm a
+     * data original — necessárias para mudar status de consulta vencida ou
+     * corrigir histórico.
+     */
+    public void verificarReagendamentoNoPassado(LocalDate dataAtendimentoAntiga, Consulta consultaAtualizada) {
+        LocalDate dataAtendimentoNova = consultaAtualizada.getDataAtendimento();
+
+        if (!dataAtendimentoNova.equals(dataAtendimentoAntiga)
+                && dataAtendimentoNova.isBefore(LocalDate.now(clock))) {
+            throw new BusinessRuleException("Não é possível reagendar uma consulta para uma data no passado.");
+        }
+    }
+
     private void validarTransicaoDeStatus(Consulta consultaAntiga, Consulta consultaNova) {
         validarTransicaoAposHorario(consultaAntiga, consultaNova.getStatus());
         validarCancelamentoDeConsultaRealizada(consultaAntiga.getStatus(), consultaNova.getStatus());
