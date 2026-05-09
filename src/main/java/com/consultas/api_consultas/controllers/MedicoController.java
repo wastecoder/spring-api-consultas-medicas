@@ -1,5 +1,6 @@
 package com.consultas.api_consultas.controllers;
 
+import com.consultas.api_consultas.constants.AppConstants;
 import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
 import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
@@ -53,8 +54,8 @@ public class MedicoController {
     @Operation(summary = "Listar médicos, podendo filtrar por nome, CRM (sigla + dígitos) e ativo")
     @ApiResponse(responseCode = "200", description = "Lista de médicos retornada com sucesso")
     public ResponseEntity<PageResponse<MedicoResposta>> listarMedicos(
-            @RequestParam(defaultValue = "0") int pagina,
-            @RequestParam(defaultValue = "5") int tamanho,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) int tamanho,
             @RequestParam(value = "nome", required = false) String nome,
             @RequestParam(value = "crmSigla", required = false) SiglaCrm crmSigla,
             @RequestParam(value = "crmDigitos", required = false) String crmDigitos,

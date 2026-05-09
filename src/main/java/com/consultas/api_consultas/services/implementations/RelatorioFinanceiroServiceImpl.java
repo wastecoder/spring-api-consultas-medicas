@@ -1,5 +1,6 @@
 package com.consultas.api_consultas.services.implementations;
 
+import com.consultas.api_consultas.constants.AppConstants;
 import com.consultas.api_consultas.dtos.respostas.relatorios.financeiro.*;
 import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.repositories.ConsultaRepository;
@@ -118,8 +119,8 @@ public class RelatorioFinanceiroServiceImpl implements RelatorioFinanceiroServic
             throw new IllegalArgumentException("Data de início não pode ser posterior à data de fim.");
         }
 
-        LocalDate limiteInferior = LocalDate.of(2000, 1, 1);
-        LocalDate limiteSuperior = LocalDate.now().plusYears(5);
+        LocalDate limiteInferior = AppConstants.RELATORIO_DATA_LIMITE_INFERIOR;
+        LocalDate limiteSuperior = LocalDate.now().plusYears(AppConstants.RELATORIO_DATA_LIMITE_SUPERIOR_ANOS_FUTURO);
 
         if (inicio.isBefore(limiteInferior) || inicio.isAfter(limiteSuperior)) {
             throw new IllegalArgumentException("Data de início inválida: " + inicio +

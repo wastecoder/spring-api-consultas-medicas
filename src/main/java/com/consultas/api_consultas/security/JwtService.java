@@ -1,5 +1,6 @@
 package com.consultas.api_consultas.security;
 
+import com.consultas.api_consultas.constants.AppConstants;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -19,7 +20,6 @@ public class JwtService {
 
     public String generateToken(Authentication authentication) {
         Instant now = Instant.now();
-        long expiry = 3600L;
 
         List<String> scopes = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -28,7 +28,7 @@ public class JwtService {
         var claims = JwtClaimsSet.builder()
                 .issuer("spring-security-jwt")
                 .issuedAt(now)
-                .expiresAt(now.plusSeconds(expiry))
+                .expiresAt(now.plusSeconds(AppConstants.JWT_EXPIRACAO_SEGUNDOS))
                 .subject(authentication.getName())
                 .claim("scope", scopes)
                 .build();

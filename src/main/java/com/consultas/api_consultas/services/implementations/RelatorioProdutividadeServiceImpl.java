@@ -1,5 +1,6 @@
 package com.consultas.api_consultas.services.implementations;
 
+import com.consultas.api_consultas.constants.AppConstants;
 import com.consultas.api_consultas.dtos.respostas.relatorios.produtividade.*;
 import com.consultas.api_consultas.enums.StatusConsulta;
 import com.consultas.api_consultas.repositories.ConsultaRepository;
@@ -72,9 +73,8 @@ public class RelatorioProdutividadeServiceImpl implements RelatorioProdutividade
     public TempoMedioEsperaDto tempoMedioEspera() {
         log.info("Calculando tempo médio de espera entre agendamento e atendimento");
 
-        final double MINUTOS_POR_DIA = 1440.0;
         Double minutos = repository.tempoMedioEsperaEmMinutos();
-        double dias = (minutos != null ? minutos : 0) / MINUTOS_POR_DIA;
+        double dias = (minutos != null ? minutos : 0) / AppConstants.MINUTOS_POR_DIA;
         double diasFormatados = formatar(dias);
 
         return new TempoMedioEsperaDto(diasFormatados);

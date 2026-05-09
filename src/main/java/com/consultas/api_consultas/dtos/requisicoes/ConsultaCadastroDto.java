@@ -1,5 +1,6 @@
 package com.consultas.api_consultas.dtos.requisicoes;
 
+import com.consultas.api_consultas.constants.AppConstants;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.entities.Paciente;
@@ -28,7 +29,7 @@ public class ConsultaCadastroDto {
 
     @NotNull(message = "Duração da consulta é obrigatória")
     @Min(value = 1, message = "Duração deve ser positiva")
-    @Max(value = 480, message = "Duração máxima de 480min (8h)")
+    @Max(value = AppConstants.DURACAO_CONSULTA_MAX_MINUTOS, message = "Duração máxima de 480min (8h)")
     private Integer duracaoEmMinutos;
 
     @NotNull(message = "Preço da consulta é obrigatório")
