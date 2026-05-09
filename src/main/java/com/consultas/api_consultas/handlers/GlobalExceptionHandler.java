@@ -5,6 +5,8 @@ import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.exceptions.RateLimitExcedidoException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
@@ -13,13 +15,16 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.time.OffsetDateTime;
+import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Slf4j
 @ControllerAdvice
@@ -248,6 +253,81 @@ public class GlobalExceptionHandler {
         );
 
         return new ResponseEntity<>(response, status);
+    }
+
+    // Ocorre quando uma constraint do Bean Validation falha em parâmetros de método
+    // Ex: @PathVariable ou @RequestParam anotados com @Min/@Max/@Pattern em controller marcado com @Validated
+    // Diferente do MethodArgumentNotValidException, que cobre apenas @Valid em @RequestBody
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException exception) {
+        var status = HttpStatus.BAD_REQUEST;
+
+        String mensagens = formatarViolacoes(exception.getConstraintViolations());
+
+        log.warn("Violação de constraint em parâmetro: {}", mensagens);
+
+        ErrorResponse response = new ErrorResponse(
+                mensagens,
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(response, status);
+    }
+
+    // Ocorre quando o commit da transação falha (wrapper do Spring para erros no flush/commit)
+    // Causa mais comum: ConstraintViolationException disparada pelo Hibernate ao validar entidades no flush
+    // Quando a causa raiz é validação, devolve 400 com os campos; caso contrário trata como erro de sistema (500)
+    @ExceptionHandler(TransactionSystemException.class)
+    public ResponseEntity<ErrorResponse> handleTransactionSystemException(TransactionSystemException exception) {
+        Throwable causa = exception.getRootCause();
+
+        if (causa instanceof ConstraintViolationException cve) {
+            var status = HttpStatus.BAD_REQUEST;
+            String mensagens = formatarViolacoes(cve.getConstraintViolations());
+
+            log.warn("Violação de constraint detectada no commit da transação: {}", mensagens);
+
+            ErrorResponse response = new ErrorResponse(
+                    mensagens,
+                    status,
+                    OffsetDateTime.now()
+            );
+
+            return new ResponseEntity<>(response, status);
+        }
+
+        var status = HttpStatus.INTERNAL_SERVER_ERROR;
+
+        log.error("Erro de sistema ao confirmar transação", exception);
+
+        ErrorResponse response = new ErrorResponse(
+                "Erro ao processar a transação. Por favor, tente novamente mais tarde.",
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(response, status);
+    }
+
+    // Formata um conjunto de ConstraintViolation no padrão "campo: mensagem; campo: mensagem"
+    // Reaproveitado por handleConstraintViolation e handleTransactionSystemException (causa de validação)
+    private String formatarViolacoes(Set<ConstraintViolation<?>> violacoes) {
+        if (violacoes == null || violacoes.isEmpty()) {
+            return "Erro de validação.";
+        }
+
+        return violacoes.stream()
+                .map(violacao -> nomeDoCampo(violacao) + ": " + violacao.getMessage())
+                .collect(Collectors.joining("; "));
+    }
+
+    // Extrai o último nó do propertyPath, evitando o prefixo do método (ex: "buscarMedicoPorId.id" -> "id")
+    private String nomeDoCampo(ConstraintViolation<?> violacao) {
+        return StreamSupport.stream(violacao.getPropertyPath().spliterator(), false)
+                .reduce((primeiro, ultimo) -> ultimo)
+                .map(node -> node.getName())
+                .orElse(violacao.getPropertyPath().toString());
     }
 
 }
