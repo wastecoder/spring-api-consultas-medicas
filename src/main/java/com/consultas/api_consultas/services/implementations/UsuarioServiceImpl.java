@@ -1,5 +1,6 @@
 package com.consultas.api_consultas.services.implementations;
 
+import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.requisicoes.UsuarioAtualizacaoDto;
 import com.consultas.api_consultas.dtos.requisicoes.UsuarioCadastroDto;
 import com.consultas.api_consultas.dtos.respostas.UsuarioResposta;
@@ -12,10 +13,11 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -49,9 +51,10 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
-    public List<Usuario> buscarTodos() {
-        log.info("Buscando todos os usuários");
-        return usuarioRepository.findAll();
+    public PageResponse<UsuarioResposta> buscarTodos(int pagina, int tamanho) {
+        log.info("Buscando todos os usuários - Página: {}, Tamanho: {}", pagina, tamanho);
+        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "username"));
+        return PageResponse.from(usuarioRepository.findAll(pageable).map(UsuarioResposta::new));
     }
 
     @Override

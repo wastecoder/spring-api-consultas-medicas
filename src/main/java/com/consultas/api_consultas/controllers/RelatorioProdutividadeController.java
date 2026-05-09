@@ -1,22 +1,26 @@
 package com.consultas.api_consultas.controllers;
 
+import com.consultas.api_consultas.constants.AppConstants;
+import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.respostas.relatorios.produtividade.*;
 import com.consultas.api_consultas.enums.StatusConsulta;
 import com.consultas.api_consultas.services.RelatorioProdutividadeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/relatorios/produtividade")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Relatórios do Produtividade", description = "Relatórios relacionados à produtividade clínica")
 public class RelatorioProdutividadeController {
 
@@ -28,10 +32,12 @@ public class RelatorioProdutividadeController {
             summary = "Consultas por mês, filtradas por status",
             description = "Retorna a quantidade de consultas por mês de acordo com o status informado (REALIZADA, AGENDADA, CANCELADA)"
     )
-    public ResponseEntity<List<TotalConsultasRealizadasNoMesDto>> listarConsultasPorMesComFiltro(
-            @RequestParam(defaultValue = "REALIZADA") StatusConsulta status
+    public ResponseEntity<PageResponse<TotalConsultasRealizadasNoMesDto>> listarConsultasPorMesComFiltro(
+            @RequestParam(defaultValue = "REALIZADA") StatusConsulta status,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
     ) {
-        return ResponseEntity.ok(service.totalConsultasPorMes(status));
+        return ResponseEntity.ok(PageResponse.fromList(service.totalConsultasPorMes(status), PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/media-consultas")

@@ -1,5 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
+import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.entities.Paciente;
@@ -23,6 +25,8 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -378,6 +382,13 @@ class ConsultaServiceImplTest {
     @DisplayName("Buscar consultas com filtros")
     class BuscarConsultasComFiltros {
 
+        private static final int PAGINA = 0;
+        private static final int TAMANHO = 5;
+
+        private PageImpl<Consulta> pageOf(Consulta... consultas) {
+            return new PageImpl<>(List.of(consultas));
+        }
+
         @Test
         @DisplayName("Filtro por dataAtendimento + status (prioridade 1)")
         void filtroDataEStatus() {
@@ -386,13 +397,13 @@ class ConsultaServiceImplTest {
 
             when(securityUtil.isDoctor()).thenReturn(false);
             when(securityUtil.isPatient()).thenReturn(false);
-            when(consultaRepository.findByDataAtendimentoAndStatus(eq(data), eq(status), any(Sort.class)))
-                    .thenReturn(List.of(consultaValida));
+            when(consultaRepository.findByDataAtendimentoAndStatus(eq(data), eq(status), any(Pageable.class)))
+                    .thenReturn(pageOf(consultaValida));
 
-            List<Consulta> result = consultaService.buscarConsultas(null, null, data, status);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, null, data, status);
 
-            assertEquals(1, result.size());
-            verify(consultaRepository).findByDataAtendimentoAndStatus(eq(data), eq(status), any(Sort.class));
+            assertEquals(1, result.totalElements());
+            verify(consultaRepository).findByDataAtendimentoAndStatus(eq(data), eq(status), any(Pageable.class));
         }
 
         @Test
@@ -406,13 +417,13 @@ class ConsultaServiceImplTest {
             when(securityUtil.isPatient()).thenReturn(false);
             when(medicoService.buscarPorId(medicoId)).thenReturn(medicoAtivo);
             when(pacienteService.buscarPorId(pacienteId)).thenReturn(pacienteAtivo);
-            when(consultaRepository.findByMedicoAndPacienteAndStatus(eq(medicoAtivo), eq(pacienteAtivo), eq(status), any(Sort.class)))
-                    .thenReturn(List.of(consultaValida));
+            when(consultaRepository.findByMedicoAndPacienteAndStatus(eq(medicoAtivo), eq(pacienteAtivo), eq(status), any(Pageable.class)))
+                    .thenReturn(pageOf(consultaValida));
 
-            List<Consulta> result = consultaService.buscarConsultas(medicoId, pacienteId, null, status);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, medicoId, pacienteId, null, status);
 
-            assertEquals(1, result.size());
-            verify(consultaRepository).findByMedicoAndPacienteAndStatus(eq(medicoAtivo), eq(pacienteAtivo), eq(status), any(Sort.class));
+            assertEquals(1, result.totalElements());
+            verify(consultaRepository).findByMedicoAndPacienteAndStatus(eq(medicoAtivo), eq(pacienteAtivo), eq(status), any(Pageable.class));
         }
 
         @Test
@@ -424,13 +435,13 @@ class ConsultaServiceImplTest {
             when(securityUtil.isDoctor()).thenReturn(false);
             when(securityUtil.isPatient()).thenReturn(false);
             when(medicoService.buscarPorId(medicoId)).thenReturn(medicoAtivo);
-            when(consultaRepository.findByMedicoAndStatus(eq(medicoAtivo), eq(status), any(Sort.class)))
-                    .thenReturn(List.of(consultaValida));
+            when(consultaRepository.findByMedicoAndStatus(eq(medicoAtivo), eq(status), any(Pageable.class)))
+                    .thenReturn(pageOf(consultaValida));
 
-            List<Consulta> result = consultaService.buscarConsultas(medicoId, null, null, status);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, medicoId, null, null, status);
 
-            assertEquals(1, result.size());
-            verify(consultaRepository).findByMedicoAndStatus(eq(medicoAtivo), eq(status), any(Sort.class));
+            assertEquals(1, result.totalElements());
+            verify(consultaRepository).findByMedicoAndStatus(eq(medicoAtivo), eq(status), any(Pageable.class));
         }
 
         @Test
@@ -442,13 +453,13 @@ class ConsultaServiceImplTest {
             when(securityUtil.isDoctor()).thenReturn(false);
             when(securityUtil.isPatient()).thenReturn(false);
             when(pacienteService.buscarPorId(pacienteId)).thenReturn(pacienteAtivo);
-            when(consultaRepository.findByPacienteAndStatus(eq(pacienteAtivo), eq(status), any(Sort.class)))
-                    .thenReturn(List.of(consultaValida));
+            when(consultaRepository.findByPacienteAndStatus(eq(pacienteAtivo), eq(status), any(Pageable.class)))
+                    .thenReturn(pageOf(consultaValida));
 
-            List<Consulta> result = consultaService.buscarConsultas(null, pacienteId, null, status);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, pacienteId, null, status);
 
-            assertEquals(1, result.size());
-            verify(consultaRepository).findByPacienteAndStatus(eq(pacienteAtivo), eq(status), any(Sort.class));
+            assertEquals(1, result.totalElements());
+            verify(consultaRepository).findByPacienteAndStatus(eq(pacienteAtivo), eq(status), any(Pageable.class));
         }
 
         @Test
@@ -456,13 +467,13 @@ class ConsultaServiceImplTest {
         void semFiltroUsaStatusPadrao() {
             when(securityUtil.isDoctor()).thenReturn(false);
             when(securityUtil.isPatient()).thenReturn(false);
-            when(consultaRepository.findByStatus(eq(StatusConsulta.AGENDADA), any(Sort.class)))
-                    .thenReturn(List.of(consultaValida));
+            when(consultaRepository.findByStatus(eq(StatusConsulta.AGENDADA), any(Pageable.class)))
+                    .thenReturn(pageOf(consultaValida));
 
-            List<Consulta> result = consultaService.buscarConsultas(null, null, null, null);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, null, null, null);
 
-            assertEquals(1, result.size());
-            verify(consultaRepository).findByStatus(eq(StatusConsulta.AGENDADA), any(Sort.class));
+            assertEquals(1, result.totalElements());
+            verify(consultaRepository).findByStatus(eq(StatusConsulta.AGENDADA), any(Pageable.class));
         }
 
         @Test
@@ -472,13 +483,13 @@ class ConsultaServiceImplTest {
             when(securityUtil.getLoggedDoctor()).thenReturn(medicoAtivo);
             when(medicoService.buscarPorId(medicoAtivo.getId())).thenReturn(medicoAtivo);
 
-            when(consultaRepository.findByMedicoAndStatus(eq(medicoAtivo), eq(StatusConsulta.AGENDADA), any(Sort.class)))
-                    .thenReturn(List.of(consultaValida));
+            when(consultaRepository.findByMedicoAndStatus(eq(medicoAtivo), eq(StatusConsulta.AGENDADA), any(Pageable.class)))
+                    .thenReturn(pageOf(consultaValida));
 
-            List<Consulta> result = consultaService.buscarConsultas(99L, null, null, null);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, 99L, null, null, null);
 
-            assertEquals(1, result.size());
-            verify(consultaRepository).findByMedicoAndStatus(eq(medicoAtivo), eq(StatusConsulta.AGENDADA), any(Sort.class));
+            assertEquals(1, result.totalElements());
+            verify(consultaRepository).findByMedicoAndStatus(eq(medicoAtivo), eq(StatusConsulta.AGENDADA), any(Pageable.class));
             verify(medicoService).buscarPorId(medicoAtivo.getId());
             verify(medicoService, never()).buscarPorId(99L);
         }
@@ -491,13 +502,13 @@ class ConsultaServiceImplTest {
             when(securityUtil.getLoggedPatient()).thenReturn(pacienteAtivo);
             when(pacienteService.buscarPorId(pacienteAtivo.getId())).thenReturn(pacienteAtivo);
 
-            when(consultaRepository.findByPacienteAndStatus(eq(pacienteAtivo), eq(StatusConsulta.AGENDADA), any(Sort.class)))
-                    .thenReturn(List.of(consultaValida));
+            when(consultaRepository.findByPacienteAndStatus(eq(pacienteAtivo), eq(StatusConsulta.AGENDADA), any(Pageable.class)))
+                    .thenReturn(pageOf(consultaValida));
 
-            List<Consulta> result = consultaService.buscarConsultas(null, 99L, null, null);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, 99L, null, null);
 
-            assertEquals(1, result.size());
-            verify(consultaRepository).findByPacienteAndStatus(eq(pacienteAtivo), eq(StatusConsulta.AGENDADA), any(Sort.class));
+            assertEquals(1, result.totalElements());
+            verify(consultaRepository).findByPacienteAndStatus(eq(pacienteAtivo), eq(StatusConsulta.AGENDADA), any(Pageable.class));
             verify(pacienteService).buscarPorId(pacienteAtivo.getId());
             verify(pacienteService, never()).buscarPorId(99L);
         }
@@ -511,7 +522,7 @@ class ConsultaServiceImplTest {
                     .thenThrow(new EntityNotFoundException("Médico não encontrado"));
 
             EntityNotFoundException e = assertThrows(EntityNotFoundException.class, () ->
-                    consultaService.buscarConsultas(null, null, null, null)
+                    consultaService.buscarConsultas(PAGINA, TAMANHO, null, null, null, null)
             );
 
             assertEquals("Médico não encontrado", e.getMessage());

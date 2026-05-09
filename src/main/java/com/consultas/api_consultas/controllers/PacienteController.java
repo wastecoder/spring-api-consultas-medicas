@@ -1,5 +1,7 @@
 package com.consultas.api_consultas.controllers;
 
+import com.consultas.api_consultas.constants.AppConstants;
+import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.requisicoes.PacienteRequisicao;
 import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
@@ -11,17 +13,18 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/pacientes")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Pacientes", description = "Operações relacionadas ao gerenciamento de pacientes")
 public class PacienteController {
 
@@ -44,17 +47,16 @@ public class PacienteController {
     @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Listar pacientes, podendo filtrar por nome, CPF, sexo e ativo")
     @ApiResponse(responseCode = "200", description = "Lista de pacientes retornada com sucesso")
-    public ResponseEntity<List<PacienteResposta>> listarTodosPacientes(
+    public ResponseEntity<PageResponse<PacienteResposta>> listarTodosPacientes(
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho,
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String cpf,
             @RequestParam(required = false) Sexo sexo,
             @RequestParam(required = false) Boolean ativo
     ) {
-        List<Paciente> pacientes = pacienteService.buscarPacientes(nome, cpf, sexo, ativo);
-        List<PacienteResposta> dtos = pacientes.stream()
-                .map(PacienteResposta::new)
-                .toList();
-        return ResponseEntity.ok(dtos);
+        PageResponse<PacienteResposta> pacientes = pacienteService.buscarPacientes(pagina, tamanho, nome, cpf, sexo, ativo);
+        return ResponseEntity.ok(pacientes);
     }
 
     @GetMapping("/{id}")
@@ -62,7 +64,7 @@ public class PacienteController {
     @Operation(summary = "Buscar paciente por ID")
     @ApiResponse(responseCode = "200", description = "Paciente encontrado")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<PacienteResposta> buscarPacientePorId(@PathVariable Long id) {
+    public ResponseEntity<PacienteResposta> buscarPacientePorId(@PathVariable @Min(1) Long id) {
         Paciente pacienteRetornado = pacienteService.buscarPorId(id);
         PacienteResposta dto = new PacienteResposta(pacienteRetornado);
         return ResponseEntity.ok(dto);
@@ -75,7 +77,7 @@ public class PacienteController {
     @ApiResponse(responseCode = "400", description = "Dados inválidos para edição", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "409", description = "Já existe um paciente cadastrado com o mesmo e-mail", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<PacienteResposta> editarPacientePorId(@PathVariable Long id, @RequestBody @Valid final PacienteRequisicao requisicao) {
+    public ResponseEntity<PacienteResposta> editarPacientePorId(@PathVariable @Min(1) Long id, @RequestBody @Valid final PacienteRequisicao requisicao) {
         Paciente pacienteAtualizado = requisicao.dtoParaPaciente();
         Paciente pacienteSalvo = pacienteService.atualizar(id, pacienteAtualizado);
         PacienteResposta dto = new PacienteResposta(pacienteSalvo);
@@ -88,7 +90,7 @@ public class PacienteController {
     @ApiResponse(responseCode = "204", description = "Paciente excluído com sucesso")
     @ApiResponse(responseCode = "400", description = "Paciente deve estar inativo para ser excluído")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
-    public ResponseEntity<Void> excluirPacientePorId(@PathVariable Long id) {
+    public ResponseEntity<Void> excluirPacientePorId(@PathVariable @Min(1) Long id) {
         pacienteService.removerPorId(id);
         return ResponseEntity.noContent().build();
     }
@@ -98,7 +100,7 @@ public class PacienteController {
     @Operation(summary = "Inativar paciente por ID")
     @ApiResponse(responseCode = "204", description = "Paciente inativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
-    public ResponseEntity<Void> inativarPacientePorId(@PathVariable Long id) {
+    public ResponseEntity<Void> inativarPacientePorId(@PathVariable @Min(1) Long id) {
         pacienteService.inativarPorId(id);
         return ResponseEntity.noContent().build();
     }
@@ -108,7 +110,7 @@ public class PacienteController {
     @Operation(summary = "Ativar paciente por ID")
     @ApiResponse(responseCode = "204", description = "Paciente ativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado")
-    public ResponseEntity<Void> ativarPacientePorId(@PathVariable Long id) {
+    public ResponseEntity<Void> ativarPacientePorId(@PathVariable @Min(1) Long id) {
         pacienteService.ativarPorId(id);
         return ResponseEntity.noContent().build();
     }

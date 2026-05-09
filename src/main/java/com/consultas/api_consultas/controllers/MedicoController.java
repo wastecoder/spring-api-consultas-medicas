@@ -13,10 +13,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/medicos")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Médicos", description = "Operações relacionadas ao gerenciamento de médicos")
 public class MedicoController {
 
@@ -54,8 +57,8 @@ public class MedicoController {
     @Operation(summary = "Listar médicos, podendo filtrar por nome, CRM (sigla + dígitos) e ativo")
     @ApiResponse(responseCode = "200", description = "Lista de médicos retornada com sucesso")
     public ResponseEntity<PageResponse<MedicoResposta>> listarMedicos(
-            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) int pagina,
-            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) int tamanho,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho,
             @RequestParam(value = "nome", required = false) String nome,
             @RequestParam(value = "crmSigla", required = false) SiglaCrm crmSigla,
             @RequestParam(value = "crmDigitos", required = false) String crmDigitos,
@@ -70,7 +73,7 @@ public class MedicoController {
     @Operation(summary = "Buscar médico por ID")
     @ApiResponse(responseCode = "200", description = "Médico encontrado")
     @ApiResponse(responseCode = "404", description = "Médico não encontrado", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<MedicoResposta> buscarMedicoPorId(@PathVariable Long id) {
+    public ResponseEntity<MedicoResposta> buscarMedicoPorId(@PathVariable @Min(1) Long id) {
         Medico medico = medicoService.buscarPorId(id);
         MedicoResposta dto = new MedicoResposta(medico);
         return ResponseEntity.ok(dto);
@@ -83,7 +86,7 @@ public class MedicoController {
     @ApiResponse(responseCode = "400", description = "Dados inválidos para edição", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "404", description = "Médico não encontrado", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "409", description = "Já existe um médico cadastrado com o mesmo CRM ou e-mail", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<MedicoResposta> editarMedicoPorId(@PathVariable Long id, @RequestBody @Valid final MedicoRequisicao requisicao) {
+    public ResponseEntity<MedicoResposta> editarMedicoPorId(@PathVariable @Min(1) Long id, @RequestBody @Valid final MedicoRequisicao requisicao) {
         Medico medicoAtualizado = requisicao.dtoParaMedico();
         Medico medicoSalvo = medicoService.atualizar(id, medicoAtualizado);
         MedicoResposta dto = new MedicoResposta(medicoSalvo);
@@ -96,7 +99,7 @@ public class MedicoController {
     @ApiResponse(responseCode = "204", description = "Médico excluído com sucesso")
     @ApiResponse(responseCode = "400", description = "Médico deve estar inativo para ser excluído")
     @ApiResponse(responseCode = "404", description = "Médico não encontrado")
-    public ResponseEntity<Void> excluirMedicoPorId(@PathVariable Long id) {
+    public ResponseEntity<Void> excluirMedicoPorId(@PathVariable @Min(1) Long id) {
         medicoService.removerPorId(id);
         return ResponseEntity.noContent().build();
     }
@@ -106,7 +109,7 @@ public class MedicoController {
     @Operation(summary = "Inativar médico por ID")
     @ApiResponse(responseCode = "204", description = "Médico inativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Médico não encontrado")
-    public ResponseEntity<Void> inativarMedicoPorId(@PathVariable Long id) {
+    public ResponseEntity<Void> inativarMedicoPorId(@PathVariable @Min(1) Long id) {
         medicoService.inativarPorId(id);
         return ResponseEntity.noContent().build();
     }
@@ -116,7 +119,7 @@ public class MedicoController {
     @Operation(summary = "Ativar médico por ID")
     @ApiResponse(responseCode = "204", description = "Médico ativado com sucesso")
     @ApiResponse(responseCode = "404", description = "Médico não encontrado")
-    public ResponseEntity<Void> ativarMedicoPorId(@PathVariable Long id) {
+    public ResponseEntity<Void> ativarMedicoPorId(@PathVariable @Min(1) Long id) {
         medicoService.ativarPorId(id);
         return ResponseEntity.noContent().build();
     }

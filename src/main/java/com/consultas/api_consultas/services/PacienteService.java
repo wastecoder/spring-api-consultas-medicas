@@ -1,5 +1,7 @@
 package com.consultas.api_consultas.services;
 
+import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.Sexo;
 
@@ -13,7 +15,7 @@ public interface PacienteService {
 
     Paciente buscarPorId(Long id);
 
-    List<Paciente> buscarPacientes(String nome, String cpf, Sexo sexo, Boolean ativo);
+    PageResponse<PacienteResposta> buscarPacientes(int pagina, int tamanho, String nome, String cpf, Sexo sexo, Boolean ativo);
 
     Paciente atualizar(Long id, Paciente pacienteAtualizado);
 

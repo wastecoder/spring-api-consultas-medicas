@@ -1,5 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
+import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Sexo;
@@ -11,6 +13,10 @@ import com.consultas.api_consultas.utils.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -60,37 +66,50 @@ public class PacienteServiceImpl implements PacienteService {
     }
 
     @Override
-    public List<Paciente> buscarPacientes(String nome, String cpf, Sexo sexo, Boolean ativo) {
-        log.info("Buscando pacientes com filtros - Nome: {}, CPF: {}, Sexo: {}, Ativo: {}", nome, cpf, sexo, ativo);
+    public PageResponse<PacienteResposta> buscarPacientes(int pagina, int tamanho, String nome, String cpf, Sexo sexo, Boolean ativo) {
+        log.info("Buscando pacientes - Página: {}, Tamanho: {}, Nome: {}, CPF: {}, Sexo: {}, Ativo: {}",
+                pagina, tamanho, nome, cpf, sexo, ativo);
 
         boolean nomeInformado = nome != null && !nome.trim().isEmpty();
         boolean cpfInformado = cpf != null && !cpf.trim().isEmpty();
         boolean sexoInformado = sexo != null;
         boolean filtroAtivo = (ativo != null) ? ativo : true;
 
-        Sort ordenarPorNome = Sort.by("nome").ascending();
+        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "nome"));
 
         // Prioridade 1: ativo + nome
         if (nomeInformado) {
             log.debug("Filtro aplicado: nome + ativo");
-            return repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo, ordenarPorNome);
+            return PageResponse.from(
+                    repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo, pageable)
+                            .map(PacienteResposta::new)
+            );
         }
 
         // Prioridade 2: CPF
         if (cpfInformado) {
             log.debug("Filtro aplicado: CPF");
             return repository.findByCpf(cpf)
-                    .map(List::of).orElseGet(List::of);
+                    .map(paciente -> PageResponse.from(
+                            new PageImpl<>(List.of(new PacienteResposta(paciente)), pageable, 1)
+                    ))
+                    .orElseGet(() -> PageResponse.from(Page.empty(pageable)));
         }
 
         // Prioridade 3: sexo
         if (sexoInformado) {
             log.debug("Filtro aplicado: sexo + ativo");
-            return repository.findBySexoAndAtivo(sexo, filtroAtivo, ordenarPorNome);
+            return PageResponse.from(
+                    repository.findBySexoAndAtivo(sexo, filtroAtivo, pageable)
+                            .map(PacienteResposta::new)
+            );
         }
 
         log.debug("Filtro aplicado: apenas ativo ou nenhum filtro");
-        return repository.findByAtivo(filtroAtivo, ordenarPorNome);
+        return PageResponse.from(
+                repository.findByAtivo(filtroAtivo, pageable)
+                        .map(PacienteResposta::new)
+        );
     }
 
     /**

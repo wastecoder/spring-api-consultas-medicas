@@ -1,21 +1,26 @@
 package com.consultas.api_consultas.controllers;
 
+import com.consultas.api_consultas.constants.AppConstants;
+import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.respostas.relatorios.medicos.*;
 import com.consultas.api_consultas.services.RelatorioMedicoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/relatorios/medico")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Relatórios de Médico", description = "Relatórios relacionados aos médicos")
 public class RelatorioMedicoController {
 
@@ -27,8 +32,11 @@ public class RelatorioMedicoController {
             summary = "Consultas realizadas por médico",
             description = "Retorna a quantidade de consultas realizadas, agrupadas por médico"
     )
-    public ResponseEntity<List<ConsultasRealizadasPorMedicoDto>> listarConsultasRealizadasPorMedico() {
-        return ResponseEntity.ok(service.consultasRealizadasPorMedico());
+    public ResponseEntity<PageResponse<ConsultasRealizadasPorMedicoDto>> listarConsultasRealizadasPorMedico(
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
+    ) {
+        return ResponseEntity.ok(PageResponse.fromList(service.consultasRealizadasPorMedico(), PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/mais-consultas-no-mes")
@@ -36,10 +44,13 @@ public class RelatorioMedicoController {
             summary = "Médicos com mais consultas no mês",
             description = "Retorna a lista de médicos com maior número de consultas no mês e ano especificados"
     )
-    public ResponseEntity<List<MedicosComMaisConsultasNoMesDto>> listarMedicosComMaisConsultasNoMes(
-            @RequestParam int mes,
-            @RequestParam int ano) {
-        return ResponseEntity.ok(service.medicosComMaisConsultasNoMes(mes, ano));
+    public ResponseEntity<PageResponse<MedicosComMaisConsultasNoMesDto>> listarMedicosComMaisConsultasNoMes(
+            @RequestParam @Min(1) @Max(12) int mes,
+            @RequestParam @Min(2000) int ano,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
+    ) {
+        return ResponseEntity.ok(PageResponse.fromList(service.medicosComMaisConsultasNoMes(mes, ano), PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/por-especialidade")
@@ -47,8 +58,11 @@ public class RelatorioMedicoController {
             summary = "Médicos por especialidade",
             description = "Retorna a quantidade de médicos agrupados por especialidade médica"
     )
-    public ResponseEntity<List<MedicosPorEspecialidadeDto>> listarMedicosPorEspecialidade() {
-        return ResponseEntity.ok(service.medicosPorEspecialidade());
+    public ResponseEntity<PageResponse<MedicosPorEspecialidadeDto>> listarMedicosPorEspecialidade(
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
+    ) {
+        return ResponseEntity.ok(PageResponse.fromList(service.medicosPorEspecialidade(), PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/taxa-cancelamento")
@@ -56,8 +70,11 @@ public class RelatorioMedicoController {
             summary = "Taxa de cancelamentos por médico",
             description = "Retorna a taxa de cancelamentos de consultas para cada médico"
     )
-    public ResponseEntity<List<TaxaCancelamentoPorMedicoDto>> listarTaxaCancelamentoPorMedico() {
-        return ResponseEntity.ok(service.taxaCancelamentoPorMedico());
+    public ResponseEntity<PageResponse<TaxaCancelamentoPorMedicoDto>> listarTaxaCancelamentoPorMedico(
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
+    ) {
+        return ResponseEntity.ok(PageResponse.fromList(service.taxaCancelamentoPorMedico(), PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/faturamento")
@@ -65,8 +82,11 @@ public class RelatorioMedicoController {
             summary = "Faturamento por médico",
             description = "Retorna o valor total faturado por cada médico com base nas consultas realizadas"
     )
-    public ResponseEntity<List<FaturamentoPorMedicoDto>> listarFaturamentoPorMedico() {
-        return ResponseEntity.ok(service.faturamentoPorMedico());
+    public ResponseEntity<PageResponse<FaturamentoPorMedicoDto>> listarFaturamentoPorMedico(
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
+    ) {
+        return ResponseEntity.ok(PageResponse.fromList(service.faturamentoPorMedico(), PageRequest.of(pagina, tamanho)));
     }
 
 }

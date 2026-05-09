@@ -1,11 +1,16 @@
 package com.consultas.api_consultas.controllers;
 
+import com.consultas.api_consultas.constants.AppConstants;
+import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.respostas.relatorios.financeiro.*;
 import com.consultas.api_consultas.services.RelatorioFinanceiroService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -17,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/relatorios/financeiro")
 @RequiredArgsConstructor
+@Validated
 @Tag(name = "Relatórios - Financeiro", description = "Relatórios financeiros da clínica")
 public class RelatorioFinanceiroController {
 
@@ -28,8 +34,11 @@ public class RelatorioFinanceiroController {
             summary = "Faturamento total por mês",
             description = "Retorna o valor total faturado em cada mês com base nas consultas realizadas"
     )
-    public ResponseEntity<List<FaturamentoMensalDto>> listarFaturamentoMensal() {
-        return ResponseEntity.ok(service.faturamentoMensal());
+    public ResponseEntity<PageResponse<FaturamentoMensalDto>> listarFaturamentoMensal(
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
+    ) {
+        return ResponseEntity.ok(PageResponse.fromList(service.faturamentoMensal(), PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/faturamento-por-medico")
@@ -37,8 +46,11 @@ public class RelatorioFinanceiroController {
             summary = "Faturamento por médico",
             description = "Retorna o valor total faturado por cada médico com base nas consultas realizadas"
     )
-    public ResponseEntity<List<FaturamentoPorMedicoDto>> listarFaturamentoPorMedico() {
-        return ResponseEntity.ok(service.faturamentoPorMedico());
+    public ResponseEntity<PageResponse<FaturamentoPorMedicoDto>> listarFaturamentoPorMedico(
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
+    ) {
+        return ResponseEntity.ok(PageResponse.fromList(service.faturamentoPorMedico(), PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/faturamento-por-especialidade")
@@ -46,8 +58,11 @@ public class RelatorioFinanceiroController {
             summary = "Faturamento por especialidade",
             description = "Retorna o valor total faturado por especialidade médica, considerando apenas consultas realizadas"
     )
-    public ResponseEntity<List<FaturamentoPorEspecialidadeDto>> listarFaturamentoPorEspecialidade() {
-        return ResponseEntity.ok(service.faturamentoPorEspecialidade());
+    public ResponseEntity<PageResponse<FaturamentoPorEspecialidadeDto>> listarFaturamentoPorEspecialidade(
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
+    ) {
+        return ResponseEntity.ok(PageResponse.fromList(service.faturamentoPorEspecialidade(), PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/faturamento-por-periodo")
@@ -76,8 +91,11 @@ public class RelatorioFinanceiroController {
             summary = "Perda mensal com cancelamentos",
             description = "Retorna o total financeiro perdido por cancelamentos, agrupado por ano e mês"
     )
-    public ResponseEntity<List<PerdaMensalCancelamentoDto>> obterPerdaMensalComCancelamentos() {
-        return ResponseEntity.ok(service.perdaMensalComCancelamentos());
+    public ResponseEntity<PageResponse<PerdaMensalCancelamentoDto>> obterPerdaMensalComCancelamentos(
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
+    ) {
+        return ResponseEntity.ok(PageResponse.fromList(service.perdaMensalComCancelamentos(), PageRequest.of(pagina, tamanho)));
     }
 
     @GetMapping("/perda-por-periodo")

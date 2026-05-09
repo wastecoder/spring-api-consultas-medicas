@@ -1,5 +1,6 @@
 package com.consultas.api_consultas.services.implementations;
 
+import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.requisicoes.UsuarioAtualizacaoDto;
 import com.consultas.api_consultas.dtos.requisicoes.UsuarioCadastroDto;
 import com.consultas.api_consultas.dtos.respostas.UsuarioResposta;
@@ -20,6 +21,8 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collections;
@@ -429,32 +432,37 @@ class UsuarioServiceImplTest {
     @DisplayName("Buscar todos os usuários")
     class BuscarTodosUsuarios {
 
-        @Test
-        @DisplayName("Deve retornar lista vazia quando não houver usuários")
-        void deveRetornarListaVazia() {
-            when(usuarioRepository.findAll()).thenReturn(Collections.emptyList());
+        private static final int PAGINA = 0;
+        private static final int TAMANHO = 5;
 
-            List<Usuario> usuarios = usuarioService.buscarTodos();
+        @Test
+        @DisplayName("Deve retornar página vazia quando não houver usuários")
+        void deveRetornarPaginaVazia() {
+            when(usuarioRepository.findAll(any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(Collections.emptyList()));
+
+            PageResponse<UsuarioResposta> usuarios = usuarioService.buscarTodos(PAGINA, TAMANHO);
 
             assertNotNull(usuarios);
-            assertTrue(usuarios.isEmpty());
-            verify(usuarioRepository).findAll();
+            assertTrue(usuarios.content().isEmpty());
+            assertEquals(0, usuarios.totalElements());
+            verify(usuarioRepository).findAll(any(Pageable.class));
         }
 
         @Test
-        @DisplayName("Deve retornar lista com usuários")
-        void deveRetornarListaComUsuarios() {
+        @DisplayName("Deve retornar página com usuários")
+        void deveRetornarPaginaComUsuarios() {
             List<Usuario> listaMock = List.of(usuarioAdmin, usuarioMedicoValido);
 
-            when(usuarioRepository.findAll()).thenReturn(listaMock);
+            when(usuarioRepository.findAll(any(Pageable.class)))
+                    .thenReturn(new PageImpl<>(listaMock));
 
-            List<Usuario> usuarios = usuarioService.buscarTodos();
+            PageResponse<UsuarioResposta> usuarios = usuarioService.buscarTodos(PAGINA, TAMANHO);
 
             assertNotNull(usuarios);
-            assertEquals(2, usuarios.size());
-            assertTrue(usuarios.contains(usuarioAdmin));
-            assertTrue(usuarios.contains(usuarioMedicoValido));
-            verify(usuarioRepository).findAll();
+            assertEquals(2, usuarios.totalElements());
+            assertEquals(2, usuarios.content().size());
+            verify(usuarioRepository).findAll(any(Pageable.class));
         }
     }
 

@@ -1,5 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
+import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Funcao;
@@ -18,6 +20,9 @@ import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 
@@ -218,22 +223,25 @@ class PacienteServiceImplTest {
     @DisplayName("Buscar pacientes com filtros")
     class BuscarPacientesComFiltros {
 
-        private final Sort ordenacaoPorNome = Sort.by("nome").ascending();
+        private static final int PAGINA = 0;
+        private static final int TAMANHO = 5;
+        private final Pageable pageable = PageRequest.of(PAGINA, TAMANHO, Sort.by(Sort.Direction.ASC, "nome"));
 
         @Test
         @DisplayName("Deve buscar por nome e ativo quando nome for informado")
         void deveBuscarPorNomeEAtivo() {
             String nome = "Ana";
             boolean ativo = true;
-            when(repository.findByNomeContainingIgnoreCaseAndAtivo(nome, ativo, ordenacaoPorNome))
-                    .thenReturn(List.of(pacienteAtivo));
+            when(repository.findByNomeContainingIgnoreCaseAndAtivo(nome, ativo, pageable))
+                    .thenReturn(new PageImpl<>(List.of(pacienteAtivo), pageable, 1));
 
-            List<Paciente> resultado = pacienteService.buscarPacientes(nome, null, null, ativo);
+            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, nome, null, null, ativo);
 
             assertNotNull(resultado);
-            assertEquals(1, resultado.size());
-            assertEquals(pacienteAtivo, resultado.get(0));
-            verify(repository).findByNomeContainingIgnoreCaseAndAtivo(nome, ativo, ordenacaoPorNome);
+            assertEquals(1, resultado.totalElements());
+            assertEquals(1, resultado.content().size());
+            assertEquals(pacienteAtivo.getId(), resultado.content().get(0).getId());
+            verify(repository).findByNomeContainingIgnoreCaseAndAtivo(nome, ativo, pageable);
         }
 
         @Test
@@ -242,11 +250,25 @@ class PacienteServiceImplTest {
             String cpf = pacienteAtivo.getCpf();
             when(repository.findByCpf(cpf)).thenReturn(Optional.of(pacienteAtivo));
 
-            List<Paciente> resultado = pacienteService.buscarPacientes(null, cpf, null, true);
+            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, cpf, null, true);
 
             assertNotNull(resultado);
-            assertEquals(1, resultado.size());
-            assertEquals(pacienteAtivo, resultado.get(0));
+            assertEquals(1, resultado.totalElements());
+            assertEquals(pacienteAtivo.getId(), resultado.content().get(0).getId());
+            verify(repository).findByCpf(cpf);
+        }
+
+        @Test
+        @DisplayName("Deve retornar página vazia quando CPF não for encontrado")
+        void deveRetornarPaginaVaziaQuandoCpfNaoEncontrado() {
+            String cpf = "00000000000";
+            when(repository.findByCpf(cpf)).thenReturn(Optional.empty());
+
+            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, cpf, null, true);
+
+            assertNotNull(resultado);
+            assertEquals(0, resultado.totalElements());
+            assertTrue(resultado.content().isEmpty());
             verify(repository).findByCpf(cpf);
         }
 
@@ -254,41 +276,41 @@ class PacienteServiceImplTest {
         @DisplayName("Deve buscar por sexo e ativo quando apenas sexo for informado")
         void deveBuscarPorSexoEAtivo() {
             Sexo sexo = pacienteAtivo.getSexo();
-            when(repository.findBySexoAndAtivo(sexo, true, ordenacaoPorNome))
-                    .thenReturn(List.of(pacienteAtivo));
+            when(repository.findBySexoAndAtivo(sexo, true, pageable))
+                    .thenReturn(new PageImpl<>(List.of(pacienteAtivo), pageable, 1));
 
-            List<Paciente> resultado = pacienteService.buscarPacientes(null, null, sexo, true);
+            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, null, sexo, true);
 
             assertNotNull(resultado);
-            assertEquals(1, resultado.size());
-            assertEquals(pacienteAtivo, resultado.get(0));
-            verify(repository).findBySexoAndAtivo(sexo, true, ordenacaoPorNome);
+            assertEquals(1, resultado.content().size());
+            assertEquals(pacienteAtivo.getId(), resultado.content().get(0).getId());
+            verify(repository).findBySexoAndAtivo(sexo, true, pageable);
         }
 
         @Test
         @DisplayName("Deve buscar por ativo quando apenas ativo for informado")
         void deveBuscarPorAtivo() {
-            when(repository.findByAtivo(true, ordenacaoPorNome))
-                    .thenReturn(List.of(pacienteAtivo, pacienteComAcessoNegado));
+            when(repository.findByAtivo(true, pageable))
+                    .thenReturn(new PageImpl<>(List.of(pacienteAtivo, pacienteComAcessoNegado), pageable, 2));
 
-            List<Paciente> resultado = pacienteService.buscarPacientes(null, null, null, true);
+            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, null, null, true);
 
             assertNotNull(resultado);
-            assertEquals(2, resultado.size());
-            verify(repository).findByAtivo(true, ordenacaoPorNome);
+            assertEquals(2, resultado.totalElements());
+            verify(repository).findByAtivo(true, pageable);
         }
 
         @Test
         @DisplayName("Deve buscar apenas pacientes ativos quando nenhum filtro for informado")
         void deveBuscarAtivosQuandoNenhumFiltroInformado() {
-            when(repository.findByAtivo(true, ordenacaoPorNome))
-                    .thenReturn(List.of(pacienteAtivo, pacienteComAcessoNegado));
+            when(repository.findByAtivo(true, pageable))
+                    .thenReturn(new PageImpl<>(List.of(pacienteAtivo, pacienteComAcessoNegado), pageable, 2));
 
-            List<Paciente> resultado = pacienteService.buscarPacientes(null, null, null, null);
+            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, null, null, null);
 
             assertNotNull(resultado);
-            assertEquals(2, resultado.size());
-            verify(repository).findByAtivo(true, ordenacaoPorNome);
+            assertEquals(2, resultado.totalElements());
+            verify(repository).findByAtivo(true, pageable);
         }
     }
 

@@ -8,6 +8,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.test.context.ActiveProfiles;
 
@@ -26,7 +29,7 @@ class PacienteRepositoryTest {
     @Autowired
     private PacienteRepository pacienteRepository;
 
-    private final Sort ORDENAR_POR_NOME = Sort.by("nome").ascending();
+    private final Pageable ORDENAR_POR_NOME = PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "nome"));
 
     @BeforeEach
     void setUp() {
@@ -60,9 +63,10 @@ class PacienteRepositoryTest {
         @Test
         @DisplayName("Deve retornar apenas pacientes ativos")
         void shouldReturnOnlyActivePatients() {
-            var pacientes = pacienteRepository.findByAtivo(true, ORDENAR_POR_NOME);
+            Page<Paciente> pagina = pacienteRepository.findByAtivo(true, ORDENAR_POR_NOME);
+            var pacientes = pagina.getContent();
 
-            assertEquals(2, pacientes.size());
+            assertEquals(2, pagina.getTotalElements());
             assertEquals("Ana Laura", pacientes.get(0).getNome());
             assertEquals("Matheus Henrique", pacientes.get(1).getNome());
             assertTrue(pacientes.stream().allMatch(Paciente::getAtivo));
@@ -71,9 +75,10 @@ class PacienteRepositoryTest {
         @Test
         @DisplayName("Deve retornar apenas pacientes inativos")
         void shouldReturnOnlyInactivePatients() {
-            var pacientes = pacienteRepository.findByAtivo(false, ORDENAR_POR_NOME);
+            Page<Paciente> pagina = pacienteRepository.findByAtivo(false, ORDENAR_POR_NOME);
+            var pacientes = pagina.getContent();
 
-            assertEquals(3, pacientes.size());
+            assertEquals(3, pagina.getTotalElements());
             assertEquals("Ana Clara", pacientes.get(0).getNome());
             assertEquals("Ana Paula", pacientes.get(1).getNome());
             assertEquals("Matheus Eduardo", pacientes.get(2).getNome());
@@ -109,9 +114,10 @@ class PacienteRepositoryTest {
         @Test
         @DisplayName("Deve retornar os 'Matheus' entre os pacientes ativos")
         void shouldReturnActivePatientsByPartialName() {
-            var pacientes = pacienteRepository.findByNomeContainingIgnoreCaseAndAtivo("maTHEUS", true, ORDENAR_POR_NOME);
+            Page<Paciente> pagina = pacienteRepository.findByNomeContainingIgnoreCaseAndAtivo("maTHEUS", true, ORDENAR_POR_NOME);
+            var pacientes = pagina.getContent();
 
-            assertEquals(1, pacientes.size());
+            assertEquals(1, pagina.getTotalElements());
             assertEquals("Matheus Henrique", pacientes.get(0).getNome());
             assertTrue(pacientes.get(0).getAtivo());
         }
@@ -119,9 +125,10 @@ class PacienteRepositoryTest {
         @Test
         @DisplayName("Deve retornar as 'Ana' entre os pacientes inativos")
         void shouldReturnInactivePatientsByPartialName() {
-            var pacientes = pacienteRepository.findByNomeContainingIgnoreCaseAndAtivo("aNA", false, ORDENAR_POR_NOME);
+            Page<Paciente> pagina = pacienteRepository.findByNomeContainingIgnoreCaseAndAtivo("aNA", false, ORDENAR_POR_NOME);
+            var pacientes = pagina.getContent();
 
-            assertEquals(2, pacientes.size());
+            assertEquals(2, pagina.getTotalElements());
             assertEquals("Ana Clara", pacientes.get(0).getNome());
             assertEquals("Ana Paula", pacientes.get(1).getNome());
             assertFalse(pacientes.stream().allMatch(Paciente::getAtivo));
@@ -133,9 +140,10 @@ class PacienteRepositoryTest {
         @Test
         @DisplayName("Deve retornar os pacientes masculinos ativos")
         void shouldReturnActivePatientsBySex() {
-            var pacientes = pacienteRepository.findBySexoAndAtivo(Sexo.MASCULINO, true, ORDENAR_POR_NOME);
+            Page<Paciente> pagina = pacienteRepository.findBySexoAndAtivo(Sexo.MASCULINO, true, ORDENAR_POR_NOME);
+            var pacientes = pagina.getContent();
 
-            assertEquals(1, pacientes.size());
+            assertEquals(1, pagina.getTotalElements());
             assertEquals("Matheus Henrique", pacientes.get(0).getNome());
             assertTrue(pacientes.get(0).getAtivo());
         }
@@ -143,9 +151,10 @@ class PacienteRepositoryTest {
         @Test
         @DisplayName("Deve retornar os pacientes femininos inativos")
         void shouldReturnInactivePatientsBySex() {
-            var pacientes = pacienteRepository.findBySexoAndAtivo(Sexo.FEMININO, false, ORDENAR_POR_NOME);
+            Page<Paciente> pagina = pacienteRepository.findBySexoAndAtivo(Sexo.FEMININO, false, ORDENAR_POR_NOME);
+            var pacientes = pagina.getContent();
 
-            assertEquals(2, pacientes.size());
+            assertEquals(2, pagina.getTotalElements());
             assertEquals("Ana Clara", pacientes.get(0).getNome());
             assertEquals("Ana Paula", pacientes.get(1).getNome());
             assertFalse(pacientes.stream().allMatch(Paciente::getAtivo));

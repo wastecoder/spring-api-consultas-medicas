@@ -1,5 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
+import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.entities.Paciente;
@@ -13,6 +15,8 @@ import com.consultas.api_consultas.utils.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -76,9 +80,9 @@ public class ConsultaServiceImpl implements ConsultaService {
     }
 
     @Override
-    public List<Consulta> buscarConsultas(Long medicoId, Long pacienteId, LocalDate dataAtendimento, StatusConsulta statusConsulta) {
-        log.info("Buscando consultas com filtros - Médico ID: {}, Paciente ID: {}, Data: {}, Status: {}",
-                medicoId, pacienteId, dataAtendimento, statusConsulta);
+    public PageResponse<ConsultaResposta> buscarConsultas(int pagina, int tamanho, Long medicoId, Long pacienteId, LocalDate dataAtendimento, StatusConsulta statusConsulta) {
+        log.info("Buscando consultas - Página: {}, Tamanho: {}, Médico ID: {}, Paciente ID: {}, Data: {}, Status: {}",
+                pagina, tamanho, medicoId, pacienteId, dataAtendimento, statusConsulta);
 
         if (securityUtil.isDoctor()) {
             medicoId = securityUtil.getLoggedDoctor().getId();
@@ -91,12 +95,15 @@ public class ConsultaServiceImpl implements ConsultaService {
         boolean temDataAtendimento = dataAtendimento != null;
         StatusConsulta status = (statusConsulta != null) ? statusConsulta : StatusConsulta.AGENDADA;
 
-        Sort ordernarPorMaisRecente = Sort.by("dataAtendimento").ascending();
+        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "dataAtendimento"));
 
         // Prioridade 1: data atendimento + status
         if (temDataAtendimento) {
             log.debug("Filtro aplicado: dataAtendimento + status");
-            return repository.findByDataAtendimentoAndStatus(dataAtendimento, status, ordernarPorMaisRecente);
+            return PageResponse.from(
+                    repository.findByDataAtendimentoAndStatus(dataAtendimento, status, pageable)
+                            .map(ConsultaResposta::new)
+            );
         }
 
         // Prioridade 2: medico + paciente + status
@@ -104,25 +111,37 @@ public class ConsultaServiceImpl implements ConsultaService {
             log.debug("Filtro aplicado: medico + paciente + status");
             Medico medico = medicoService.buscarPorId(medicoId);
             Paciente paciente = pacienteService.buscarPorId(pacienteId);
-            return repository.findByMedicoAndPacienteAndStatus(medico, paciente, status, ordernarPorMaisRecente);
+            return PageResponse.from(
+                    repository.findByMedicoAndPacienteAndStatus(medico, paciente, status, pageable)
+                            .map(ConsultaResposta::new)
+            );
         }
 
         // Prioridade 3: medico + status
         if (temMedico) {
             log.debug("Filtro aplicado: medico + status");
             Medico medico = medicoService.buscarPorId(medicoId);
-            return repository.findByMedicoAndStatus(medico, status, ordernarPorMaisRecente);
+            return PageResponse.from(
+                    repository.findByMedicoAndStatus(medico, status, pageable)
+                            .map(ConsultaResposta::new)
+            );
         }
 
         // Prioridade 4: paciente + status
         if (temPaciente) {
             log.debug("Filtro aplicado: paciente + status");
             Paciente paciente = pacienteService.buscarPorId(pacienteId);
-            return repository.findByPacienteAndStatus(paciente, status, ordernarPorMaisRecente);
+            return PageResponse.from(
+                    repository.findByPacienteAndStatus(paciente, status, pageable)
+                            .map(ConsultaResposta::new)
+            );
         }
 
         log.debug("Filtro aplicado: apenas status ou nenhum filtro");
-        return repository.findByStatus(status, ordernarPorMaisRecente);
+        return PageResponse.from(
+                repository.findByStatus(status, pageable)
+                        .map(ConsultaResposta::new)
+        );
     }
 
     @Override
