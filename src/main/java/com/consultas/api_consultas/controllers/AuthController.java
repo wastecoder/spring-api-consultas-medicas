@@ -3,11 +3,13 @@ package com.consultas.api_consultas.controllers;
 import com.consultas.api_consultas.dtos.requisicoes.LoginDTO;
 import com.consultas.api_consultas.dtos.respostas.TokenDTO;
 import com.consultas.api_consultas.security.AuthenticationService;
+import com.consultas.api_consultas.security.LoginRateLimitService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -27,13 +29,18 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final AuthenticationService authService;
+    private final LoginRateLimitService loginRateLimitService;
 
 
     @PostMapping("/login")
     @Operation(summary = "Autenticar usuário e gerar token JWT")
     @ApiResponse(responseCode = "200", description = "Autenticação bem-sucedida")
     @ApiResponse(responseCode = "401", description = "Credenciais inválidas", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<TokenDTO> login(@RequestBody @Valid LoginDTO dto) {
+    @ApiResponse(responseCode = "429", description = "Muitas tentativas de login", content = @Content(schema = @Schema(hidden = true)))
+    public ResponseEntity<TokenDTO> login(@RequestBody @Valid LoginDTO dto, HttpServletRequest request) {
+        String ip = LoginRateLimitService.extrairIpCliente(request);
+        loginRateLimitService.verificar(ip, dto.username());
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(dto.username(), dto.senha())
         );

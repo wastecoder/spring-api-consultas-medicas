@@ -2,10 +2,12 @@ package com.consultas.api_consultas.handlers;
 
 import com.consultas.api_consultas.dtos.respostas.ErrorResponse;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
+import com.consultas.api_consultas.exceptions.RateLimitExcedidoException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -208,6 +210,26 @@ public class GlobalExceptionHandler {
         );
 
         return new ResponseEntity<>(response, status);
+    }
+
+    // Ocorre quando o cliente excede o limite de tentativas de login no /auth/login
+    // Acompanhada do header Retry-After indicando em quantos segundos a janela renova
+    @ExceptionHandler(RateLimitExcedidoException.class)
+    public ResponseEntity<ErrorResponse> handleRateLimitExcedido(RateLimitExcedidoException exception) {
+        var status = HttpStatus.TOO_MANY_REQUESTS;
+
+        log.warn("Rate limit excedido: {}", exception.getMessage());
+
+        ErrorResponse response = new ErrorResponse(
+                exception.getMessage(),
+                status,
+                OffsetDateTime.now()
+        );
+
+        return ResponseEntity
+                .status(status)
+                .header(HttpHeaders.RETRY_AFTER, String.valueOf(exception.getRetryAfterSegundos()))
+                .body(response);
     }
 
     // Ocorre quando as credenciais para login fornecidas são inválidas

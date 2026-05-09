@@ -15,3 +15,9 @@ spring:
 # Define se o banco de dados deve ser populado ao iniciar a aplicacao
 popular:
   banco: true
+
+# Rate limit aplicado em /auth/login (chave por par IP + username)
+rate-limit:
+  login:
+    capacidade: 10
+    periodo-segundos: 60
