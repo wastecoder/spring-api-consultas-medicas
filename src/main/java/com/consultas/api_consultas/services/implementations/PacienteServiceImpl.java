@@ -93,6 +93,10 @@ public class PacienteServiceImpl implements PacienteService {
         return repository.findByAtivo(filtroAtivo, ordenarPorNome);
     }
 
+    /**
+     * Atualiza os dados cadastrais do paciente.
+     * O campo {@code ativo} não é modificado aqui — use os endpoints de ativar/inativar.
+     */
     @Override
     public Paciente atualizar(Long id, Paciente pacienteAtualizado) {
         log.info("Atualizando paciente ID: {}", id);
@@ -101,7 +105,6 @@ public class PacienteServiceImpl implements PacienteService {
         pacienteExistente.setNome(pacienteAtualizado.getNome());
         pacienteExistente.setEmail(pacienteAtualizado.getEmail());
         pacienteExistente.setTelefone(pacienteAtualizado.getTelefone());
-//        pacienteExistente.setAtivo(pacienteExistente.getAtivo());           //Não altera o ativo ao editar
 
         pacienteExistente.setCpf(pacienteAtualizado.getCpf());
         pacienteExistente.setDataNascimento(pacienteAtualizado.getDataNascimento());

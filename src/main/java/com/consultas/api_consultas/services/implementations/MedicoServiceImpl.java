@@ -99,6 +99,10 @@ public class MedicoServiceImpl implements MedicoService {
         );
     }
 
+    /**
+     * Atualiza os dados cadastrais do médico.
+     * O campo {@code ativo} não é modificado aqui — use os endpoints de ativar/inativar.
+     */
     @Override
     public Medico atualizar(Long id, Medico medicoAtualizado) {
         log.info("Atualizando médico ID: {}", id);
@@ -108,7 +112,6 @@ public class MedicoServiceImpl implements MedicoService {
         medicoExistente.setNome(medicoAtualizado.getNome());
         medicoExistente.setEmail(medicoAtualizado.getEmail());
         medicoExistente.setTelefone(medicoAtualizado.getTelefone());
-//        medicoExistente.setAtivo(medicoExistente.getAtivo());           //Não altera o ativo ao editar - para isso, use os endpoints de ativar e inativar
 
         medicoExistente.setCrmSigla(medicoAtualizado.getCrmSigla());
         medicoExistente.setCrmDigitos(medicoAtualizado.getCrmDigitos());
