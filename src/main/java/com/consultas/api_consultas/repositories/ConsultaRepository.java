@@ -51,7 +51,7 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
           AND c.data_atendimento = :data
           AND NOT (
                 :fim <= c.horario_atendimento
-            OR  :inicio >= c.horario_atendimento + (c.duracao_em_minutos * INTERVAL '1 minute')
+            OR  :inicio >= c.horario_atendimento + (c.duracao_em_minutos * INTERVAL '1' MINUTE)
           )
           AND c.id <> :consultaId
         """, nativeQuery = true)
@@ -65,7 +65,7 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
           AND c.data_atendimento = :data
           AND NOT (
                 :fim <= c.horario_atendimento
-            OR  :inicio >= c.horario_atendimento + (c.duracao_em_minutos * INTERVAL '1 minute')
+            OR  :inicio >= c.horario_atendimento + (c.duracao_em_minutos * INTERVAL '1' MINUTE)
           )
           AND c.id <> :consultaId
         """, nativeQuery = true)
