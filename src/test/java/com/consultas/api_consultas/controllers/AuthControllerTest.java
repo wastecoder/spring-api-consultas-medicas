@@ -27,7 +27,9 @@ import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -174,5 +176,26 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(corpoRefresh("")))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 204 ao deslogar usuário autenticado e delegar logout para o service")
+    void deveRetornar204AoDeslogarUsuarioAutenticado() throws Exception {
+        mvc().perform(post("/auth/logout")
+                        .with(jwt().jwt(jwtBuilder -> jwtBuilder.subject("admin")))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoRefresh("refresh-do-logout")))
+                .andExpect(status().isNoContent());
+
+        verify(authenticationService).logout(any(), eq("refresh-do-logout"));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 401 ao tentar logout sem Bearer")
+    void deveRetornar401AoTentarLogoutSemBearer() throws Exception {
+        mvc().perform(post("/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoRefresh("qualquer")))
+                .andExpect(status().isUnauthorized());
     }
 }

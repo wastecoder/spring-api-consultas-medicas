@@ -11,6 +11,7 @@ import org.springframework.security.oauth2.jwt.JwtEncoder;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +28,7 @@ public class JwtService {
 
         var claims = JwtClaimsSet.builder()
                 .issuer("spring-security-jwt")
+                .id(UUID.randomUUID().toString())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(AppConstants.JWT_EXPIRACAO_SEGUNDOS))
                 .subject(authentication.getName())

@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class AuthenticationService {
 
     private final JwtService jwtService;
     private final RefreshTokenService refreshTokenService;
+    private final TokenBlacklistService tokenBlacklistService;
     private final UsuarioRepository usuarioRepository;
 
     public AuthTokenDTO authenticate(Authentication authentication) {
@@ -67,6 +69,12 @@ public class AuthenticationService {
                 AppConstants.JWT_EXPIRACAO_SEGUNDOS,
                 TOKEN_TYPE_BEARER
         );
+    }
+
+    public void logout(Jwt accessToken, String refreshTokenValor) {
+        log.debug("Logout do usuário {} (jti={})", accessToken.getSubject(), accessToken.getId());
+        tokenBlacklistService.blacklistar(accessToken);
+        refreshTokenService.revogar(refreshTokenValor);
     }
 
 }

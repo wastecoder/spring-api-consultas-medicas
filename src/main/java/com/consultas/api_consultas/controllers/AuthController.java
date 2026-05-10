@@ -14,9 +14,12 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -57,6 +60,19 @@ public class AuthController {
     public ResponseEntity<AuthTokenDTO> refresh(@RequestBody @Valid RefreshTokenRequestDTO dto) {
         AuthTokenDTO tokens = authService.refresh(dto.refreshToken());
         return ResponseEntity.ok(tokens);
+    }
+
+    @PostMapping("/logout")
+    @PreAuthorize("isAuthenticated()")
+    @Operation(summary = "Encerrar sessão: revoga o refresh token e adiciona o jti do access à blacklist")
+    @ApiResponse(responseCode = "204", description = "Logout efetuado")
+    @ApiResponse(responseCode = "401", description = "Sem autenticação válida", content = @Content(schema = @Schema(hidden = true)))
+    public ResponseEntity<Void> logout(
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestBody @Valid RefreshTokenRequestDTO dto
+    ) {
+        authService.logout(jwt, dto.refreshToken());
+        return ResponseEntity.noContent().build();
     }
 
 }

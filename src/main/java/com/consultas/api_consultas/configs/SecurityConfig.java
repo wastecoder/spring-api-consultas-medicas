@@ -4,6 +4,7 @@ import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Funcao;
 import com.consultas.api_consultas.handlers.CustomAccessDeniedHandler;
 import com.consultas.api_consultas.repositories.UsuarioRepository;
+import com.consultas.api_consultas.security.BlacklistedTokenFilter;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.RSAKey;
 import com.nimbusds.jose.jwk.source.ImmutableJWKSet;
@@ -28,6 +29,7 @@ import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtEncoder;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter;
+import org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter;
 import org.springframework.security.web.SecurityFilterChain;
 
 import java.io.InputStream;
@@ -56,7 +58,11 @@ public class SecurityConfig {
     private String adminPassword;
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, CustomAccessDeniedHandler accessDeniedHandler) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            CustomAccessDeniedHandler accessDeniedHandler,
+            BlacklistedTokenFilter blacklistedTokenFilter
+    ) throws Exception {
         http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable) // Usado em cookies
@@ -70,6 +76,9 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/refresh"
                         ).permitAll()
+
+                        // AUTH: logout precisa apenas de autenticação válida
+                        .requestMatchers("/auth/logout").authenticated()
 
                         // MEDICO:
                         .requestMatchers("/medicos/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
@@ -106,7 +115,8 @@ public class SecurityConfig {
                         .jwt(jwt -> jwt
                                 .jwtAuthenticationConverter(jwtAuthenticationConverter())
                         )
-                );
+                )
+                .addFilterAfter(blacklistedTokenFilter, BearerTokenAuthenticationFilter.class);
 
         return http.build();
     }
