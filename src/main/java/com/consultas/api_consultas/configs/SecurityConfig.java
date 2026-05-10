@@ -67,7 +67,8 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/swagger-ui.html",
                                 "/webjars/**",
-                                "/auth/login"
+                                "/auth/login",
+                                "/auth/refresh"
                         ).permitAll()
 
                         // MEDICO:

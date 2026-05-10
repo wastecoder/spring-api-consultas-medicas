@@ -8,6 +8,7 @@ public final class AppConstants {
 
     // JWT
     public static final long JWT_EXPIRACAO_SEGUNDOS = 3600L;
+    public static final long JWT_REFRESH_EXPIRACAO_SEGUNDOS = 604800L; // 7 dias
 
     // Consulta
     public static final long DURACAO_CONSULTA_MAX_MINUTOS = 480L;

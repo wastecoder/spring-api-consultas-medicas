@@ -1,7 +1,8 @@
 package com.consultas.api_consultas.controllers;
 
 import com.consultas.api_consultas.dtos.requisicoes.LoginDTO;
-import com.consultas.api_consultas.dtos.respostas.TokenDTO;
+import com.consultas.api_consultas.dtos.requisicoes.RefreshTokenRequestDTO;
+import com.consultas.api_consultas.dtos.respostas.AuthTokenDTO;
 import com.consultas.api_consultas.security.AuthenticationService;
 import com.consultas.api_consultas.security.LoginRateLimitService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,11 +34,11 @@ public class AuthController {
 
 
     @PostMapping("/login")
-    @Operation(summary = "Autenticar usuário e gerar token JWT")
+    @Operation(summary = "Autenticar usuário e gerar par de tokens (access + refresh)")
     @ApiResponse(responseCode = "200", description = "Autenticação bem-sucedida")
     @ApiResponse(responseCode = "401", description = "Credenciais inválidas", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "429", description = "Muitas tentativas de login", content = @Content(schema = @Schema(hidden = true)))
-    public ResponseEntity<TokenDTO> login(@RequestBody @Valid LoginDTO dto, HttpServletRequest request) {
+    public ResponseEntity<AuthTokenDTO> login(@RequestBody @Valid LoginDTO dto, HttpServletRequest request) {
         String ip = LoginRateLimitService.extrairIpCliente(request);
         loginRateLimitService.verificar(ip, dto.username());
 
@@ -45,8 +46,17 @@ public class AuthController {
                 new UsernamePasswordAuthenticationToken(dto.username(), dto.senha())
         );
 
-        String token = authService.authenticate(authentication);
-        return ResponseEntity.ok(new TokenDTO(token));
+        AuthTokenDTO tokens = authService.authenticate(authentication);
+        return ResponseEntity.ok(tokens);
+    }
+
+    @PostMapping("/refresh")
+    @Operation(summary = "Trocar refresh token por um novo par (rotação)")
+    @ApiResponse(responseCode = "200", description = "Novo par de tokens emitido")
+    @ApiResponse(responseCode = "401", description = "Refresh token inválido ou expirado", content = @Content(schema = @Schema(hidden = true)))
+    public ResponseEntity<AuthTokenDTO> refresh(@RequestBody @Valid RefreshTokenRequestDTO dto) {
+        AuthTokenDTO tokens = authService.refresh(dto.refreshToken());
+        return ResponseEntity.ok(tokens);
     }
 
 }

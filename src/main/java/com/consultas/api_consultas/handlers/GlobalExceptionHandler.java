@@ -3,6 +3,7 @@ package com.consultas.api_consultas.handlers;
 import com.consultas.api_consultas.dtos.respostas.ErrorResponse;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.exceptions.RateLimitExcedidoException;
+import com.consultas.api_consultas.exceptions.RefreshTokenInvalidoException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.ConstraintViolation;
@@ -248,6 +249,23 @@ public class GlobalExceptionHandler {
 
         ErrorResponse response = new ErrorResponse(
                 mensagem,
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(response, status);
+    }
+
+    // Ocorre quando o refresh token enviado em /auth/refresh está ausente do banco, expirado ou pertence a usuário inativo
+    // O refresh é credencial de autenticação — falha aqui retorna 401, mesmo padrão do BadCredentialsException
+    @ExceptionHandler(RefreshTokenInvalidoException.class)
+    public ResponseEntity<ErrorResponse> handleRefreshTokenInvalido(RefreshTokenInvalidoException exception) {
+        var status = HttpStatus.UNAUTHORIZED;
+
+        log.warn("Refresh token inválido: {}", exception.getMessage());
+
+        ErrorResponse response = new ErrorResponse(
+                exception.getMessage(),
                 status,
                 OffsetDateTime.now()
         );
