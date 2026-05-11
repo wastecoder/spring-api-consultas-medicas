@@ -1,0 +1,25 @@
+### Perfil para PRODUCAO (deploy na Railway)
+# Use a env var DATABASE_URL no formato JDBC, ex.:
+#   jdbc:postgresql://<host>:<port>/<db>?user=<u>&password=<p>
+# Alternativamente, separar credenciais em SPRING_DATASOURCE_USERNAME / SPRING_DATASOURCE_PASSWORD
+# (Spring faz auto-bind dessas envs sem precisar declarar aqui).
+
+spring:
+  datasource:
+    url: ${DATABASE_URL}
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate # producao: schema ja existente, so valida
+
+jwt:
+  private-key-path: ${JWT_PRIVATE_KEY_PATH}
+  public-key-path: ${JWT_PUBLIC_KEY_PATH}
+
+admin:
+  username: ${ADMIN_USERNAME}
+  password: ${ADMIN_PASSWORD}
+
+# Sobrescreve o default de application.yml para nunca rodar o seed em producao
+popular:
+  banco: false
