@@ -21,3 +21,27 @@ rate-limit:
   login:
     capacidade: 10
     periodo-segundos: 60
+
+# Observabilidade: Actuator + Micrometer (Prometheus)
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when-authorized
+      probes:
+        enabled: true
+  metrics:
+    tags:
+      application: api-consultas
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: API Consultas Medicas
+    descricao: API REST para gestao de consultas medicas
+    versao: 0.0.1-SNAPSHOT

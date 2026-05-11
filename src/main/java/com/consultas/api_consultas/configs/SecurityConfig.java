@@ -67,6 +67,14 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable) // Usado em cookies
                 .authorizeHttpRequests(auth -> auth
+                        // ACTUATOR: health e prometheus publicos; resto restrito a ADMIN
+                        .requestMatchers(
+                                "/actuator/health",
+                                "/actuator/health/**",
+                                "/actuator/prometheus"
+                        ).permitAll()
+                        .requestMatchers("/actuator/**").hasRole("ADMIN")
+
                         // TODOS: Swagger
                         .requestMatchers(
                                 "/swagger-ui/**",
