@@ -5,6 +5,9 @@ import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.respostas.relatorios.financeiro.*;
 import com.consultas.api_consultas.services.RelatorioFinanceiroService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +37,9 @@ public class RelatorioFinanceiroController {
             summary = "Faturamento total por mês",
             description = "Retorna o valor total faturado em cada mês com base nas consultas realizadas"
     )
+    @ApiResponse(responseCode = "200", description = "Faturamento mensal listado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<PageResponse<FaturamentoMensalDto>> listarFaturamentoMensal(
             @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
             @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
@@ -46,6 +52,9 @@ public class RelatorioFinanceiroController {
             summary = "Faturamento por médico",
             description = "Retorna o valor total faturado por cada médico com base nas consultas realizadas"
     )
+    @ApiResponse(responseCode = "200", description = "Faturamento por médico listado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<PageResponse<FaturamentoPorMedicoDto>> listarFaturamentoPorMedico(
             @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
             @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
@@ -58,6 +67,9 @@ public class RelatorioFinanceiroController {
             summary = "Faturamento por especialidade",
             description = "Retorna o valor total faturado por especialidade médica, considerando apenas consultas realizadas"
     )
+    @ApiResponse(responseCode = "200", description = "Faturamento por especialidade listado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<PageResponse<FaturamentoPorEspecialidadeDto>> listarFaturamentoPorEspecialidade(
             @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
             @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
@@ -70,6 +82,9 @@ public class RelatorioFinanceiroController {
             summary = "Faturamento entre duas datas",
             description = "Retorna o valor total faturado no intervalo de datas informado, considerando apenas consultas com status REALIZADA"
     )
+    @ApiResponse(responseCode = "200", description = "Faturamento do período calculado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<FaturamentoPorPeriodoDto> consultarFaturamentoPorPeriodo(
             @RequestParam LocalDate inicio,
             @RequestParam LocalDate fim
@@ -82,6 +97,9 @@ public class RelatorioFinanceiroController {
             summary = "Perdas financeiras com cancelamentos",
             description = "Retorna o valor total perdido devido a cancelamentos de consultas"
     )
+    @ApiResponse(responseCode = "200", description = "Perdas com cancelamentos calculadas com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<PerdasComCancelamentosDto> consultarPerdasFinanceirasPorCancelamentos() {
         return ResponseEntity.ok(service.perdasComCancelamentos());
     }
@@ -91,6 +109,9 @@ public class RelatorioFinanceiroController {
             summary = "Perda mensal com cancelamentos",
             description = "Retorna o total financeiro perdido por cancelamentos, agrupado por ano e mês"
     )
+    @ApiResponse(responseCode = "200", description = "Perda mensal listada com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<PageResponse<PerdaMensalCancelamentoDto>> obterPerdaMensalComCancelamentos(
             @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
             @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
@@ -103,6 +124,9 @@ public class RelatorioFinanceiroController {
             summary = "Perda financeira por cancelamento entre duas datas",
             description = "Retorna o total perdido por cancelamentos de consultas no período informado"
     )
+    @ApiResponse(responseCode = "200", description = "Perda do período calculada com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<PerdaPorPeriodoDto> getPerdaPorPeriodo(
             @RequestParam LocalDate inicio,
             @RequestParam LocalDate fim

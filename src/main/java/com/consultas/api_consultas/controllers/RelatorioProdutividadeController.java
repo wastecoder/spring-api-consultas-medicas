@@ -6,6 +6,9 @@ import com.consultas.api_consultas.dtos.respostas.relatorios.produtividade.*;
 import com.consultas.api_consultas.enums.StatusConsulta;
 import com.consultas.api_consultas.services.RelatorioProdutividadeService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +35,9 @@ public class RelatorioProdutividadeController {
             summary = "Consultas por mês, filtradas por status",
             description = "Retorna a quantidade de consultas por mês de acordo com o status informado (REALIZADA, AGENDADA, CANCELADA)"
     )
+    @ApiResponse(responseCode = "200", description = "Consultas por mês filtradas com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<PageResponse<TotalConsultasRealizadasNoMesDto>> listarConsultasPorMesComFiltro(
             @RequestParam(defaultValue = "REALIZADA") StatusConsulta status,
             @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
@@ -45,6 +51,9 @@ public class RelatorioProdutividadeController {
             summary = "Média de consultas por dia, semana e mês",
             description = "Retorna a média de consultas realizadas por dia, por semana e por mês"
     )
+    @ApiResponse(responseCode = "200", description = "Média de consultas calculada com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<MediaConsultasDto> listarMediaConsultasPorPeriodo() {
         return ResponseEntity.ok(service.mediaConsultas());
     }
@@ -54,6 +63,9 @@ public class RelatorioProdutividadeController {
             summary = "Tempo médio de duração das consultas",
             description = "Retorna o tempo médio de duração das consultas realizadas, em minutos"
     )
+    @ApiResponse(responseCode = "200", description = "Tempo médio de duração calculado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<TempoMedioDuracaoDto> listarTempoMedioDuracaoConsultas() {
         return ResponseEntity.ok(service.tempoMedioDuracao());
     }
@@ -63,6 +75,9 @@ public class RelatorioProdutividadeController {
             summary = "Tempo médio de espera entre agendamento e atendimento",
             description = "Retorna o tempo médio, em dias, entre o agendamento e o atendimento das consultas"
     )
+    @ApiResponse(responseCode = "200", description = "Tempo médio de espera calculado com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<TempoMedioEsperaDto> listarTempoMedioEsperaEntreAgendamentoEAtendimento() {
         return ResponseEntity.ok(service.tempoMedioEspera());
     }
@@ -72,6 +87,9 @@ public class RelatorioProdutividadeController {
             summary = "Taxa de comparecimento dos pacientes",
             description = "Retorna a taxa de comparecimento, calculada como consultas realizadas ÷ consultas agendadas"
     )
+    @ApiResponse(responseCode = "200", description = "Taxa de comparecimento calculada com sucesso")
+    @ApiResponse(responseCode = "400", description = "Parâmetros inválidos",
+                 content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<TaxaComparecimentoDto> listarTaxaComparecimento() {
         return ResponseEntity.ok(service.taxaComparecimento());
     }
