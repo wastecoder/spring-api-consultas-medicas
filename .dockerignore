@@ -1,0 +1,12 @@
+target/
+.git/
+.gitignore
+.idea/
+.vscode/
+*.iml
+keys/
+.env
+.env.*
+HELP.md
+CLAUDE.md
+progresso.md
