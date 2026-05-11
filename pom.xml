@@ -103,6 +103,17 @@
 			<version>2.2.0</version>
 		</dependency>
 
+		<!-- Cache: Spring Cache abstraction + Caffeine (local in-memory).
+		     Provider trocavel via CacheConfig sem mexer nos @Cacheable. -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
+
 		<!-- Observabilidade: actuator + Micrometer (Prometheus) + logs JSON -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

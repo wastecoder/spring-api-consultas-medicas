@@ -7,6 +7,7 @@ import com.consultas.api_consultas.repositories.MedicoRepository;
 import com.consultas.api_consultas.services.RelatorioMedicoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -24,6 +25,7 @@ public class RelatorioMedicoServiceImpl implements RelatorioMedicoService {
 
 
     @Override
+    @Cacheable("medicoConsultasRealizadas")
     public List<ConsultasRealizadasPorMedicoDto> consultasRealizadasPorMedico() {
         log.info("Gerando relatório de consultas realizadas por médico");
 
@@ -64,6 +66,7 @@ public class RelatorioMedicoServiceImpl implements RelatorioMedicoService {
     }
 
     @Override
+    @Cacheable("medicoPorEspecialidade")
     public List<MedicosPorEspecialidadeDto> medicosPorEspecialidade() {
         log.info("Gerando relatório de médicos por especialidade");
 
@@ -77,6 +80,7 @@ public class RelatorioMedicoServiceImpl implements RelatorioMedicoService {
     }
 
     @Override
+    @Cacheable("medicoTaxaCancelamento")
     public List<TaxaCancelamentoPorMedicoDto> taxaCancelamentoPorMedico() {
         log.info("Gerando relatório de taxa de cancelamentos por médico");
 
@@ -93,6 +97,7 @@ public class RelatorioMedicoServiceImpl implements RelatorioMedicoService {
     }
 
     @Override
+    @Cacheable("medicoFaturamento")
     public List<FaturamentoPorMedicoDto> faturamentoPorMedico() {
         log.info("Gerando relatório de faturamento por médico");
 

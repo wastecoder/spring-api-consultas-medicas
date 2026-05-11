@@ -22,6 +22,16 @@ rate-limit:
     capacidade: 10
     periodo-segundos: 60
 
+# Cache de relatorios pesados (Caffeine, in-memory).
+# - ttl-segundos: por quanto tempo um resultado permanece em cache antes de ser
+#   reexecutado contra o banco. Como nao usamos @CacheEvict, este TTL e o unico
+#   mecanismo de invalidacao -- aceita-se defasagem de ate este valor.
+# - tamanho-maximo: numero maximo de entradas somando todos os caches.
+app:
+  cache:
+    ttl-segundos: 60
+    tamanho-maximo: 500
+
 # Observabilidade: Actuator + Micrometer (Prometheus)
 management:
   endpoints:

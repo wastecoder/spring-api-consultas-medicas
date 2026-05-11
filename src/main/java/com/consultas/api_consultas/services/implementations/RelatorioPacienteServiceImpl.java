@@ -13,6 +13,7 @@ import com.consultas.api_consultas.utils.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -55,6 +56,7 @@ public class RelatorioPacienteServiceImpl implements RelatorioPacienteService {
     }
 
     @Override
+    @Cacheable("pacienteCancelamentos")
     public List<CancelamentosPorPacienteDto> cancelamentosPorPaciente() {
         log.info("Gerando relatório de cancelamentos por paciente");
 
@@ -87,6 +89,7 @@ public class RelatorioPacienteServiceImpl implements RelatorioPacienteService {
     }
 
     @Override
+    @Cacheable("pacienteDistribuicaoSexo")
     public List<DistribuicaoPacientesPorSexoDto> distribuicaoPorSexo() {
         log.info("Gerando distribuição de pacientes por sexo");
 
@@ -102,6 +105,7 @@ public class RelatorioPacienteServiceImpl implements RelatorioPacienteService {
     }
 
     @Override
+    @Cacheable("pacienteDistribuicaoFaixaEtaria")
     public List<DistribuicaoPacientesPorFaixaEtariaDto> distribuicaoPorFaixaEtaria() {
         log.info("Gerando distribuição de pacientes por faixa etária");
 

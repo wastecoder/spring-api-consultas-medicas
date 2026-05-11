@@ -7,6 +7,7 @@ import com.consultas.api_consultas.repositories.ConsultaRepository;
 import com.consultas.api_consultas.services.RelatorioProdutividadeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -23,6 +24,7 @@ public class RelatorioProdutividadeServiceImpl implements RelatorioProdutividade
     private final ConsultaRepository repository;
 
     @Override
+    @Cacheable(value = "produtividadeConsultasPorMes", key = "#status")
     public List<TotalConsultasRealizadasNoMesDto> totalConsultasPorMes(StatusConsulta status) {
         log.info("Listando total de consultas por mês com status: {}", status);
 
@@ -40,6 +42,7 @@ public class RelatorioProdutividadeServiceImpl implements RelatorioProdutividade
     }
 
     @Override
+    @Cacheable("produtividadeMediaConsultas")
     public MediaConsultasDto mediaConsultas() {
         log.info("Calculando média de consultas por dia, semana e mês");
 
@@ -62,6 +65,7 @@ public class RelatorioProdutividadeServiceImpl implements RelatorioProdutividade
     }
 
     @Override
+    @Cacheable("produtividadeTempoMedioDuracao")
     public TempoMedioDuracaoDto tempoMedioDuracao() {
         log.info("Calculando tempo médio de duração das consultas");
 
@@ -70,6 +74,7 @@ public class RelatorioProdutividadeServiceImpl implements RelatorioProdutividade
     }
 
     @Override
+    @Cacheable("produtividadeTempoMedioEspera")
     public TempoMedioEsperaDto tempoMedioEspera() {
         log.info("Calculando tempo médio de espera entre agendamento e atendimento");
 
@@ -81,6 +86,7 @@ public class RelatorioProdutividadeServiceImpl implements RelatorioProdutividade
     }
 
     @Override
+    @Cacheable("produtividadeTaxaComparecimento")
     public TaxaComparecimentoDto taxaComparecimento() {
         log.info("Calculando taxa de comparecimento");
 

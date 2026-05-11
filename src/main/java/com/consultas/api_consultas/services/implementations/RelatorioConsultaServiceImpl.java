@@ -6,6 +6,7 @@ import com.consultas.api_consultas.repositories.ConsultaRepository;
 import com.consultas.api_consultas.services.RelatorioConsultaService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -20,6 +21,7 @@ public class RelatorioConsultaServiceImpl implements RelatorioConsultaService {
 
 
     @Override
+    @Cacheable("consultasPorStatus")
     public ConsultasPorStatusDto gerarRelatorioConsultasPorStatus() {
         log.info("Gerando relatório de consultas por status");
 
@@ -45,6 +47,7 @@ public class RelatorioConsultaServiceImpl implements RelatorioConsultaService {
     }
 
     @Override
+    @Cacheable("consultasPorMes")
     public List<ConsultasPorMesDto> consultasPorMes() {
         log.info("Gerando relatório de consultas por mês");
 
@@ -59,6 +62,7 @@ public class RelatorioConsultaServiceImpl implements RelatorioConsultaService {
     }
 
     @Override
+    @Cacheable("consultasPorAno")
     public List<ConsultasPorAnoDto> consultasPorAno() {
         log.info("Gerando relatório de consultas por ano");
 
@@ -73,6 +77,7 @@ public class RelatorioConsultaServiceImpl implements RelatorioConsultaService {
     }
 
     @Override
+    @Cacheable("consultasPorEspecialidade")
     public List<ConsultasPorEspecialidadeDto> consultasPorEspecialidade() {
         log.info("Gerando relatório de consultas por especialidade");
 

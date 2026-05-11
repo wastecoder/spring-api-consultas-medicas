@@ -7,6 +7,7 @@ import com.consultas.api_consultas.repositories.ConsultaRepository;
 import com.consultas.api_consultas.services.RelatorioFinanceiroService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -24,6 +25,7 @@ public class RelatorioFinanceiroServiceImpl implements RelatorioFinanceiroServic
 
 
     @Override
+    @Cacheable("faturamentoMensal")
     public List<FaturamentoMensalDto> faturamentoMensal() {
         log.info("Gerando relatório de faturamento mensal");
 
@@ -39,6 +41,7 @@ public class RelatorioFinanceiroServiceImpl implements RelatorioFinanceiroServic
     }
 
     @Override
+    @Cacheable("faturamentoPorMedico")
     public List<FaturamentoPorMedicoDto> faturamentoPorMedico() {
         log.info("Gerando relatório de faturamento por médico");
 
@@ -54,6 +57,7 @@ public class RelatorioFinanceiroServiceImpl implements RelatorioFinanceiroServic
     }
 
     @Override
+    @Cacheable("faturamentoPorEspecialidade")
     public List<FaturamentoPorEspecialidadeDto> faturamentoPorEspecialidade() {
         log.info("Gerando relatório de faturamento por especialidade");
 
@@ -78,6 +82,7 @@ public class RelatorioFinanceiroServiceImpl implements RelatorioFinanceiroServic
     }
 
     @Override
+    @Cacheable("perdasComCancelamentos")
     public PerdasComCancelamentosDto perdasComCancelamentos() {
         log.info("Calculando perdas com cancelamentos");
 
@@ -86,6 +91,7 @@ public class RelatorioFinanceiroServiceImpl implements RelatorioFinanceiroServic
     }
 
     @Override
+    @Cacheable("perdaMensalComCancelamentos")
     public List<PerdaMensalCancelamentoDto> perdaMensalComCancelamentos() {
         log.info("Gerando relatório de perda mensal com cancelamentos");
 
