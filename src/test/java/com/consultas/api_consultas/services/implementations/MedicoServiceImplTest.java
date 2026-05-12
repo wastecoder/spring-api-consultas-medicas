@@ -205,7 +205,7 @@ class MedicoServiceImplTest {
                     .thenReturn(new PageImpl<>(List.of(medicoAtivo), pageable, 1));
 
             PageResponse<MedicoResposta> resultado =
-                    medicoService.buscarMedicos(0, 10, "João", SiglaCrm.SP, "123456", true);
+                    medicoService.buscarMedicos(0, 10, "João", SiglaCrm.SP, "123456", true, "nome", "asc");
 
             assertNotNull(resultado);
             assertEquals(1, resultado.totalElements());
@@ -220,7 +220,7 @@ class MedicoServiceImplTest {
                     .thenReturn(new PageImpl<>(List.of(medicoAtivo, medicoInativo), pageable, 2));
 
             PageResponse<MedicoResposta> resultado =
-                    medicoService.buscarMedicos(0, 10, null, null, null, null);
+                    medicoService.buscarMedicos(0, 10, null, null, null, null, "nome", "asc");
 
             assertNotNull(resultado);
             assertEquals(2, resultado.totalElements());
@@ -234,7 +234,7 @@ class MedicoServiceImplTest {
                     .thenReturn(new PageImpl<>(List.of(medicoAtivo), pageable, 1));
 
             PageResponse<MedicoResposta> resultado =
-                    medicoService.buscarMedicos(0, 10, null, SiglaCrm.SP, null, true);
+                    medicoService.buscarMedicos(0, 10, null, SiglaCrm.SP, null, true, "nome", "asc");
 
             assertNotNull(resultado);
             assertEquals(1, resultado.totalElements());

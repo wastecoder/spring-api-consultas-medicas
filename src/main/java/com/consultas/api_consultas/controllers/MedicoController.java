@@ -64,9 +64,11 @@ public class MedicoController {
             @RequestParam(value = "nome", required = false) String nome,
             @RequestParam(value = "crmSigla", required = false) SiglaCrm crmSigla,
             @RequestParam(value = "crmDigitos", required = false) String crmDigitos,
-            @RequestParam(value = "ativo", required = false) Boolean ativo
+            @RequestParam(value = "ativo", required = false) Boolean ativo,
+            @RequestParam(value = "ordenarPor", defaultValue = AppConstants.ORDENACAO_CAMPO_DEFAULT) String ordenarPor,
+            @RequestParam(value = "direcao", defaultValue = AppConstants.ORDENACAO_DIRECAO_DEFAULT) String direcao
     ) {
-        PageResponse<MedicoResposta> medicos = medicoService.buscarMedicos(pagina, tamanho, nome, crmSigla, crmDigitos, ativo);
+        PageResponse<MedicoResposta> medicos = medicoService.buscarMedicos(pagina, tamanho, nome, crmSigla, crmDigitos, ativo, ordenarPor, direcao);
         return ResponseEntity.ok(medicos);
     }
 

@@ -21,6 +21,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -57,6 +58,12 @@ public class MedicoServiceImpl implements MedicoService {
                 });
     }
 
+    private static final Map<String, String[]> CAMPOS_ORDENACAO = Map.of(
+            "nome",          new String[] { "nome" },
+            "crm",           new String[] { "crmSigla", "crmDigitos" },
+            "especialidade", new String[] { "especialidade" }
+    );
+
     @Override
     public PageResponse<MedicoResposta> buscarMedicos(
             int pagina,
@@ -64,18 +71,35 @@ public class MedicoServiceImpl implements MedicoService {
             String nome,
             SiglaCrm crmSigla,
             String crmDigitos,
-            Boolean ativo
+            Boolean ativo,
+            String ordenarPor,
+            String direcao
     ) {
-        log.info("Buscando médicos - Página: {}, Tamanho: {}, Nome: {}, CRM: {} {}, Ativo: {}",
-                pagina, tamanho, nome, crmSigla, crmDigitos, ativo);
+        log.info("Buscando médicos - Página: {}, Tamanho: {}, Nome: {}, CRM: {} {}, Ativo: {}, OrdenarPor: {}, Direção: {}",
+                pagina, tamanho, nome, crmSigla, crmDigitos, ativo, ordenarPor, direcao);
 
-        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "nome"));
+        Sort sort = construirOrdenacao(ordenarPor, direcao);
+        Pageable pageable = PageRequest.of(pagina, tamanho, sort);
         Specification<Medico> spec = Specification
                 .where(MedicoSpecifications.comAtivo(ativo))
                 .and(MedicoSpecifications.comNomeContendo(nome))
                 .and(MedicoSpecifications.comCrm(crmSigla, crmDigitos));
 
         return PageResponse.from(repository.findAll(spec, pageable).map(medicoMapper::paraResposta));
+    }
+
+    private Sort construirOrdenacao(String ordenarPor, String direcao) {
+        String[] campos = CAMPOS_ORDENACAO.get(ordenarPor);
+        if (campos == null) {
+            throw new BusinessRuleException("Campo de ordenação inválido: " + ordenarPor);
+        }
+        Sort.Direction direction;
+        try {
+            direction = Sort.Direction.fromString(direcao);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessRuleException("Direção de ordenação inválida: " + direcao);
+        }
+        return Sort.by(direction, campos);
     }
 
     /**

@@ -16,7 +16,7 @@ public interface MedicoService {
 
     Medico buscarPorId(Long id);
 
-    PageResponse<MedicoResposta> buscarMedicos(int pagina, int tamanho, String nome, SiglaCrm crmSigla, String crmDigitos, Boolean ativo);
+    PageResponse<MedicoResposta> buscarMedicos(int pagina, int tamanho, String nome, SiglaCrm crmSigla, String crmDigitos, Boolean ativo, String ordenarPor, String direcao);
 
     Medico atualizar(Long id, MedicoRequisicao requisicao);
 

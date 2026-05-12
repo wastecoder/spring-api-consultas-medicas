@@ -24,6 +24,10 @@ public final class AppConstants {
     public static final String PAGINACAO_PAGINA_DEFAULT = "0";
     public static final String PAGINACAO_TAMANHO_DEFAULT = "5";
 
+    // Ordenação default
+    public static final String ORDENACAO_CAMPO_DEFAULT = "nome";
+    public static final String ORDENACAO_DIRECAO_DEFAULT = "asc";
+
     // Recuperação de senha
     public static final long PASSWORD_RESET_TOKEN_EXPIRACAO_MINUTOS = 15L;
 }
