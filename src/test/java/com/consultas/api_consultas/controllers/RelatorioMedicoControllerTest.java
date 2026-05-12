@@ -7,6 +7,9 @@ import com.consultas.api_consultas.dtos.respostas.relatorios.medicos.MedicosComM
 import com.consultas.api_consultas.dtos.respostas.relatorios.medicos.MedicosPorEspecialidadeDto;
 import com.consultas.api_consultas.dtos.respostas.relatorios.medicos.TaxaCancelamentoPorMedicoDto;
 import com.consultas.api_consultas.enums.Especialidade;
+import com.consultas.api_consultas.export.implementations.CsvExporter;
+import com.consultas.api_consultas.export.implementations.PdfExporter;
+import com.consultas.api_consultas.export.implementations.RelatorioExportServiceImpl;
 import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
 import com.consultas.api_consultas.services.RelatorioMedicoService;
 import org.junit.jupiter.api.DisplayName;
@@ -22,13 +25,17 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.math.BigDecimal;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(RelatorioMedicoController.class)
-@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class,
+         RelatorioExportServiceImpl.class, CsvExporter.class, PdfExporter.class})
 @ActiveProfiles("test")
 class RelatorioMedicoControllerTest {
 
@@ -129,5 +136,23 @@ class RelatorioMedicoControllerTest {
     void deveRetornar401SemAutenticacao() throws Exception {
         mvc.perform(get("/relatorios/medico/consultas-realizadas"))
                 .andExpect(status().isUnauthorized());
+    }
+
+
+    // --- Export ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("GET /mais-consultas-no-mes?formato=csv — devolve CSV com Mês/Ano no nome do arquivo")
+    void deveExportarMaisConsultasNoMesEmCsv() throws Exception {
+        when(service.medicosComMaisConsultasNoMes(5, 2025)).thenReturn(List.of(
+                new MedicosComMaisConsultasNoMesDto(1L, "Dra. Ana", 7)
+        ));
+        mvc.perform(get("/relatorios/medico/mais-consultas-no-mes")
+                        .param("mes", "5").param("ano", "2025").param("formato", "csv"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", containsString("text/csv")))
+                .andExpect(header().string("Content-Disposition", containsString("medicos-com-mais-consultas-no-mes-")))
+                .andExpect(content().string(containsString("Dra. Ana;7")));
     }
 }

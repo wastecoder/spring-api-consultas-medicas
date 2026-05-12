@@ -7,6 +7,9 @@ import com.consultas.api_consultas.dtos.respostas.relatorios.produtividade.Tempo
 import com.consultas.api_consultas.dtos.respostas.relatorios.produtividade.TempoMedioEsperaDto;
 import com.consultas.api_consultas.dtos.respostas.relatorios.produtividade.TotalConsultasRealizadasNoMesDto;
 import com.consultas.api_consultas.enums.StatusConsulta;
+import com.consultas.api_consultas.export.implementations.CsvExporter;
+import com.consultas.api_consultas.export.implementations.PdfExporter;
+import com.consultas.api_consultas.export.implementations.RelatorioExportServiceImpl;
 import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
 import com.consultas.api_consultas.services.RelatorioProdutividadeService;
 import org.junit.jupiter.api.DisplayName;
@@ -21,13 +24,17 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(RelatorioProdutividadeController.class)
-@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class,
+         RelatorioExportServiceImpl.class, CsvExporter.class, PdfExporter.class})
 @ActiveProfiles("test")
 class RelatorioProdutividadeControllerTest {
 
@@ -109,5 +116,22 @@ class RelatorioProdutividadeControllerTest {
     void deveRetornar401SemAutenticacao() throws Exception {
         mvc.perform(get("/relatorios/produtividade/media-consultas"))
                 .andExpect(status().isUnauthorized());
+    }
+
+
+    // --- Export ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("GET /media-consultas?formato=csv — objeto único vira tabela chave/valor")
+    void deveExportarMediaConsultasComoChaveValor() throws Exception {
+        when(service.mediaConsultas()).thenReturn(new MediaConsultasDto(2.5, 17.5, 75.0));
+
+        mvc.perform(get("/relatorios/produtividade/media-consultas").param("formato", "csv"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", containsString("text/csv")))
+                .andExpect(header().string("Content-Disposition", containsString("media-de-consultas-")))
+                .andExpect(content().string(containsString("Campo;Valor")))
+                .andExpect(content().string(containsString("Por Dia;2,50")));
     }
 }

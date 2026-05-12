@@ -9,6 +9,9 @@ import com.consultas.api_consultas.dtos.respostas.relatorios.financeiro.PerdaMen
 import com.consultas.api_consultas.dtos.respostas.relatorios.financeiro.PerdaPorPeriodoDto;
 import com.consultas.api_consultas.dtos.respostas.relatorios.financeiro.PerdasComCancelamentosDto;
 import com.consultas.api_consultas.enums.Especialidade;
+import com.consultas.api_consultas.export.implementations.CsvExporter;
+import com.consultas.api_consultas.export.implementations.PdfExporter;
+import com.consultas.api_consultas.export.implementations.RelatorioExportServiceImpl;
 import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
 import com.consultas.api_consultas.services.RelatorioFinanceiroService;
 import org.junit.jupiter.api.DisplayName;
@@ -25,13 +28,17 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(RelatorioFinanceiroController.class)
-@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class,
+         RelatorioExportServiceImpl.class, CsvExporter.class, PdfExporter.class})
 @ActiveProfiles("test")
 class RelatorioFinanceiroControllerTest {
 
@@ -149,5 +156,61 @@ class RelatorioFinanceiroControllerTest {
     void deveRetornar401SemAutenticacao() throws Exception {
         mvc.perform(get("/relatorios/financeiro/perdas-com-cancelamentos"))
                 .andExpect(status().isUnauthorized());
+    }
+
+
+    // --- Export: CSV / PDF / formato inválido ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("GET /faturamento-mensal?formato=csv — devolve CSV com BOM e cabeçalho")
+    void deveExportarFaturamentoMensalEmCsv() throws Exception {
+        when(service.faturamentoMensal()).thenReturn(List.of(
+                new FaturamentoMensalDto(2025, 1, BigDecimal.valueOf(1500.00))
+        ));
+
+        mvc.perform(get("/relatorios/financeiro/faturamento-mensal").param("formato", "csv"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", containsString("text/csv")))
+                .andExpect(header().string("Content-Disposition", containsString("attachment")))
+                .andExpect(header().string("Content-Disposition", containsString("faturamento-mensal-")))
+                .andExpect(content().string(containsString("Ano;Mês;Total Faturado")))
+                .andExpect(content().string(containsString("2025;1;1.500,00")));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("GET /faturamento-por-periodo?formato=pdf — devolve PDF de objeto único")
+    void deveExportarFaturamentoPorPeriodoEmPdf() throws Exception {
+        when(service.faturamentoPorPeriodo(LocalDate.of(2025, 1, 1), LocalDate.of(2025, 12, 31)))
+                .thenReturn(new FaturamentoPorPeriodoDto(BigDecimal.valueOf(7000.00)));
+
+        byte[] body = mvc.perform(get("/relatorios/financeiro/faturamento-por-periodo")
+                        .param("inicio", "2025-01-01")
+                        .param("fim", "2025-12-31")
+                        .param("formato", "pdf"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/pdf"))
+                .andExpect(header().string("Content-Disposition", containsString(".pdf")))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        // Bytes começam com %PDF
+        org.junit.jupiter.api.Assertions.assertTrue(new String(body, 0, 4).equals("%PDF"));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("GET ...?formato=xpto — 400 (formato inválido)")
+    void formatoInvalidoDevolve400() throws Exception {
+        mvc.perform(get("/relatorios/financeiro/faturamento-mensal").param("formato", "xpto"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @WithMockUser(roles = "MEDICO")
+    @DisplayName("Export preserva autorização — médico recebe 403 em CSV de financeiro")
+    void exportPreservaAutorizacao() throws Exception {
+        mvc.perform(get("/relatorios/financeiro/faturamento-mensal").param("formato", "csv"))
+                .andExpect(status().isForbidden());
     }
 }

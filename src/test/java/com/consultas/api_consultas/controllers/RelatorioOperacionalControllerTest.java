@@ -7,6 +7,9 @@ import com.consultas.api_consultas.dtos.respostas.relatorios.operacional.Consult
 import com.consultas.api_consultas.dtos.respostas.relatorios.operacional.MedicoSemAgendamentoDto;
 import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.StatusConsulta;
+import com.consultas.api_consultas.export.implementations.CsvExporter;
+import com.consultas.api_consultas.export.implementations.PdfExporter;
+import com.consultas.api_consultas.export.implementations.RelatorioExportServiceImpl;
 import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
 import com.consultas.api_consultas.services.RelatorioOperacionalService;
 import org.junit.jupiter.api.DisplayName;
@@ -23,14 +26,17 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(RelatorioOperacionalController.class)
-@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class,
+         RelatorioExportServiceImpl.class, CsvExporter.class, PdfExporter.class})
 @ActiveProfiles("test")
 class RelatorioOperacionalControllerTest {
 
@@ -116,5 +122,23 @@ class RelatorioOperacionalControllerTest {
     void deveRetornar401SemAutenticacao() throws Exception {
         mvc.perform(get("/relatorios/operacional/consultas-pendentes"))
                 .andExpect(status().isUnauthorized());
+    }
+
+
+    // --- Export ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("GET /consultas-por-data?formato=pdf — devolve PDF")
+    void deveExportarConsultasPorDataEmPdf() throws Exception {
+        when(service.consultasPorData(any())).thenReturn(List.of(
+                new ConsultasPorDataDto(1L, LocalTime.of(10, 0), "Dra. Ana", "João", StatusConsulta.AGENDADA)
+        ));
+        byte[] body = mvc.perform(get("/relatorios/operacional/consultas-por-data").param("formato", "pdf"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", "application/pdf"))
+                .andExpect(header().string("Content-Disposition", containsString("consultas-por-data-")))
+                .andReturn().getResponse().getContentAsByteArray();
+        org.junit.jupiter.api.Assertions.assertTrue(new String(body, 0, 4).equals("%PDF"));
     }
 }

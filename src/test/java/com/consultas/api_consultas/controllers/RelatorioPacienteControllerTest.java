@@ -9,6 +9,9 @@ import com.consultas.api_consultas.dtos.respostas.relatorios.pacientes.Historico
 import com.consultas.api_consultas.dtos.respostas.relatorios.pacientes.PacientesComMaisConsultasDto;
 import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.enums.StatusConsulta;
+import com.consultas.api_consultas.export.implementations.CsvExporter;
+import com.consultas.api_consultas.export.implementations.PdfExporter;
+import com.consultas.api_consultas.export.implementations.RelatorioExportServiceImpl;
 import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
 import com.consultas.api_consultas.services.RelatorioPacienteService;
 import org.junit.jupiter.api.DisplayName;
@@ -25,13 +28,17 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(RelatorioPacienteController.class)
-@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class,
+         RelatorioExportServiceImpl.class, CsvExporter.class, PdfExporter.class})
 @ActiveProfiles("test")
 class RelatorioPacienteControllerTest {
 
@@ -132,5 +139,22 @@ class RelatorioPacienteControllerTest {
     void deveRetornar401SemAutenticacao() throws Exception {
         mvc.perform(get("/relatorios/paciente/cancelamentos"))
                 .andExpect(status().isUnauthorized());
+    }
+
+
+    // --- Export ---
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    @DisplayName("GET /distribuicao-sexo?formato=csv — devolve CSV com header e enum como texto")
+    void deveExportarDistribuicaoPorSexoEmCsv() throws Exception {
+        when(service.distribuicaoPorSexo()).thenReturn(List.of(
+                new DistribuicaoPacientesPorSexoDto(Sexo.FEMININO, 10)
+        ));
+        mvc.perform(get("/relatorios/paciente/distribuicao-sexo").param("formato", "csv"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Content-Type", containsString("text/csv")))
+                .andExpect(content().string(containsString("Sexo;Total de Pacientes")))
+                .andExpect(content().string(containsString("FEMININO;10")));
     }
 }
