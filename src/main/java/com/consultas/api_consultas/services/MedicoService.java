@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services;
 
 import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
 import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.enums.SiglaCrm;
@@ -17,7 +18,7 @@ public interface MedicoService {
 
     PageResponse<MedicoResposta> buscarMedicos(int pagina, int tamanho, String nome, SiglaCrm crmSigla, String crmDigitos, Boolean ativo);
 
-    Medico atualizar(Long id, Medico medicoAtualizado);
+    Medico atualizar(Long id, MedicoRequisicao requisicao);
 
     void removerPorId(Long id);
 

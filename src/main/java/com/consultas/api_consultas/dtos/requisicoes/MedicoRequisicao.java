@@ -1,6 +1,5 @@
 package com.consultas.api_consultas.dtos.requisicoes;
 
-import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import jakarta.validation.constraints.*;
@@ -41,16 +40,5 @@ public class MedicoRequisicao {
             message = "Telefone deve conter apenas números com 10 ou 11 dígitos"
     )
     private String telefone;
-
-    public Medico dtoParaMedico() {
-        Medico medico = new Medico();
-        medico.setNome(this.getNome());
-        medico.setEmail(this.getEmail());
-        medico.setCrmSigla(this.getCrmSigla());
-        medico.setCrmDigitos(this.getCrmDigitos());
-        medico.setEspecialidade(this.getEspecialidade());
-        medico.setTelefone(this.getTelefone());
-        return medico;
-    }
 
 }

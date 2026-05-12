@@ -6,6 +6,7 @@ import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
 import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.enums.SiglaCrm;
+import com.consultas.api_consultas.mappers.MedicoMapper;
 import com.consultas.api_consultas.services.MedicoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -38,6 +39,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class MedicoController {
 
     private final MedicoService medicoService;
+    private final MedicoMapper medicoMapper;
 
 
     @PostMapping
@@ -46,9 +48,9 @@ public class MedicoController {
     @ApiResponse(responseCode = "201", description = "Médico cadastrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para cadastro", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<MedicoResposta> salvarCadastroMedico(@RequestBody @Valid final MedicoRequisicao requisicao) {
-        Medico medicoNovo = requisicao.dtoParaMedico();
+        Medico medicoNovo = medicoMapper.paraEntidade(requisicao);
         Medico medicoSalvo = medicoService.salvar(medicoNovo);
-        MedicoResposta dto = new MedicoResposta(medicoSalvo);
+        MedicoResposta dto = medicoMapper.paraResposta(medicoSalvo);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
@@ -75,7 +77,7 @@ public class MedicoController {
     @ApiResponse(responseCode = "404", description = "Médico não encontrado", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<MedicoResposta> buscarMedicoPorId(@PathVariable @Min(1) Long id) {
         Medico medico = medicoService.buscarPorId(id);
-        MedicoResposta dto = MedicoResposta.entidadeParaDtoComAuditoria(medico);
+        MedicoResposta dto = medicoMapper.paraRespostaComAuditoria(medico);
         return ResponseEntity.ok(dto);
     }
 
@@ -87,9 +89,8 @@ public class MedicoController {
     @ApiResponse(responseCode = "404", description = "Médico não encontrado", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "409", description = "Já existe um médico cadastrado com o mesmo CRM ou e-mail", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<MedicoResposta> editarMedicoPorId(@PathVariable @Min(1) Long id, @RequestBody @Valid final MedicoRequisicao requisicao) {
-        Medico medicoAtualizado = requisicao.dtoParaMedico();
-        Medico medicoSalvo = medicoService.atualizar(id, medicoAtualizado);
-        MedicoResposta dto = new MedicoResposta(medicoSalvo);
+        Medico medicoSalvo = medicoService.atualizar(id, requisicao);
+        MedicoResposta dto = medicoMapper.paraResposta(medicoSalvo);
         return ResponseEntity.ok(dto);
     }
 

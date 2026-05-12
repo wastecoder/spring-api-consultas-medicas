@@ -1,12 +1,15 @@
 package com.consultas.api_consultas.dtos.respostas;
 
-import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
+@NoArgsConstructor
 public class MedicoResposta {
 
     private Long id;
@@ -27,28 +30,5 @@ public class MedicoResposta {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private AuditoriaResposta auditoria;
-
-
-    public MedicoResposta(Medico medico) {
-        this.id = medico.getId();
-        this.nome = medico.getNome();
-        this.email = medico.getEmail();
-        this.crmSigla = medico.getCrmSigla();
-        this.crmDigitos = medico.getCrmDigitos();
-        this.especialidade = medico.getEspecialidade();
-        this.telefone = medico.getTelefone();
-        this.ativo = medico.getAtivo();
-    }
-
-    public static MedicoResposta entidadeParaDto(Medico medico) {
-        return new MedicoResposta(medico);
-    }
-
-    public static MedicoResposta entidadeParaDtoComAuditoria(Medico medico) {
-        MedicoResposta dto = new MedicoResposta(medico);
-        dto.auditoria = AuditoriaResposta.de(medico);
-        return dto;
-    }
-
 
 }

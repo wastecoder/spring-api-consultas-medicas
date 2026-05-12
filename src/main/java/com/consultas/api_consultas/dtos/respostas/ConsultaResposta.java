@@ -1,10 +1,11 @@
 package com.consultas.api_consultas.dtos.respostas;
 
-import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.enums.StatusConsulta;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,6 +13,8 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 @Getter
+@Setter
+@NoArgsConstructor
 public class ConsultaResposta {
 
     private Long id;
@@ -37,26 +40,5 @@ public class ConsultaResposta {
 
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private AuditoriaResposta auditoria;
-
-
-    public ConsultaResposta(Consulta consulta) {
-        this.id = consulta.getId();
-        this.dataAtendimento = consulta.getDataAtendimento();
-        this.horarioAtendimento = consulta.getHorarioAtendimento();
-        this.duracaoEmMinutos = consulta.getDuracaoEmMinutos().toMinutes();
-        this.dataAgendamento = consulta.getDataAgendamento();
-        this.preco = consulta.getPreco();
-        this.motivo = consulta.getMotivo();
-        this.status = consulta.getStatus();
-
-        medico = new PessoaResumo(consulta.getMedico());
-        paciente = new PessoaResumo(consulta.getPaciente());
-    }
-
-    public static ConsultaResposta entidadeParaDtoComAuditoria(Consulta consulta) {
-        ConsultaResposta dto = new ConsultaResposta(consulta);
-        dto.auditoria = AuditoriaResposta.de(consulta);
-        return dto;
-    }
 
 }

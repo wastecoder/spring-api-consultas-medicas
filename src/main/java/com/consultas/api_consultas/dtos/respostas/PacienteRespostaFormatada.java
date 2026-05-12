@@ -1,10 +1,12 @@
 package com.consultas.api_consultas.dtos.respostas;
 
-import com.consultas.api_consultas.entities.Paciente;
-import com.consultas.api_consultas.utils.FormatoUtils;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
+@Setter
+@NoArgsConstructor
 public class PacienteRespostaFormatada {
 
     private Long id;
@@ -22,17 +24,5 @@ public class PacienteRespostaFormatada {
     private String telefone;
 
     private String ativo;
-
-
-    public PacienteRespostaFormatada(Paciente paciente) {
-        this.id = paciente.getId();
-        this.nome = paciente.getNome();
-        this.email = paciente.getEmail();
-        this.cpf = FormatoUtils.formatarCpf(paciente.getCpf());
-        this.sexo = paciente.getSexo().name();
-        this.dataNascimento = FormatoUtils.formatarData(paciente.getDataNascimento());
-        this.telefone = FormatoUtils.formatarTelefone(paciente.getTelefone());
-        this.ativo = FormatoUtils.formatarStatusAtivo(paciente.getAtivo());
-    }
 
 }

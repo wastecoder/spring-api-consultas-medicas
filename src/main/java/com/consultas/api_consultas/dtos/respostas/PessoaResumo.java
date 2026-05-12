@@ -1,15 +1,19 @@
 package com.consultas.api_consultas.dtos.respostas;
 
 import com.consultas.api_consultas.entities.Pessoa;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
-@RequiredArgsConstructor
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class PessoaResumo {
 
-    private final Long id;
-    private final String nome;
+    private Long id;
+    private String nome;
 
     public PessoaResumo(Pessoa pessoa) {
         this(pessoa.getId(), pessoa.getNome());

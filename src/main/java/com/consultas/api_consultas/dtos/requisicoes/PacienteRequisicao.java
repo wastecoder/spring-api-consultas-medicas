@@ -1,6 +1,5 @@
 package com.consultas.api_consultas.dtos.requisicoes;
 
-import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.Sexo;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.NotBlank;
@@ -48,16 +47,5 @@ public class PacienteRequisicao {
             message = "Telefone deve conter apenas números com 10 ou 11 dígitos"
     )
     private String telefone;
-
-    public Paciente dtoParaPaciente() {
-        Paciente paciente = new Paciente();
-        paciente.setNome(this.getNome());
-        paciente.setEmail(this.getEmail());
-        paciente.setCpf(this.getCpf());
-        paciente.setSexo(this.getSexo());
-        paciente.setDataNascimento(this.getDataNascimento());
-        paciente.setTelefone(this.getTelefone());
-        return paciente;
-    }
 
 }

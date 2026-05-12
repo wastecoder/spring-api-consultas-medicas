@@ -2,6 +2,7 @@ package com.consultas.api_consultas.controllers;
 
 import com.consultas.api_consultas.configs.TestSecurityConfig;
 import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.requisicoes.ConsultaAtualizacaoDto;
 import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.entities.Medico;
@@ -11,6 +12,8 @@ import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.enums.StatusConsulta;
 import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
+import com.consultas.api_consultas.mappers.ConsultaMapper;
+import com.consultas.api_consultas.mappers.ConsultaMapperImpl;
 import com.consultas.api_consultas.services.ConsultaService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -48,7 +51,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ConsultaController.class)
-@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class, ConsultaMapperImpl.class})
 @ActiveProfiles("test")
 class ConsultaControllerTest {
 
@@ -57,6 +60,9 @@ class ConsultaControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private ConsultaMapper consultaMapper;
 
     @MockBean
     private ConsultaService consultaService;
@@ -161,7 +167,7 @@ class ConsultaControllerTest {
         @DisplayName("Deve retornar 200 quando médico lista consultas")
         void deveListarComoMedico() throws Exception {
             PageResponse<ConsultaResposta> page = new PageResponse<>(
-                    List.of(new ConsultaResposta(consultaSalva(1L))),
+                    List.of(consultaMapper.paraResposta(consultaSalva(1L))),
                     0, 5, 1L, 1, true, true, false, false
             );
             when(consultaService.buscarConsultas(anyInt(), anyInt(), any(), any(), any(), any())).thenReturn(page);
@@ -209,7 +215,7 @@ class ConsultaControllerTest {
         @WithMockUser(roles = "RECEPCIONISTA")
         @DisplayName("Deve retornar 200 quando recepcionista edita")
         void deveEditarComSucesso() throws Exception {
-            when(consultaService.atualizar(eq(3L), any(Consulta.class))).thenReturn(consultaSalva(3L));
+            when(consultaService.atualizar(eq(3L), any(ConsultaAtualizacaoDto.class))).thenReturn(consultaSalva(3L));
 
             mvc.perform(put("/consultas/{id}", 3L)
                             .contentType(MediaType.APPLICATION_JSON)

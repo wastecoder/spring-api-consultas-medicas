@@ -1,12 +1,15 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.requisicoes.PacienteRequisicao;
 import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Funcao;
 import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
+import com.consultas.api_consultas.mappers.PacienteMapper;
+import com.consultas.api_consultas.mappers.PacienteMapperImpl;
 import com.consultas.api_consultas.repositories.PacienteRepository;
 import com.consultas.api_consultas.services.rules.PacienteRules;
 import com.consultas.api_consultas.utils.SecurityUtil;
@@ -19,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -56,6 +60,9 @@ class PacienteServiceImplTest {
 
     @Mock
     private SecurityUtil securityUtil;
+
+    @Spy
+    private PacienteMapper pacienteMapper = new PacienteMapperImpl();
 
     private Paciente pacienteAtivo;
     private Paciente pacienteInativo;
@@ -321,16 +328,9 @@ class PacienteServiceImplTest {
         @Test
         @DisplayName("Deve atualizar paciente com sucesso")
         void deveAtualizarPacienteComSucesso() {
-            Paciente atualizado = new Paciente(
-                    "Ana Maria",
-                    "ana.novo@paciente.com",
-                    "55555555555",
-                    "33333333333",
-                    Sexo.FEMININO,
-                    LocalDate.of(1985, 1, 1)
-            );
-            atualizado.setId(pacienteAtivo.getId());
-            atualizado.setAtivo(false); // Deve ser ignorado
+            PacienteRequisicao atualizado = requisicao(
+                    "Ana Maria", "ana.novo@paciente.com", "55555555555",
+                    "33333333333", Sexo.FEMININO, LocalDate.of(1985, 1, 1));
 
             when(repository.findById(pacienteAtivo.getId())).thenReturn(Optional.of(pacienteAtivo));
             when(securityUtil.canAccessPatient(pacienteAtivo)).thenReturn(true);
@@ -354,7 +354,7 @@ class PacienteServiceImplTest {
             Long idInexistente = pacienteInexistente.getId();
             when(repository.findById(idInexistente)).thenReturn(Optional.empty());
 
-            Executable acaoAtualizarInexistente = () -> pacienteService.atualizar(idInexistente, new Paciente());
+            Executable acaoAtualizarInexistente = () -> pacienteService.atualizar(idInexistente, new PacienteRequisicao());
             EntityNotFoundException e = assertThrows(EntityNotFoundException.class, acaoAtualizarInexistente);
 
             assertEquals("Paciente com ID [" + idInexistente + "] não encontrado", e.getMessage());
@@ -367,7 +367,7 @@ class PacienteServiceImplTest {
             when(repository.findById(pacienteComAcessoNegado.getId())).thenReturn(Optional.of(pacienteComAcessoNegado));
             when(securityUtil.canAccessPatient(pacienteComAcessoNegado)).thenReturn(false);
 
-            Executable acaoAtualizarSemPermissao = () -> pacienteService.atualizar(pacienteComAcessoNegado.getId(), new Paciente());
+            Executable acaoAtualizarSemPermissao = () -> pacienteService.atualizar(pacienteComAcessoNegado.getId(), new PacienteRequisicao());
             AccessDeniedException e = assertThrows(AccessDeniedException.class, acaoAtualizarSemPermissao);
 
             assertEquals("Você não tem permissão para acessar este paciente", e.getMessage());
@@ -376,17 +376,11 @@ class PacienteServiceImplTest {
         }
 
         @Test
-        @DisplayName("Não deve alterar o campo ativo mesmo se informado no paciente atualizado")
+        @DisplayName("Não deve alterar o campo ativo — DTO de atualização não expõe ativo")
         void naoDeveAlterarCampoAtivo() {
-            Paciente atualizado = new Paciente(
-                    pacienteAtivo.getNome(),
-                    pacienteAtivo.getEmail(),
-                    pacienteAtivo.getTelefone(),
-                    pacienteAtivo.getCpf(),
-                    pacienteAtivo.getSexo(),
-                    pacienteAtivo.getDataNascimento()
-            );
-            atualizado.setAtivo(false); // Tentando desativar
+            PacienteRequisicao atualizado = requisicao(
+                    pacienteAtivo.getNome(), pacienteAtivo.getEmail(), pacienteAtivo.getTelefone(),
+                    pacienteAtivo.getCpf(), pacienteAtivo.getSexo(), pacienteAtivo.getDataNascimento());
 
             when(repository.findById(pacienteAtivo.getId())).thenReturn(Optional.of(pacienteAtivo));
             when(securityUtil.canAccessPatient(pacienteAtivo)).thenReturn(true);
@@ -395,6 +389,28 @@ class PacienteServiceImplTest {
             Paciente salvo = pacienteService.atualizar(pacienteAtivo.getId(), atualizado);
 
             assertTrue(salvo.getAtivo()); // Continua ativo
+        }
+
+        private PacienteRequisicao requisicao(String nome, String email, String telefone,
+                                              String cpf, Sexo sexo, LocalDate dataNascimento) {
+            PacienteRequisicao req = new PacienteRequisicao();
+            try {
+                set(req, "nome", nome);
+                set(req, "email", email);
+                set(req, "telefone", telefone);
+                set(req, "cpf", cpf);
+                set(req, "sexo", sexo);
+                set(req, "dataNascimento", dataNascimento);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
+            return req;
+        }
+
+        private void set(Object target, String field, Object value) throws ReflectiveOperationException {
+            java.lang.reflect.Field f = target.getClass().getDeclaredField(field);
+            f.setAccessible(true);
+            f.set(target, value);
         }
     }
 

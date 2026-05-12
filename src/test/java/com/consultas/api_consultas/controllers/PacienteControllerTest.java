@@ -2,10 +2,13 @@ package com.consultas.api_consultas.controllers;
 
 import com.consultas.api_consultas.configs.TestSecurityConfig;
 import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.requisicoes.PacienteRequisicao;
 import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
+import com.consultas.api_consultas.mappers.PacienteMapper;
+import com.consultas.api_consultas.mappers.PacienteMapperImpl;
 import com.consultas.api_consultas.services.PacienteService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(PacienteController.class)
-@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class, PacienteMapperImpl.class})
 @ActiveProfiles("test")
 class PacienteControllerTest {
 
@@ -48,6 +51,9 @@ class PacienteControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private PacienteMapper pacienteMapper;
 
     @MockBean
     private PacienteService pacienteService;
@@ -125,7 +131,7 @@ class PacienteControllerTest {
         @DisplayName("Deve retornar 200 e a página de pacientes")
         void deveListarComSucesso() throws Exception {
             PageResponse<PacienteResposta> page = new PageResponse<>(
-                    List.of(new PacienteResposta(pacienteSalvo(1L))),
+                    List.of(pacienteMapper.paraResposta(pacienteSalvo(1L))),
                     0, 5, 1L, 1, true, true, false, false
             );
             when(pacienteService.buscarPacientes(eq(0), eq(5), any(), any(), any(), any())).thenReturn(page);
@@ -181,7 +187,7 @@ class PacienteControllerTest {
         @WithMockUser(roles = "PACIENTE")
         @DisplayName("Deve retornar 200 quando paciente edita os próprios dados")
         void deveEditarComoPaciente() throws Exception {
-            when(pacienteService.atualizar(eq(7L), any(Paciente.class))).thenReturn(pacienteSalvo(7L));
+            when(pacienteService.atualizar(eq(7L), any(PacienteRequisicao.class))).thenReturn(pacienteSalvo(7L));
 
             mvc.perform(put("/pacientes/{id}", 7L)
                             .contentType(MediaType.APPLICATION_JSON)

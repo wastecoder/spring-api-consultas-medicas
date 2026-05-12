@@ -6,6 +6,7 @@ import com.consultas.api_consultas.dtos.requisicoes.UsuarioCadastroDto;
 import com.consultas.api_consultas.dtos.respostas.UsuarioResposta;
 import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
+import com.consultas.api_consultas.mappers.UsuarioMapper;
 import com.consultas.api_consultas.repositories.UsuarioRepository;
 import com.consultas.api_consultas.services.UsuarioService;
 import com.consultas.api_consultas.services.rules.UsuarioRules;
@@ -27,6 +28,7 @@ public class UsuarioServiceImpl implements UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final PasswordEncoder passwordEncoder;
     private final UsuarioRules usuarioRules;
+    private final UsuarioMapper usuarioMapper;
 
 
     @Override
@@ -38,25 +40,22 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuarioRules.validarEmailDuplicado(requisicao.getEmail(), null);
         usuarioRules.validarRegrasDeAssociacao(requisicao);
 
-        Usuario usuario = new Usuario();
-        usuario.setUsername(requisicao.getUsername());
-        usuario.setEmail(requisicao.getEmail());
+        Usuario usuario = usuarioMapper.paraEntidade(requisicao);
         usuario.setSenha(passwordEncoder.encode(requisicao.getSenha()));
-        usuario.setFuncao(requisicao.getFuncao());
         usuario.setAtivo(true);
 
         usuario = usuarioRepository.save(usuario);
 
         usuarioRules.associarUsuarioAoMedicoOuPaciente(requisicao, usuario);
 
-        return new UsuarioResposta(usuario);
+        return usuarioMapper.paraResposta(usuario);
     }
 
     @Override
     public PageResponse<UsuarioResposta> buscarTodos(int pagina, int tamanho) {
         log.info("Buscando todos os usuários - Página: {}, Tamanho: {}", pagina, tamanho);
         Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "username"));
-        return PageResponse.from(usuarioRepository.findAll(pageable).map(UsuarioResposta::new));
+        return PageResponse.from(usuarioRepository.findAll(pageable).map(usuarioMapper::paraResposta));
     }
 
     @Override
@@ -80,8 +79,7 @@ public class UsuarioServiceImpl implements UsuarioService {
         usuarioRules.validarUsernameDuplicado(req.getUsername(), id);
         usuarioRules.validarEmailDuplicado(req.getEmail(), id);
 
-        existente.setUsername(req.getUsername());
-        existente.setEmail(req.getEmail());
+        usuarioMapper.aplicarAtualizacao(req, existente);
 
         if (req.getSenha() != null && !req.getSenha().isBlank()) {
             existente.setSenha(passwordEncoder.encode(req.getSenha()));

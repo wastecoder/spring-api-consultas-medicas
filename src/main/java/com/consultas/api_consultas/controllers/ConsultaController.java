@@ -7,6 +7,7 @@ import com.consultas.api_consultas.dtos.requisicoes.ConsultaCadastroDto;
 import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.enums.StatusConsulta;
+import com.consultas.api_consultas.mappers.ConsultaMapper;
 import com.consultas.api_consultas.services.ConsultaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -32,6 +33,7 @@ import java.time.LocalDate;
 public class ConsultaController {
 
     private final ConsultaService consultaService;
+    private final ConsultaMapper consultaMapper;
 
 
     @PostMapping
@@ -40,9 +42,9 @@ public class ConsultaController {
     @ApiResponse(responseCode = "201", description = "Consulta cadastrada com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para cadastro", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<ConsultaResposta> salvarCadastroConsulta(@RequestBody @Valid final ConsultaCadastroDto requisicao) {
-        Consulta consultaNova = requisicao.dtoParaConsulta();
+        Consulta consultaNova = consultaMapper.paraEntidade(requisicao);
         Consulta consultaSalva = consultaService.salvar(consultaNova);
-        ConsultaResposta resposta = new ConsultaResposta(consultaSalva);
+        ConsultaResposta resposta = consultaMapper.paraResposta(consultaSalva);
         return ResponseEntity.status(HttpStatus.CREATED).body(resposta);
     }
 
@@ -69,7 +71,7 @@ public class ConsultaController {
     @ApiResponse(responseCode = "404", description = "Consulta não encontrada", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<ConsultaResposta> buscarConsultaPorId(@PathVariable @Min(1) Long id) {
         Consulta consultaRetornada = consultaService.buscarPorId(id);
-        ConsultaResposta resposta = ConsultaResposta.entidadeParaDtoComAuditoria(consultaRetornada);
+        ConsultaResposta resposta = consultaMapper.paraRespostaComAuditoria(consultaRetornada);
         return ResponseEntity.ok(resposta);
     }
 
@@ -80,9 +82,8 @@ public class ConsultaController {
     @ApiResponse(responseCode = "400", description = "Dados inválidos para edição", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "404", description = "Consulta não encontrada", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<ConsultaResposta> editarConsultaPorId(@PathVariable @Min(1) Long id, @RequestBody @Valid final ConsultaAtualizacaoDto requisicao) {
-        Consulta consultaAtualizada = requisicao.dtoParaConsulta();
-        Consulta consultaSalva = consultaService.atualizar(id, consultaAtualizada);
-        ConsultaResposta resposta = new ConsultaResposta(consultaSalva);
+        Consulta consultaSalva = consultaService.atualizar(id, requisicao);
+        ConsultaResposta resposta = consultaMapper.paraResposta(consultaSalva);
         return ResponseEntity.ok(resposta);
     }
 

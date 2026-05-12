@@ -8,6 +8,8 @@ import com.consultas.api_consultas.dtos.respostas.UsuarioResposta;
 import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Funcao;
 import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
+import com.consultas.api_consultas.mappers.UsuarioMapper;
+import com.consultas.api_consultas.mappers.UsuarioMapperImpl;
 import com.consultas.api_consultas.services.UsuarioService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -36,7 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(UsuarioController.class)
-@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class, UsuarioMapperImpl.class})
 @ActiveProfiles("test")
 class UsuarioControllerTest {
 
@@ -45,6 +47,9 @@ class UsuarioControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private UsuarioMapper usuarioMapper;
 
     @MockBean
     private UsuarioService usuarioService;
@@ -68,7 +73,7 @@ class UsuarioControllerTest {
                 .funcao(Funcao.RECEPCIONISTA)
                 .ativo(true)
                 .build();
-        return new UsuarioResposta(u);
+        return usuarioMapper.paraResposta(u);
     }
 
 

@@ -1,10 +1,6 @@
 package com.consultas.api_consultas.dtos.requisicoes;
 
-import com.consultas.api_consultas.entities.Consulta;
-import com.consultas.api_consultas.entities.Medico;
-import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.StatusConsulta;
-import com.consultas.api_consultas.utils.ConversorEntradaUtils;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
@@ -49,27 +45,5 @@ public class ConsultaAtualizacaoDto {
     @NotNull(message = "ID do paciente é obrigatório")
     @Positive(message = "ID do paciente deve ser maior do que 0")
     private Long pacienteId;
-
-
-    public Consulta dtoParaConsulta() {
-        Consulta consulta = new Consulta();
-        consulta.setDataAtendimento(this.getDataAtendimento());
-        consulta.setHorarioAtendimento(ConversorEntradaUtils.converterStringParaLocalTime(this.horarioAtendimento));
-        consulta.setDuracaoEmMinutos(ConversorEntradaUtils.converterIntegerParaDuration(this.duracaoEmMinutos));
-        consulta.setPreco(this.getPreco());
-        consulta.setMotivo(this.getMotivo());
-        consulta.setStatus(this.getStatus());
-
-        Medico medico = new Medico();
-        medico.setId(this.getMedicoId());
-
-        Paciente paciente = new Paciente();
-        paciente.setId(this.getPacienteId());
-
-        consulta.setMedico(medico);
-        consulta.setPaciente(paciente);
-
-        return consulta;
-    }
 
 }

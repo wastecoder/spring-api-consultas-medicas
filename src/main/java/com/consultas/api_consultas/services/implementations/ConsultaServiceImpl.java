@@ -1,11 +1,13 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.requisicoes.ConsultaAtualizacaoDto;
 import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.StatusConsulta;
+import com.consultas.api_consultas.mappers.ConsultaMapper;
 import com.consultas.api_consultas.repositories.ConsultaRepository;
 import com.consultas.api_consultas.services.ConsultaService;
 import com.consultas.api_consultas.services.MedicoService;
@@ -34,6 +36,7 @@ public class ConsultaServiceImpl implements ConsultaService {
     private final PacienteService pacienteService;
     private final ConsultaRules consultaRules;
     private final SecurityUtil securityUtil;
+    private final ConsultaMapper consultaMapper;
 
 
     @Override
@@ -102,7 +105,7 @@ public class ConsultaServiceImpl implements ConsultaService {
             log.debug("Filtro aplicado: dataAtendimento + status");
             return PageResponse.from(
                     repository.findByDataAtendimentoAndStatus(dataAtendimento, status, pageable)
-                            .map(ConsultaResposta::new)
+                            .map(consultaMapper::paraResposta)
             );
         }
 
@@ -113,7 +116,7 @@ public class ConsultaServiceImpl implements ConsultaService {
             Paciente paciente = pacienteService.buscarPorId(pacienteId);
             return PageResponse.from(
                     repository.findByMedicoAndPacienteAndStatus(medico, paciente, status, pageable)
-                            .map(ConsultaResposta::new)
+                            .map(consultaMapper::paraResposta)
             );
         }
 
@@ -123,7 +126,7 @@ public class ConsultaServiceImpl implements ConsultaService {
             Medico medico = medicoService.buscarPorId(medicoId);
             return PageResponse.from(
                     repository.findByMedicoAndStatus(medico, status, pageable)
-                            .map(ConsultaResposta::new)
+                            .map(consultaMapper::paraResposta)
             );
         }
 
@@ -133,37 +136,28 @@ public class ConsultaServiceImpl implements ConsultaService {
             Paciente paciente = pacienteService.buscarPorId(pacienteId);
             return PageResponse.from(
                     repository.findByPacienteAndStatus(paciente, status, pageable)
-                            .map(ConsultaResposta::new)
+                            .map(consultaMapper::paraResposta)
             );
         }
 
         log.debug("Filtro aplicado: apenas status ou nenhum filtro");
         return PageResponse.from(
                 repository.findByStatus(status, pageable)
-                        .map(ConsultaResposta::new)
+                        .map(consultaMapper::paraResposta)
         );
     }
 
     @Override
-    public Consulta atualizar(Long id, Consulta consultaAtualizada) {
+    public Consulta atualizar(Long id, ConsultaAtualizacaoDto requisicao) {
         log.info("Atualizando consulta ID: {}", id);
 
         Consulta consultaExistente = this.buscarPorId(id);
-        validarRelacionamentos(consultaAtualizada);
-
         LocalDate dataAtendimentoAntiga = consultaExistente.getDataAtendimento();
-        consultaRules.verificarReagendamentoNoPassado(dataAtendimentoAntiga, consultaAtualizada);
 
-        consultaExistente.setDataAtendimento(consultaAtualizada.getDataAtendimento());
-        consultaExistente.setHorarioAtendimento(consultaAtualizada.getHorarioAtendimento());
-        consultaExistente.setDuracaoEmMinutos(consultaAtualizada.getDuracaoEmMinutos());
-        consultaExistente.setPreco(consultaAtualizada.getPreco());
-        consultaExistente.setMotivo(consultaAtualizada.getMotivo());
-        consultaExistente.setStatus(consultaAtualizada.getStatus());
-        consultaExistente.setMedico(consultaAtualizada.getMedico());
-        consultaExistente.setPaciente(consultaAtualizada.getPaciente());
-
-        consultaRules.validarAtualizacao(consultaExistente, consultaAtualizada);
+        consultaMapper.aplicarAtualizacao(requisicao, consultaExistente);
+        validarRelacionamentos(consultaExistente);
+        consultaRules.verificarReagendamentoNoPassado(dataAtendimentoAntiga, consultaExistente);
+        consultaRules.validarAtualizacao(consultaExistente, consultaExistente);
 
         Consulta consultaSalva = repository.save(consultaExistente);
         log.info("Consulta ID {} atualizada com sucesso", id);

@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.requisicoes.ConsultaAtualizacaoDto;
 import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.entities.Medico;
@@ -10,6 +11,8 @@ import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.enums.StatusConsulta;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
+import com.consultas.api_consultas.mappers.ConsultaMapper;
+import com.consultas.api_consultas.mappers.ConsultaMapperImpl;
 import com.consultas.api_consultas.repositories.ConsultaRepository;
 import com.consultas.api_consultas.services.MedicoService;
 import com.consultas.api_consultas.services.PacienteService;
@@ -24,6 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
@@ -76,6 +80,9 @@ class ConsultaServiceImplTest {
 
     @Mock
     private SecurityUtil securityUtil;
+
+    @Spy
+    private ConsultaMapper consultaMapper = new ConsultaMapperImpl();
 
     private LocalDate clockDataBase;
     private Medico medicoAtivo;
@@ -537,16 +544,16 @@ class ConsultaServiceImplTest {
         @DisplayName("Sucesso ao atualizar consulta existente")
         void sucessoAtualizarConsulta() {
             Long consultaId = consultaAntiga.getId();
-            Consulta consultaAtualizada = clonarConsulta(consultaAntiga);
-            consultaAtualizada.setMotivo("Consulta atualizada");
+            ConsultaAtualizacaoDto dto = dtoFrom(consultaAntiga);
+            setField(dto, "motivo", "Consulta atualizada");
 
             when(securityUtil.canAccessAppointment(any(Consulta.class))).thenReturn(true);
             when(consultaRepository.findById(consultaId)).thenReturn(Optional.of(consultaAntiga));
             when(medicoService.buscarPorId(medicoAtivo.getId())).thenReturn(medicoAtivo);
             when(pacienteService.buscarPorId(pacienteAtivo.getId())).thenReturn(pacienteAtivo);
-            when(consultaRepository.save(any(Consulta.class))).thenReturn(consultaAtualizada);
+            when(consultaRepository.save(any(Consulta.class))).thenAnswer(i -> i.getArgument(0));
 
-            Consulta resultado = consultaService.atualizar(consultaId, consultaAtualizada);
+            Consulta resultado = consultaService.atualizar(consultaId, dto);
 
             assertNotNull(resultado);
             assertEquals("Consulta atualizada", resultado.getMotivo());
@@ -561,12 +568,12 @@ class ConsultaServiceImplTest {
         @DisplayName("Falha ao atualizar consulta inexistente")
         void falhaAtualizarConsultaNaoEncontrada() {
             Long consultaId = 999L;
-            Consulta consultaAtualizada = consultaValida;
+            ConsultaAtualizacaoDto dto = dtoFrom(consultaValida);
 
             when(consultaRepository.findById(consultaId)).thenReturn(Optional.empty());
 
             EntityNotFoundException e = assertThrows(EntityNotFoundException.class, () ->
-                    consultaService.atualizar(consultaId, consultaAtualizada)
+                    consultaService.atualizar(consultaId, dto)
             );
 
             assertEquals("Consulta com ID [999] não encontrada", e.getMessage());
@@ -576,7 +583,8 @@ class ConsultaServiceImplTest {
         @DisplayName("Falha ao atualizar com médico inativo")
         void falhaAtualizarMedicoInativo() {
             Long consultaId = consultaValida.getId();
-            consultaValida.setMedico(medicoInativo);
+            ConsultaAtualizacaoDto dto = dtoFrom(consultaValida);
+            setField(dto, "medicoId", medicoInativo.getId());
 
             when(securityUtil.canAccessAppointment(any(Consulta.class))).thenReturn(true);
             when(consultaRepository.findById(consultaId)).thenReturn(Optional.of(consultaValida));
@@ -586,7 +594,7 @@ class ConsultaServiceImplTest {
                     .when(consultaRules).validarAtualizacao(any(Consulta.class), any(Consulta.class));
 
             BusinessRuleException e = assertThrows(BusinessRuleException.class, () ->
-                    consultaService.atualizar(consultaId, consultaValida)
+                    consultaService.atualizar(consultaId, dto)
             );
 
             assertEquals("Não é possível agendar consulta com médico inativo.", e.getMessage());
@@ -596,7 +604,8 @@ class ConsultaServiceImplTest {
         @DisplayName("Falha ao atualizar com paciente inativo")
         void falhaAtualizarPacienteInativo() {
             Long consultaId = consultaValida.getId();
-            consultaValida.setPaciente(pacienteInativo);
+            ConsultaAtualizacaoDto dto = dtoFrom(consultaValida);
+            setField(dto, "pacienteId", pacienteInativo.getId());
 
             when(securityUtil.canAccessAppointment(any(Consulta.class))).thenReturn(true);
             when(consultaRepository.findById(consultaId)).thenReturn(Optional.of(consultaValida));
@@ -607,7 +616,7 @@ class ConsultaServiceImplTest {
                     .when(consultaRules).validarAtualizacao(any(Consulta.class), any(Consulta.class));
 
             BusinessRuleException e = assertThrows(BusinessRuleException.class, () ->
-                    consultaService.atualizar(consultaId, consultaValida)
+                    consultaService.atualizar(consultaId, dto)
             );
 
             assertEquals("Não é possível agendar consulta com paciente inativo.", e.getMessage());
@@ -617,12 +626,13 @@ class ConsultaServiceImplTest {
         @DisplayName("Falha ao atualizar se acesso à consulta for negado")
         void falhaAtualizarAcessoNegado() {
             Long consultaId = consultaValida.getId();
+            ConsultaAtualizacaoDto dto = dtoFrom(consultaValida);
 
             when(consultaRepository.findById(consultaId)).thenReturn(Optional.of(consultaValida));
             when(securityUtil.canAccessAppointment(consultaValida)).thenReturn(false);
 
             AccessDeniedException ex = assertThrows(AccessDeniedException.class, () ->
-                    consultaService.atualizar(consultaId, consultaValida)
+                    consultaService.atualizar(consultaId, dto)
             );
 
             assertEquals("Você não tem permissão para acessar esta consulta.", ex.getMessage());
@@ -632,20 +642,21 @@ class ConsultaServiceImplTest {
         @DisplayName("Falha ao atualizar se médico não for encontrado")
         void falhaAtualizarMedicoNaoEncontrado() {
             Long consultaId = consultaAntiga.getId();
-            Consulta consultaAtualizada = clonarConsulta(consultaAntiga);
-            consultaAtualizada.setMotivo("Atualização com médico inexistente");
-            consultaAtualizada.setMedico(medicoInexistente);
+            ConsultaAtualizacaoDto dto = dtoFrom(consultaAntiga);
+            setField(dto, "motivo", "Atualização com médico inexistente");
+            setField(dto, "medicoId", medicoInexistente.getId());
 
             when(securityUtil.canAccessAppointment(any(Consulta.class))).thenReturn(true);
             when(consultaRepository.findById(consultaId)).thenReturn(Optional.of(consultaAntiga));
             when(medicoService.buscarPorId(999L)).thenThrow(new EntityNotFoundException("Médico com ID [999] não encontrado"));
 
             EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
-                    consultaService.atualizar(consultaId, consultaAtualizada)
+                    consultaService.atualizar(consultaId, dto)
             );
 
             assertEquals("Médico com ID [999] não encontrado", ex.getMessage());
-            verify(consultaRepository, never()).save(any(Consulta.class));verify(medicoService).buscarPorId(999L);
+            verify(consultaRepository, never()).save(any(Consulta.class));
+            verify(medicoService).buscarPorId(999L);
             verify(securityUtil).canAccessAppointment(any(Consulta.class));
         }
 
@@ -653,9 +664,9 @@ class ConsultaServiceImplTest {
         @DisplayName("Falha ao atualizar se paciente não for encontrado")
         void falhaAtualizarPacienteNaoEncontrado() {
             Long consultaId = consultaAntiga.getId();
-            Consulta consultaAtualizada = clonarConsulta(consultaAntiga);
-            consultaAtualizada.setMotivo("Atualização com paciente inexistente");
-            consultaAtualizada.setPaciente(pacienteInexistente);
+            ConsultaAtualizacaoDto dto = dtoFrom(consultaAntiga);
+            setField(dto, "motivo", "Atualização com paciente inexistente");
+            setField(dto, "pacienteId", pacienteInexistente.getId());
 
             when(securityUtil.canAccessAppointment(any(Consulta.class))).thenReturn(true);
             when(consultaRepository.findById(consultaId)).thenReturn(Optional.of(consultaAntiga));
@@ -663,7 +674,7 @@ class ConsultaServiceImplTest {
             when(pacienteService.buscarPorId(999L)).thenThrow(new EntityNotFoundException("Paciente com ID [999] não encontrado"));
 
             EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
-                    consultaService.atualizar(consultaId, consultaAtualizada)
+                    consultaService.atualizar(consultaId, dto)
             );
 
             assertEquals("Paciente com ID [999] não encontrado", ex.getMessage());
@@ -671,6 +682,31 @@ class ConsultaServiceImplTest {
             verify(securityUtil).canAccessAppointment(any(Consulta.class));
             verify(medicoService).buscarPorId(medicoAtivo.getId());
             verify(pacienteService).buscarPorId(999L);
+        }
+
+        private ConsultaAtualizacaoDto dtoFrom(Consulta c) {
+            ConsultaAtualizacaoDto dto = new ConsultaAtualizacaoDto();
+            setField(dto, "dataAtendimento", c.getDataAtendimento());
+            setField(dto, "horarioAtendimento",
+                    c.getHorarioAtendimento() != null ? c.getHorarioAtendimento().toString() : null);
+            setField(dto, "duracaoEmMinutos",
+                    c.getDuracaoEmMinutos() != null ? (int) c.getDuracaoEmMinutos().toMinutes() : null);
+            setField(dto, "preco", c.getPreco());
+            setField(dto, "motivo", c.getMotivo());
+            setField(dto, "status", c.getStatus());
+            setField(dto, "medicoId", c.getMedico() != null ? c.getMedico().getId() : null);
+            setField(dto, "pacienteId", c.getPaciente() != null ? c.getPaciente().getId() : null);
+            return dto;
+        }
+
+        private void setField(Object target, String name, Object value) {
+            try {
+                java.lang.reflect.Field f = target.getClass().getDeclaredField(name);
+                f.setAccessible(true);
+                f.set(target, value);
+            } catch (ReflectiveOperationException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

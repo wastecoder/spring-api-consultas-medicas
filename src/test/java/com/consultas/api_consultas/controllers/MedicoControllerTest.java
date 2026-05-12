@@ -8,6 +8,8 @@ import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
+import com.consultas.api_consultas.mappers.MedicoMapper;
+import com.consultas.api_consultas.mappers.MedicoMapperImpl;
 import com.consultas.api_consultas.services.MedicoService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,7 +41,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(MedicoController.class)
-@Import({TestSecurityConfig.class, GlobalExceptionHandler.class})
+@Import({TestSecurityConfig.class, GlobalExceptionHandler.class, MedicoMapperImpl.class})
 @ActiveProfiles("test")
 class MedicoControllerTest {
 
@@ -48,6 +50,9 @@ class MedicoControllerTest {
 
     @Autowired
     private ObjectMapper objectMapper;
+
+    @Autowired
+    private MedicoMapper medicoMapper;
 
     @MockBean
     private MedicoService medicoService;
@@ -132,7 +137,7 @@ class MedicoControllerTest {
         @DisplayName("Deve retornar 200 e a página de médicos")
         void deveListarComSucesso() throws Exception {
             PageResponse<MedicoResposta> page = new PageResponse<>(
-                    List.of(new MedicoResposta(medicoSalvo(1L))),
+                    List.of(medicoMapper.paraResposta(medicoSalvo(1L))),
                     0, 5, 1L, 1, true, true, false, false
             );
             when(medicoService.buscarMedicos(eq(0), eq(5), any(), any(), any(), any())).thenReturn(page);
@@ -183,7 +188,7 @@ class MedicoControllerTest {
         @WithMockUser(roles = "ADMIN")
         @DisplayName("Deve retornar 200 quando admin edita médico")
         void deveEditarComSucesso() throws Exception {
-            when(medicoService.atualizar(eq(3L), any(Medico.class))).thenReturn(medicoSalvo(3L));
+            when(medicoService.atualizar(eq(3L), any(MedicoRequisicao.class))).thenReturn(medicoSalvo(3L));
 
             mvc.perform(put("/medicos/{id}", 3L)
                             .contentType(MediaType.APPLICATION_JSON)

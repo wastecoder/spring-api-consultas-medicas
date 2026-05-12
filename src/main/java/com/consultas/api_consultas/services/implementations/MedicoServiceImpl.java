@@ -1,10 +1,12 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
 import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
+import com.consultas.api_consultas.mappers.MedicoMapper;
 import com.consultas.api_consultas.repositories.MedicoRepository;
 import com.consultas.api_consultas.services.MedicoService;
 import com.consultas.api_consultas.services.rules.MedicoRules;
@@ -27,6 +29,7 @@ public class MedicoServiceImpl implements MedicoService {
 
     private final MedicoRepository repository;
     private final MedicoRules medicoRules;
+    private final MedicoMapper medicoMapper;
 
 
     @Override
@@ -77,7 +80,7 @@ public class MedicoServiceImpl implements MedicoService {
             log.debug("Filtro aplicado: nome + ativo");
             return PageResponse.from(
                     repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo, pageable)
-                            .map(MedicoResposta::entidadeParaDto)
+                            .map(medicoMapper::paraResposta)
             );
         }
 
@@ -86,7 +89,7 @@ public class MedicoServiceImpl implements MedicoService {
             log.debug("Filtro aplicado: CRM completo");
             return repository.findByCrmSiglaAndCrmDigitos(crmSigla, crmDigitos)
                     .map(medico -> PageResponse.from(
-                            new PageImpl<>(List.of(MedicoResposta.entidadeParaDto(medico)), pageable, 1)
+                            new PageImpl<>(List.of(medicoMapper.paraResposta(medico)), pageable, 1)
                     ))
                     .orElseGet(() -> PageResponse.from(Page.empty(pageable)));
         }
@@ -95,7 +98,7 @@ public class MedicoServiceImpl implements MedicoService {
         log.debug("Filtro aplicado: apenas ativo ou nenhum filtro");
         return PageResponse.from(
                 repository.findByAtivo(filtroAtivo, pageable)
-                        .map(MedicoResposta::entidadeParaDto)
+                        .map(medicoMapper::paraResposta)
         );
     }
 
@@ -104,18 +107,11 @@ public class MedicoServiceImpl implements MedicoService {
      * O campo {@code ativo} não é modificado aqui — use os endpoints de ativar/inativar.
      */
     @Override
-    public Medico atualizar(Long id, Medico medicoAtualizado) {
+    public Medico atualizar(Long id, MedicoRequisicao requisicao) {
         log.info("Atualizando médico ID: {}", id);
 
         Medico medicoExistente = this.buscarPorId(id);
-
-        medicoExistente.setNome(medicoAtualizado.getNome());
-        medicoExistente.setEmail(medicoAtualizado.getEmail());
-        medicoExistente.setTelefone(medicoAtualizado.getTelefone());
-
-        medicoExistente.setCrmSigla(medicoAtualizado.getCrmSigla());
-        medicoExistente.setCrmDigitos(medicoAtualizado.getCrmDigitos());
-        medicoExistente.setEspecialidade(medicoAtualizado.getEspecialidade());
+        medicoMapper.aplicarAtualizacao(requisicao, medicoExistente);
 
         Medico medicoSalvo = repository.save(medicoExistente);
         log.info("Médico ID {} atualizado com sucesso", id);

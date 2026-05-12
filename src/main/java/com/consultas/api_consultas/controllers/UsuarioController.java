@@ -6,6 +6,7 @@ import com.consultas.api_consultas.dtos.requisicoes.UsuarioAtualizacaoDto;
 import com.consultas.api_consultas.dtos.requisicoes.UsuarioCadastroDto;
 import com.consultas.api_consultas.dtos.respostas.UsuarioResposta;
 import com.consultas.api_consultas.entities.Usuario;
+import com.consultas.api_consultas.mappers.UsuarioMapper;
 import com.consultas.api_consultas.services.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final UsuarioMapper usuarioMapper;
 
 
     @PostMapping
@@ -57,7 +59,7 @@ public class UsuarioController {
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<UsuarioResposta> buscarUsuarioPorId(@PathVariable @Min(1) Long id) {
         Usuario usuario = usuarioService.buscarPorId(id);
-        UsuarioResposta dto = UsuarioResposta.entidadeParaDtoComAuditoria(usuario);
+        UsuarioResposta dto = usuarioMapper.paraRespostaComAuditoria(usuario);
         return ResponseEntity.ok(dto);
     }
 
@@ -72,7 +74,7 @@ public class UsuarioController {
             @RequestBody @Valid UsuarioAtualizacaoDto requisicao
     ) {
         Usuario usuarioAtualizado = usuarioService.atualizar(id, requisicao);
-        UsuarioResposta dto = new UsuarioResposta(usuarioAtualizado);
+        UsuarioResposta dto = usuarioMapper.paraResposta(usuarioAtualizado);
         return ResponseEntity.ok(dto);
     }
 

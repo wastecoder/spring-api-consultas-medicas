@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
 import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.entities.Usuario;
@@ -8,6 +9,8 @@ import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.Funcao;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
+import com.consultas.api_consultas.mappers.MedicoMapper;
+import com.consultas.api_consultas.mappers.MedicoMapperImpl;
 import com.consultas.api_consultas.repositories.MedicoRepository;
 import com.consultas.api_consultas.services.rules.MedicoRules;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.function.Executable;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
@@ -54,6 +58,9 @@ class MedicoServiceImplTest {
 
     @Mock
     private MedicoRules medicoRules;
+
+    @Spy
+    private MedicoMapper medicoMapper = new MedicoMapperImpl();
 
     private Medico medicoAtivo;
     private Medico medicoInativo;
@@ -282,16 +289,13 @@ class MedicoServiceImplTest {
         @Test
         @DisplayName("Deve atualizar médico com sucesso")
         void deveAtualizarMedicoComSucesso() {
-            Medico atualizado = new Medico(
-                    "João Alterado",
-                    "joao.novo@medico.com",
-                    "888888888",
-                    SiglaCrm.RJ,
-                    "654321",
-                    Especialidade.NEUROLOGIA
-            );
-            atualizado.setId(medicoAtivo.getId());
-            atualizado.setAtivo(false); // Deve ser ignorado
+            MedicoRequisicao atualizado = new MedicoRequisicao();
+            atualizado.setNome("João Alterado");
+            atualizado.setEmail("joao.novo@medico.com");
+            atualizado.setTelefone("888888888");
+            atualizado.setCrmSigla(SiglaCrm.RJ);
+            atualizado.setCrmDigitos("654321");
+            atualizado.setEspecialidade(Especialidade.NEUROLOGIA);
 
             when(repository.findById(medicoAtivo.getId())).thenReturn(Optional.of(medicoAtivo));
             when(repository.save(any(Medico.class))).thenAnswer(invocation -> invocation.getArgument(0));
@@ -315,7 +319,7 @@ class MedicoServiceImplTest {
             Long idInexistente = medicoInexistente.getId();
             when(repository.findById(idInexistente)).thenReturn(Optional.empty());
 
-            Executable acao = () -> medicoService.atualizar(idInexistente, new Medico());
+            Executable acao = () -> medicoService.atualizar(idInexistente, new MedicoRequisicao());
             EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, acao);
 
             assertEquals("Médico com ID [" + idInexistente + "] não encontrado", ex.getMessage());
@@ -323,17 +327,15 @@ class MedicoServiceImplTest {
         }
 
         @Test
-        @DisplayName("Não deve alterar o campo ativo mesmo se informado no médico atualizado")
+        @DisplayName("Não deve alterar o campo ativo — DTO de atualização não expõe ativo")
         void naoDeveAlterarCampoAtivo() {
-            Medico atualizado = new Medico(
-                    medicoAtivo.getNome(),
-                    medicoAtivo.getEmail(),
-                    medicoAtivo.getTelefone(),
-                    medicoAtivo.getCrmSigla(),
-                    medicoAtivo.getCrmDigitos(),
-                    medicoAtivo.getEspecialidade()
-            );
-            atualizado.setAtivo(false); // Tentativa de desativar
+            MedicoRequisicao atualizado = new MedicoRequisicao();
+            atualizado.setNome(medicoAtivo.getNome());
+            atualizado.setEmail(medicoAtivo.getEmail());
+            atualizado.setTelefone(medicoAtivo.getTelefone());
+            atualizado.setCrmSigla(medicoAtivo.getCrmSigla());
+            atualizado.setCrmDigitos(medicoAtivo.getCrmDigitos());
+            atualizado.setEspecialidade(medicoAtivo.getEspecialidade());
 
             when(repository.findById(medicoAtivo.getId())).thenReturn(Optional.of(medicoAtivo));
             when(repository.save(any(Medico.class))).thenAnswer(invocation -> invocation.getArgument(0));

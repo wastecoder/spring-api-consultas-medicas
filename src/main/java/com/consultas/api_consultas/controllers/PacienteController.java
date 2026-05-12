@@ -6,6 +6,7 @@ import com.consultas.api_consultas.dtos.requisicoes.PacienteRequisicao;
 import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.Sexo;
+import com.consultas.api_consultas.mappers.PacienteMapper;
 import com.consultas.api_consultas.services.PacienteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 public class PacienteController {
 
     private final PacienteService pacienteService;
+    private final PacienteMapper pacienteMapper;
 
 
     @PostMapping
@@ -37,9 +39,9 @@ public class PacienteController {
     @ApiResponse(responseCode = "201", description = "Paciente cadastrado com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para cadastro", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<PacienteResposta> salvarCadastroPaciente(@RequestBody @Valid final PacienteRequisicao requisicao) {
-        Paciente pacienteNovo = requisicao.dtoParaPaciente();
+        Paciente pacienteNovo = pacienteMapper.paraEntidade(requisicao);
         Paciente pacienteSalvo = pacienteService.salvar(pacienteNovo);
-        PacienteResposta dto = new PacienteResposta(pacienteSalvo);
+        PacienteResposta dto = pacienteMapper.paraResposta(pacienteSalvo);
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
@@ -66,7 +68,7 @@ public class PacienteController {
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<PacienteResposta> buscarPacientePorId(@PathVariable @Min(1) Long id) {
         Paciente pacienteRetornado = pacienteService.buscarPorId(id);
-        PacienteResposta dto = PacienteResposta.entidadeParaDtoComAuditoria(pacienteRetornado);
+        PacienteResposta dto = pacienteMapper.paraRespostaComAuditoria(pacienteRetornado);
         return ResponseEntity.ok(dto);
     }
 
@@ -78,9 +80,8 @@ public class PacienteController {
     @ApiResponse(responseCode = "404", description = "Paciente não encontrado", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "409", description = "Já existe um paciente cadastrado com o mesmo e-mail", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<PacienteResposta> editarPacientePorId(@PathVariable @Min(1) Long id, @RequestBody @Valid final PacienteRequisicao requisicao) {
-        Paciente pacienteAtualizado = requisicao.dtoParaPaciente();
-        Paciente pacienteSalvo = pacienteService.atualizar(id, pacienteAtualizado);
-        PacienteResposta dto = new PacienteResposta(pacienteSalvo);
+        Paciente pacienteSalvo = pacienteService.atualizar(id, requisicao);
+        PacienteResposta dto = pacienteMapper.paraResposta(pacienteSalvo);
         return ResponseEntity.ok(dto);
     }
 

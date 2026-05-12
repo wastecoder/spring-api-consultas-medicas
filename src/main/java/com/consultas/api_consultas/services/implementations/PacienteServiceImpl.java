@@ -1,11 +1,13 @@
 package com.consultas.api_consultas.services.implementations;
 
 import com.consultas.api_consultas.dtos.PageResponse;
+import com.consultas.api_consultas.dtos.requisicoes.PacienteRequisicao;
 import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
+import com.consultas.api_consultas.mappers.PacienteMapper;
 import com.consultas.api_consultas.repositories.PacienteRepository;
 import com.consultas.api_consultas.services.PacienteService;
 import com.consultas.api_consultas.services.rules.PacienteRules;
@@ -31,6 +33,7 @@ public class PacienteServiceImpl implements PacienteService {
     private final PacienteRepository repository;
     private final PacienteRules pacienteRules;
     private final SecurityUtil securityUtil;
+    private final PacienteMapper pacienteMapper;
 
 
     @Override
@@ -82,7 +85,7 @@ public class PacienteServiceImpl implements PacienteService {
             log.debug("Filtro aplicado: nome + ativo");
             return PageResponse.from(
                     repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo, pageable)
-                            .map(PacienteResposta::new)
+                            .map(pacienteMapper::paraResposta)
             );
         }
 
@@ -91,7 +94,7 @@ public class PacienteServiceImpl implements PacienteService {
             log.debug("Filtro aplicado: CPF");
             return repository.findByCpf(cpf)
                     .map(paciente -> PageResponse.from(
-                            new PageImpl<>(List.of(new PacienteResposta(paciente)), pageable, 1)
+                            new PageImpl<>(List.of(pacienteMapper.paraResposta(paciente)), pageable, 1)
                     ))
                     .orElseGet(() -> PageResponse.from(Page.empty(pageable)));
         }
@@ -101,14 +104,14 @@ public class PacienteServiceImpl implements PacienteService {
             log.debug("Filtro aplicado: sexo + ativo");
             return PageResponse.from(
                     repository.findBySexoAndAtivo(sexo, filtroAtivo, pageable)
-                            .map(PacienteResposta::new)
+                            .map(pacienteMapper::paraResposta)
             );
         }
 
         log.debug("Filtro aplicado: apenas ativo ou nenhum filtro");
         return PageResponse.from(
                 repository.findByAtivo(filtroAtivo, pageable)
-                        .map(PacienteResposta::new)
+                        .map(pacienteMapper::paraResposta)
         );
     }
 
@@ -117,16 +120,11 @@ public class PacienteServiceImpl implements PacienteService {
      * O campo {@code ativo} não é modificado aqui — use os endpoints de ativar/inativar.
      */
     @Override
-    public Paciente atualizar(Long id, Paciente pacienteAtualizado) {
+    public Paciente atualizar(Long id, PacienteRequisicao requisicao) {
         log.info("Atualizando paciente ID: {}", id);
+
         Paciente pacienteExistente = buscarPorId(id);
-
-        pacienteExistente.setNome(pacienteAtualizado.getNome());
-        pacienteExistente.setEmail(pacienteAtualizado.getEmail());
-        pacienteExistente.setTelefone(pacienteAtualizado.getTelefone());
-
-        pacienteExistente.setCpf(pacienteAtualizado.getCpf());
-        pacienteExistente.setDataNascimento(pacienteAtualizado.getDataNascimento());
+        pacienteMapper.aplicarAtualizacao(requisicao, pacienteExistente);
 
         Paciente pacienteSalvo = repository.save(pacienteExistente);
         log.info("Paciente ID {} atualizado com sucesso", id);
