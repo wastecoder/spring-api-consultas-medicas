@@ -3,6 +3,7 @@ package com.consultas.api_consultas.entities;
 import com.consultas.api_consultas.enums.StatusConsulta;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
@@ -13,8 +14,9 @@ import java.time.LocalTime;
 
 @Entity
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
-public class Consulta {
+public class Consulta extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

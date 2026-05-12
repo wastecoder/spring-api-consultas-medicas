@@ -2,12 +2,14 @@ package com.consultas.api_consultas.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 @MappedSuperclass
 @Data
+@EqualsAndHashCode(callSuper = false)
 @NoArgsConstructor
-public abstract class Pessoa {
+public abstract class Pessoa extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

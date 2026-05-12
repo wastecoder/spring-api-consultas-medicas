@@ -57,7 +57,7 @@ public class UsuarioController {
     @ApiResponse(responseCode = "404", description = "Usuário não encontrado", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<UsuarioResposta> buscarUsuarioPorId(@PathVariable @Min(1) Long id) {
         Usuario usuario = usuarioService.buscarPorId(id);
-        UsuarioResposta dto = new UsuarioResposta(usuario);
+        UsuarioResposta dto = UsuarioResposta.entidadeParaDtoComAuditoria(usuario);
         return ResponseEntity.ok(dto);
     }
 

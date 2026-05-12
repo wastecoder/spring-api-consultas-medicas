@@ -2,6 +2,7 @@ package com.consultas.api_consultas.dtos.respostas;
 
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.Sexo;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 
 import java.time.LocalDate;
@@ -25,6 +26,9 @@ public class PacienteResposta {
 
     private Boolean ativo;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private AuditoriaResposta auditoria;
+
 
     public PacienteResposta(Paciente paciente) {
         this.id = paciente.getId();
@@ -35,6 +39,12 @@ public class PacienteResposta {
         this.dataNascimento = paciente.getDataNascimento();
         this.telefone = paciente.getTelefone();
         this.ativo = paciente.getAtivo();
+    }
+
+    public static PacienteResposta entidadeParaDtoComAuditoria(Paciente paciente) {
+        PacienteResposta dto = new PacienteResposta(paciente);
+        dto.auditoria = AuditoriaResposta.de(paciente);
+        return dto;
     }
 
 }

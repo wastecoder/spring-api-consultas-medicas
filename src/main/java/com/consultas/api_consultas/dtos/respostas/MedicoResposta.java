@@ -3,6 +3,7 @@ package com.consultas.api_consultas.dtos.respostas;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 
 @Getter
@@ -24,6 +25,9 @@ public class MedicoResposta {
 
     private Boolean ativo;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private AuditoriaResposta auditoria;
+
 
     public MedicoResposta(Medico medico) {
         this.id = medico.getId();
@@ -38,6 +42,12 @@ public class MedicoResposta {
 
     public static MedicoResposta entidadeParaDto(Medico medico) {
         return new MedicoResposta(medico);
+    }
+
+    public static MedicoResposta entidadeParaDtoComAuditoria(Medico medico) {
+        MedicoResposta dto = new MedicoResposta(medico);
+        dto.auditoria = AuditoriaResposta.de(medico);
+        return dto;
     }
 
 

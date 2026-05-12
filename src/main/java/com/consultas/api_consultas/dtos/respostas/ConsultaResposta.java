@@ -3,6 +3,7 @@ package com.consultas.api_consultas.dtos.respostas;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.enums.StatusConsulta;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Getter;
 
 import java.math.BigDecimal;
@@ -34,6 +35,9 @@ public class ConsultaResposta {
 
     private PessoaResumo paciente;
 
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private AuditoriaResposta auditoria;
+
 
     public ConsultaResposta(Consulta consulta) {
         this.id = consulta.getId();
@@ -47,6 +51,12 @@ public class ConsultaResposta {
 
         medico = new PessoaResumo(consulta.getMedico());
         paciente = new PessoaResumo(consulta.getPaciente());
+    }
+
+    public static ConsultaResposta entidadeParaDtoComAuditoria(Consulta consulta) {
+        ConsultaResposta dto = new ConsultaResposta(consulta);
+        dto.auditoria = AuditoriaResposta.de(consulta);
+        return dto;
     }
 
 }

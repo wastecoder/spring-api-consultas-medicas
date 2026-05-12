@@ -60,7 +60,7 @@ class FluxoConsultaIntegrationTest {
         LocalDate dataConsulta = proximoDiaUtil();
         long consultaId = criarConsulta(token, medicoId, pacienteId, dataConsulta);
 
-        // 5. Busca a consulta recém-criada e valida campos
+        // 5. Busca a consulta recém-criada e valida campos (incluindo auditoria)
         mvc.perform(get("/consultas/{id}", consultaId)
                         .header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
                 .andExpect(status().isOk())
@@ -68,7 +68,11 @@ class FluxoConsultaIntegrationTest {
                 .andExpect(jsonPath("$.status").value("AGENDADA"))
                 .andExpect(jsonPath("$.dataAtendimento").value(dataConsulta.toString()))
                 .andExpect(jsonPath("$.medico.id").value((int) medicoId))
-                .andExpect(jsonPath("$.paciente.id").value((int) pacienteId));
+                .andExpect(jsonPath("$.paciente.id").value((int) pacienteId))
+                .andExpect(jsonPath("$.auditoria.createdBy").value("admin"))
+                .andExpect(jsonPath("$.auditoria.lastModifiedBy").value("admin"))
+                .andExpect(jsonPath("$.auditoria.createdDate").exists())
+                .andExpect(jsonPath("$.auditoria.lastModifiedDate").exists());
     }
 
 

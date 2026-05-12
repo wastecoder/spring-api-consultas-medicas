@@ -75,7 +75,7 @@ public class MedicoController {
     @ApiResponse(responseCode = "404", description = "Médico não encontrado", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<MedicoResposta> buscarMedicoPorId(@PathVariable @Min(1) Long id) {
         Medico medico = medicoService.buscarPorId(id);
-        MedicoResposta dto = new MedicoResposta(medico);
+        MedicoResposta dto = MedicoResposta.entidadeParaDtoComAuditoria(medico);
         return ResponseEntity.ok(dto);
     }
 

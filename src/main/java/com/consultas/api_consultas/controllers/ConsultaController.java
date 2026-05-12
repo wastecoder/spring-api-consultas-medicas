@@ -69,7 +69,7 @@ public class ConsultaController {
     @ApiResponse(responseCode = "404", description = "Consulta não encontrada", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<ConsultaResposta> buscarConsultaPorId(@PathVariable @Min(1) Long id) {
         Consulta consultaRetornada = consultaService.buscarPorId(id);
-        ConsultaResposta resposta = new ConsultaResposta(consultaRetornada);
+        ConsultaResposta resposta = ConsultaResposta.entidadeParaDtoComAuditoria(consultaRetornada);
         return ResponseEntity.ok(resposta);
     }
 
