@@ -12,6 +12,10 @@ spring:
       ddl-auto: create-drop
     show-sql: true
     database-platform: org.hibernate.dialect.H2Dialect
+  # Flyway desabilitado em testes: H2 in-memory usa schema gerado pelo Hibernate (create-drop).
+  # As migrations Flyway sao PostgreSQL-only e nao precisam ser exercitadas pelos testes unitarios.
+  flyway:
+    enabled: false
   # Host fake para que o auto-configure crie um JavaMailSender bean
   # (testes que exercitam o envio mockam o EmailService, nao o sender)
   mail:

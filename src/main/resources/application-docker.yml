@@ -8,4 +8,4 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: update # Se for usar em producao: primeira vez = create; depois = validate
+      ddl-auto: validate # Schema gerenciado pelo Flyway (db/migration). Hibernate apenas valida.
