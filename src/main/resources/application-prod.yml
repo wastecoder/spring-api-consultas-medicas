@@ -8,11 +8,11 @@ spring:
   datasource:
     url: ${DATABASE_URL}
   jpa:
-    open-in-view: false
     hibernate:
       ddl-auto: validate # producao: schema ja existente, so valida
 
   # SMTP em producao: host/credenciais via env (ex.: SendGrid, AWS SES, SMTP corporativo).
+  # Sobrescreve os defaults Mailtrap do application.yml; obriga STARTTLS.
   mail:
     host: ${SPRING_MAIL_HOST}
     port: ${SPRING_MAIL_PORT:587}
@@ -21,19 +21,8 @@ spring:
     properties:
       mail:
         smtp:
-          auth: true
           starttls:
-            enable: true
             required: true
-
-jwt:
-  private-key-path: ${JWT_PRIVATE_KEY_PATH}
-  public-key-path: ${JWT_PUBLIC_KEY_PATH}
-
-admin:
-  username: ${ADMIN_USERNAME}
-  password: ${ADMIN_PASSWORD}
-  email: ${ADMIN_EMAIL}
 
 # Sobrescreve o default de application.yml para nunca rodar o seed em producao
 popular:

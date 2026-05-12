@@ -1,4 +1,4 @@
-### Perfil para DESENVOLVIMENTO: PostgreSQL
+### Perfil para DESENVOLVIMENTO: PostgreSQL local
 
 spring:
   datasource:
@@ -6,32 +6,5 @@ spring:
     username: postgres
     password: ${DB_PASSWORD:1234}
   jpa:
-#    show-sql: true
-    open-in-view: false
     hibernate:
       ddl-auto: update
-    properties:
-      hibernate:
-        format_sql: true
-
-  # SMTP via Mailtrap sandbox em dev: inbox falsa para inspecionar emails de teste.
-  mail:
-    host: ${SPRING_MAIL_HOST:sandbox.smtp.mailtrap.io}
-    port: ${SPRING_MAIL_PORT:2525}
-    username: ${MAILTRAP_USERNAME:}
-    password: ${MAILTRAP_PASSWORD:}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
-
-jwt:
-  private-key-path: ${JWT_PRIVATE_KEY_PATH:file:./keys/jwt-private.key}
-  public-key-path: ${JWT_PUBLIC_KEY_PATH:file:./keys/jwt-public.key}
-
-admin:
-  username: ${ADMIN_USERNAME:admin}
-  password: ${ADMIN_PASSWORD:123456}
-  email: ${ADMIN_EMAIL:admin@consultas-medicas.local}

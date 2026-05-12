@@ -12,6 +12,40 @@ spring:
   profiles:
     active: dev
 
+  # Defaults comuns de JPA (cada perfil sobrescreve datasource e ddl-auto)
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # SMTP padrao via Mailtrap sandbox: inbox falsa para inspecionar emails de teste em dev/docker.
+  # O perfil 'prod' sobrescreve estes valores com SMTP corporativo (TLS obrigatorio).
+  mail:
+    host: ${SPRING_MAIL_HOST:sandbox.smtp.mailtrap.io}
+    port: ${SPRING_MAIL_PORT:2525}
+    username: ${MAILTRAP_USERNAME:}
+    password: ${MAILTRAP_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
+# Caminhos das chaves RSA usadas pelo JWT. Em dev/docker apontam para ./keys no projeto;
+# em prod a env JWT_*_KEY_PATH precisa vir do ambiente de deploy (ex.: secret manager).
+jwt:
+  private-key-path: ${JWT_PRIVATE_KEY_PATH:file:./keys/jwt-private.key}
+  public-key-path: ${JWT_PUBLIC_KEY_PATH:file:./keys/jwt-public.key}
+
+# Usuario admin criado no primeiro boot (SecurityConfig#criarUsuarioInicial).
+# Defaults servem para dev local; em docker/prod usar env vars.
+admin:
+  username: ${ADMIN_USERNAME:admin}
+  password: ${ADMIN_PASSWORD:123456}
+  email: ${ADMIN_EMAIL:admin@consultas-medicas.local}
+
 # Define se o banco de dados deve ser populado ao iniciar a aplicacao
 popular:
   banco: true

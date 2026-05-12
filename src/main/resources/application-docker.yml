@@ -1,4 +1,4 @@
-### Perfil para DOCKER: PostgreSQL
+### Perfil para DOCKER: PostgreSQL via docker-compose
 
 spring:
   datasource:
@@ -7,18 +7,5 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     show-sql: true
-    open-in-view: false
     hibernate:
-      ddl-auto: update # Se for usar em produção: primeira vez = create; depois = validate
-    properties:
-      hibernate:
-        format_sql: true
-
-jwt:
-  private-key-path: ${JWT_PRIVATE_KEY_PATH}
-  public-key-path: ${JWT_PUBLIC_KEY_PATH}
-
-admin:
-  username: ${ADMIN_USERNAME}
-  password: ${ADMIN_PASSWORD}
-  email: ${ADMIN_EMAIL}
+      ddl-auto: update # Se for usar em producao: primeira vez = create; depois = validate

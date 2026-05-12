@@ -71,6 +71,86 @@ classDiagram
 ---
 
 
+## Como executar
+
+### Pré-requisitos
+- Java 17
+- Docker Desktop (para o Postgres ou para subir tudo)
+- IntelliJ IDEA (se for rodar a API fora do container)
+
+### Configuração inicial (uma vez)
+1. Copie o template de variáveis de ambiente:
+   ```powershell
+   Copy-Item .env.example .env
+   ```
+   Ajuste os valores em `.env` se quiser — os defaults já funcionam para desenvolvimento.
+
+2. As chaves RSA já vêm no repositório em `keys/jwt-private.key` e `keys/jwt-public.key` (uso local — em produção use chaves próprias).
+
+
+### Opção A — IntelliJ + Postgres no Docker (dev day-to-day)
+
+1. Suba só o banco:
+   ```powershell
+   docker compose up -d postgres
+   ```
+   Isso usa as credenciais do `.env` (`DB_NAME`, `DB_USER`, `DB_PASSWORD`) e expõe o Postgres em `localhost:5432`. O volume `pgdata` persiste os dados entre execuções.
+
+2. No IntelliJ, rode a classe `ApiConsultasApplication` — o perfil `dev` é o default (definido em `application.yml`). A API sobe em `http://localhost:8080`.
+
+3. Para parar o banco depois:
+   ```powershell
+   docker compose stop postgres
+   ```
+
+**Observação:** o `application-dev.yml` espera o Postgres em `localhost:5432/consultas_medicas` com usuário `postgres` / `1234`. Se mudar os `DB_*` no `.env`, ajuste também `application-dev.yml` (ou exporte `DB_PASSWORD` no ambiente da JVM).
+
+
+### Opção B — Tudo no Docker (quando estiver mexendo no front)
+
+1. Garanta que o `.env` está completo (passo de configuração inicial acima).
+
+2. Suba toda a stack:
+   ```powershell
+   docker compose up --build
+   ```
+   - `postgres` em `localhost:5432`
+   - `app` (API) em `http://localhost:8080`
+   - `prometheus` em `http://localhost:9090`
+
+3. Para parar:
+   ```powershell
+   docker compose down
+   ```
+   Adicione `-v` se quiser apagar o volume do banco também.
+
+
+### Acessos úteis
+- Swagger UI: `http://localhost:8080/swagger-ui.html`
+- Health check: `http://localhost:8080/actuator/health`
+- Login inicial: usuário `admin` / senha `123456` (configurável via `ADMIN_USERNAME` / `ADMIN_PASSWORD` no `.env`)
+
+
+### Troubleshooting
+
+**Erro `coluna ... não existe` ou `contém valores nulos` ao subir a API**
+
+Significa que o IntelliJ conectou num Postgres com schema antigo — geralmente um container Postgres lingering de uma execução anterior ainda ocupando `localhost:5432`. Reset:
+
+```powershell
+docker compose down -v
+docker ps -a                              # se houver container postgres antigo, remova com `docker rm -f <id>`
+netstat -ano | Select-String ":5432"      # deve estar vazio antes de subir
+docker compose up -d postgres
+docker compose ps                         # confirmar 0.0.0.0:5432->5432/tcp
+```
+
+Depois rode `ApiConsultasApplication` no IntelliJ — o Hibernate criará o schema do zero e o seeder repopulará (`popular.banco=true`). Limitação do `ddl-auto: update`: ele não consegue adicionar coluna `NOT NULL` em tabela já populada, por isso a importância do banco começar vazio.
+
+
+---
+
+
 ## Regras de Autorização por Perfil
 
 
