@@ -1,10 +1,8 @@
 package com.consultas.api_consultas.repositories;
 
 import com.consultas.api_consultas.entities.Paciente;
-import com.consultas.api_consultas.enums.Sexo;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -12,19 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PacienteRepository extends JpaRepository<Paciente, Long> {
-
-    // Filtro por ativo
-    Page<Paciente> findByAtivo(boolean ativo, Pageable pageable);
-
-    // Pesquisa por CPF
-    Optional<Paciente> findByCpf(String cpf);
-
-    // Filtro combinado: ativo + nome (parcial e ignorando maiúsculas/minúsculas)
-    Page<Paciente> findByNomeContainingIgnoreCaseAndAtivo(String nome, boolean ativo, Pageable pageable);
-
-    // Filtro combinado: ativo + sexo
-    Page<Paciente> findBySexoAndAtivo(Sexo sexo, boolean ativo, Pageable pageable);
+public interface PacienteRepository extends JpaRepository<Paciente, Long>, JpaSpecificationExecutor<Paciente> {
 
     Optional<Paciente> findByUsuarioUsernameAndAtivo(String username, Boolean ativo);
 
@@ -44,7 +30,7 @@ public interface PacienteRepository extends JpaRepository<Paciente, Long> {
 
     // Retorna a quantidade de pacientes agrupados por faixa etária
     @Query("""
-        SELECT 
+        SELECT
             CASE
                 WHEN TIMESTAMPDIFF(YEAR, p.dataNascimento, CURRENT_DATE) < 18 THEN 'Menor de 18'
                 WHEN TIMESTAMPDIFF(YEAR, p.dataNascimento, CURRENT_DATE) BETWEEN 18 AND 29 THEN '18-29'

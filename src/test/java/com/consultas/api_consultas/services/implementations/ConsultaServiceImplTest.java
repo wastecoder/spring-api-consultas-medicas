@@ -31,7 +31,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 
 import java.math.BigDecimal;
@@ -52,12 +52,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doThrow;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("Service de Consulta")
@@ -397,142 +396,64 @@ class ConsultaServiceImplTest {
         }
 
         @Test
-        @DisplayName("Filtro por dataAtendimento + status (prioridade 1)")
-        void filtroDataEStatus() {
+        @DisplayName("Deve combinar todos os filtros informados via Specification")
+        void deveCombinarTodosOsFiltros() {
             LocalDate data = clockDataBase.plusDays(1);
-            StatusConsulta status = StatusConsulta.AGENDADA;
-
             when(securityUtil.isDoctor()).thenReturn(false);
             when(securityUtil.isPatient()).thenReturn(false);
-            when(consultaRepository.findByDataAtendimentoAndStatus(eq(data), eq(status), any(Pageable.class)))
+            when(consultaRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOf(consultaValida));
 
-            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, null, data, status);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(
+                    PAGINA, TAMANHO, medicoAtivo.getId(), pacienteAtivo.getId(), data, StatusConsulta.AGENDADA);
 
             assertEquals(1, result.totalElements());
-            verify(consultaRepository).findByDataAtendimentoAndStatus(eq(data), eq(status), any(Pageable.class));
+            verify(consultaRepository).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
-        @DisplayName("Filtro por médico + paciente + status (prioridade 2)")
-        void filtroMedicoPacienteStatus() {
-            Long medicoId = medicoAtivo.getId();
-            Long pacienteId = pacienteAtivo.getId();
-            StatusConsulta status = StatusConsulta.AGENDADA;
-
+        @DisplayName("Sem filtros: chama findAll com Specification vazia (sem default AGENDADA)")
+        void semFiltrosListaTodos() {
             when(securityUtil.isDoctor()).thenReturn(false);
             when(securityUtil.isPatient()).thenReturn(false);
-            when(medicoService.buscarPorId(medicoId)).thenReturn(medicoAtivo);
-            when(pacienteService.buscarPorId(pacienteId)).thenReturn(pacienteAtivo);
-            when(consultaRepository.findByMedicoAndPacienteAndStatus(eq(medicoAtivo), eq(pacienteAtivo), eq(status), any(Pageable.class)))
-                    .thenReturn(pageOf(consultaValida));
-
-            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, medicoId, pacienteId, null, status);
-
-            assertEquals(1, result.totalElements());
-            verify(consultaRepository).findByMedicoAndPacienteAndStatus(eq(medicoAtivo), eq(pacienteAtivo), eq(status), any(Pageable.class));
-        }
-
-        @Test
-        @DisplayName("Filtro por médico + status (prioridade 3)")
-        void filtroMedicoStatus() {
-            Long medicoId = medicoAtivo.getId();
-            StatusConsulta status = StatusConsulta.AGENDADA;
-
-            when(securityUtil.isDoctor()).thenReturn(false);
-            when(securityUtil.isPatient()).thenReturn(false);
-            when(medicoService.buscarPorId(medicoId)).thenReturn(medicoAtivo);
-            when(consultaRepository.findByMedicoAndStatus(eq(medicoAtivo), eq(status), any(Pageable.class)))
-                    .thenReturn(pageOf(consultaValida));
-
-            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, medicoId, null, null, status);
-
-            assertEquals(1, result.totalElements());
-            verify(consultaRepository).findByMedicoAndStatus(eq(medicoAtivo), eq(status), any(Pageable.class));
-        }
-
-        @Test
-        @DisplayName("Filtro por paciente + status (prioridade 4)")
-        void filtroPacienteStatus() {
-            Long pacienteId = pacienteAtivo.getId();
-            StatusConsulta status = StatusConsulta.AGENDADA;
-
-            when(securityUtil.isDoctor()).thenReturn(false);
-            when(securityUtil.isPatient()).thenReturn(false);
-            when(pacienteService.buscarPorId(pacienteId)).thenReturn(pacienteAtivo);
-            when(consultaRepository.findByPacienteAndStatus(eq(pacienteAtivo), eq(status), any(Pageable.class)))
-                    .thenReturn(pageOf(consultaValida));
-
-            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, pacienteId, null, status);
-
-            assertEquals(1, result.totalElements());
-            verify(consultaRepository).findByPacienteAndStatus(eq(pacienteAtivo), eq(status), any(Pageable.class));
-        }
-
-        @Test
-        @DisplayName("Sem filtros: busca apenas por status padrão AGENDADA")
-        void semFiltroUsaStatusPadrao() {
-            when(securityUtil.isDoctor()).thenReturn(false);
-            when(securityUtil.isPatient()).thenReturn(false);
-            when(consultaRepository.findByStatus(eq(StatusConsulta.AGENDADA), any(Pageable.class)))
+            when(consultaRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOf(consultaValida));
 
             PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, null, null, null);
 
             assertEquals(1, result.totalElements());
-            verify(consultaRepository).findByStatus(eq(StatusConsulta.AGENDADA), any(Pageable.class));
+            verify(consultaRepository).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
-        @DisplayName("Usuário médico: ignora médicoId e usa médico logado")
-        void medicoLogadoIgnoraParametro() {
+        @DisplayName("Usuário médico: sobrescreve medicoId com o médico logado antes de aplicar a Specification")
+        void medicoLogadoSobrescreveParametro() {
             when(securityUtil.isDoctor()).thenReturn(true);
             when(securityUtil.getLoggedDoctor()).thenReturn(medicoAtivo);
-            when(medicoService.buscarPorId(medicoAtivo.getId())).thenReturn(medicoAtivo);
-
-            when(consultaRepository.findByMedicoAndStatus(eq(medicoAtivo), eq(StatusConsulta.AGENDADA), any(Pageable.class)))
+            when(consultaRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOf(consultaValida));
 
             PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, 99L, null, null, null);
 
             assertEquals(1, result.totalElements());
-            verify(consultaRepository).findByMedicoAndStatus(eq(medicoAtivo), eq(StatusConsulta.AGENDADA), any(Pageable.class));
-            verify(medicoService).buscarPorId(medicoAtivo.getId());
-            verify(medicoService, never()).buscarPorId(99L);
+            verify(securityUtil).getLoggedDoctor();
+            verify(consultaRepository).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
-        @DisplayName("Usuário paciente: ignora pacienteId e usa paciente logado")
-        void pacienteLogadoIgnoraParametro() {
+        @DisplayName("Usuário paciente: sobrescreve pacienteId com o paciente logado antes de aplicar a Specification")
+        void pacienteLogadoSobrescreveParametro() {
             when(securityUtil.isDoctor()).thenReturn(false);
             when(securityUtil.isPatient()).thenReturn(true);
             when(securityUtil.getLoggedPatient()).thenReturn(pacienteAtivo);
-            when(pacienteService.buscarPorId(pacienteAtivo.getId())).thenReturn(pacienteAtivo);
-
-            when(consultaRepository.findByPacienteAndStatus(eq(pacienteAtivo), eq(StatusConsulta.AGENDADA), any(Pageable.class)))
+            when(consultaRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOf(consultaValida));
 
             PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, 99L, null, null);
 
             assertEquals(1, result.totalElements());
-            verify(consultaRepository).findByPacienteAndStatus(eq(pacienteAtivo), eq(StatusConsulta.AGENDADA), any(Pageable.class));
-            verify(pacienteService).buscarPorId(pacienteAtivo.getId());
-            verify(pacienteService, never()).buscarPorId(99L);
-        }
-
-        @Test
-        @DisplayName("Deve lançar exceção se médico logado não existir")
-        void medicoLogadoNaoEncontrado() {
-            when(securityUtil.isDoctor()).thenReturn(true);
-            when(securityUtil.getLoggedDoctor()).thenReturn(medicoAtivo);
-            when(medicoService.buscarPorId(medicoAtivo.getId()))
-                    .thenThrow(new EntityNotFoundException("Médico não encontrado"));
-
-            EntityNotFoundException e = assertThrows(EntityNotFoundException.class, () ->
-                    consultaService.buscarConsultas(PAGINA, TAMANHO, null, null, null, null)
-            );
-
-            assertEquals("Médico não encontrado", e.getMessage());
+            verify(securityUtil).getLoggedPatient();
+            verify(consultaRepository).findAll(any(Specification.class), any(Pageable.class));
         }
     }
 

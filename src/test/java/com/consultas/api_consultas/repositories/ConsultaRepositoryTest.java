@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,7 +24,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @ActiveProfiles("test")
@@ -117,170 +117,6 @@ class ConsultaRepositoryTest {
         consultaRepository.saveAll(consultas);
     }
 
-
-    @Nested
-    class findByStatusTests {
-        @Test
-        @DisplayName("Deve retornar apenas consultas agendadas")
-        void shouldReturnScheduledStatus() {
-            Page<Consulta> pagina = consultaRepository.findByStatus(StatusConsulta.AGENDADA, ORDENAR_POR_MAIS_PROXIMO);
-            var consultasAgendadas = pagina.getContent();
-
-            assertEquals(2, pagina.getTotalElements());
-            assertEquals(LocalDate.of(2025, 1, 1), consultasAgendadas.get(0).getDataAtendimento());
-            assertEquals(LocalDate.of(2025, 2, 2), consultasAgendadas.get(1).getDataAtendimento());
-            assertTrue(consultasAgendadas.get(0).getDataAtendimento().isBefore(consultasAgendadas.get(1).getDataAtendimento()));
-            assertTrue(consultasAgendadas.stream().allMatch(c -> c.getStatus() == StatusConsulta.AGENDADA));
-        }
-
-        @Test
-        @DisplayName("Deve retornar apenas consultas realizadas")
-        void shouldReturnDoneStatus() {
-            Page<Consulta> pagina = consultaRepository.findByStatus(StatusConsulta.REALIZADA, ORDENAR_POR_MAIS_PROXIMO);
-            var consultasRealizadas = pagina.getContent();
-
-            assertEquals(2, pagina.getTotalElements());
-            assertEquals(LocalDate.of(2024, 5, 5), consultasRealizadas.get(0).getDataAtendimento());
-            assertEquals(LocalDate.of(2024, 6, 6), consultasRealizadas.get(1).getDataAtendimento());
-            assertTrue(consultasRealizadas.get(0).getDataAtendimento().isBefore(consultasRealizadas.get(1).getDataAtendimento()));
-            assertTrue(consultasRealizadas.stream().allMatch(c -> c.getStatus() == StatusConsulta.REALIZADA));
-        }
-
-        @Test
-        @DisplayName("Deve retornar apenas consultas canceladas")
-        void shouldReturnCanceledStatus() {
-            Page<Consulta> pagina = consultaRepository.findByStatus(StatusConsulta.CANCELADA, ORDENAR_POR_MAIS_PROXIMO);
-            var consultasCanceladas = pagina.getContent();
-
-            assertEquals(2, pagina.getTotalElements());
-            assertEquals(LocalDate.of(2024, 3, 3), consultasCanceladas.get(0).getDataAtendimento());
-            assertEquals(LocalDate.of(2024, 4, 4), consultasCanceladas.get(1).getDataAtendimento());
-            assertTrue(consultasCanceladas.get(0).getDataAtendimento().isBefore(consultasCanceladas.get(1).getDataAtendimento()));
-            assertTrue(consultasCanceladas.stream().allMatch(c -> c.getStatus() == StatusConsulta.CANCELADA));
-        }
-    }
-
-    @Nested
-    class findByMedicoAndStatusTests {
-        @Test
-        @DisplayName("Deve retornar consultas por medico e status")
-        void shouldReturnAppointmentsByDoctorsAndStatus() {
-            var status = StatusConsulta.AGENDADA;
-
-            Page<Consulta> pagina = consultaRepository.findByMedicoAndStatus(medicoJoao, status, ORDENAR_POR_MAIS_PROXIMO);
-            var consultas = pagina.getContent();
-
-            assertEquals(1, pagina.getTotalElements());
-            assertEquals(LocalDate.of(2025, 2, 2), consultas.get(0).getDataAtendimento());
-            assertEquals(medicoJoao, consultas.get(0).getMedico());
-            assertEquals(status, consultas.get(0).getStatus());
-        }
-
-        @Test
-        @DisplayName("Não deve retornar consulta com medico inexistente")
-        void shouldNotReturnAppointByInexistenceDoctor() {
-            Page<Consulta> pagina = consultaRepository.findByMedicoAndStatus(medicoInexistente, StatusConsulta.CANCELADA, ORDENAR_POR_MAIS_PROXIMO);
-
-            assertTrue(pagina.isEmpty());
-        }
-    }
-
-    @Nested
-    class findByPacienteAndStatusTests {
-        @Test
-        @DisplayName("Deve retornar consultas por paciente e status")
-        void shouldReturnAppointmentsByPatientsAndStatus() {
-            var status = StatusConsulta.AGENDADA;
-
-            Page<Consulta> pagina = consultaRepository.findByPacienteAndStatus(pacienteAna, status, ORDENAR_POR_MAIS_PROXIMO);
-            var consultas = pagina.getContent();
-
-            assertEquals(2, pagina.getTotalElements());
-            assertEquals(LocalDate.of(2025, 1, 1), consultas.get(0).getDataAtendimento());
-            assertEquals(LocalDate.of(2025, 2, 2), consultas.get(1).getDataAtendimento());
-            assertTrue(consultas.get(0).getDataAtendimento().isBefore(consultas.get(1).getDataAtendimento()));
-            assertEquals(pacienteAna, consultas.get(0).getPaciente());
-            assertEquals(status, consultas.get(0).getStatus());
-        }
-
-        @Test
-        @DisplayName("Não deve retornar consulta com paciente inexistente")
-        void shouldNotReturnAppointByInexistencePatient() {
-            Page<Consulta> pagina = consultaRepository.findByPacienteAndStatus(pacienteInexistente, StatusConsulta.AGENDADA, ORDENAR_POR_MAIS_PROXIMO);
-
-            assertTrue(pagina.isEmpty());
-        }
-    }
-
-    @Nested
-    class findByMedicoAndPacienteAndStatusTests {
-        @Test
-        @DisplayName("Deve retornar consultas por medico, paciente e status")
-        void shouldReturnAppointmentsByDoctorPatientAndStatus() {
-            var status = StatusConsulta.AGENDADA;
-
-            Page<Consulta> pagina = consultaRepository.findByMedicoAndPacienteAndStatus(medicoJoao, pacienteAna, status, ORDENAR_POR_MAIS_PROXIMO);
-            var consultas = pagina.getContent();
-
-            assertEquals(1, pagina.getTotalElements());
-            assertEquals(LocalDate.of(2025, 2, 2), consultas.get(0).getDataAtendimento());
-            assertEquals(medicoJoao, consultas.get(0).getMedico());
-            assertEquals(pacienteAna, consultas.get(0).getPaciente());
-            assertEquals(status, consultas.get(0).getStatus());
-        }
-
-        @Test
-        @DisplayName("Não deve retornar consulta com medico inexistente")
-        void shouldNotReturnAppointByInexistenceDoctor() {
-            Page<Consulta> pagina = consultaRepository.findByMedicoAndPacienteAndStatus(medicoInexistente, pacienteAna, StatusConsulta.AGENDADA, ORDENAR_POR_MAIS_PROXIMO);
-
-            assertTrue(pagina.isEmpty());
-        }
-
-        @Test
-        @DisplayName("Não deve retornar consulta com paciente inexistente")
-        void shouldNotReturnAppointByInexistencePatient() {
-            Page<Consulta> pagina = consultaRepository.findByMedicoAndPacienteAndStatus(medicoJoao, pacienteInexistente, StatusConsulta.AGENDADA, ORDENAR_POR_MAIS_PROXIMO);
-
-            assertTrue(pagina.isEmpty());
-        }
-
-        @Test
-        @DisplayName("Não deve retornar consulta com medico e paciente inexistentes")
-        void shouldNotReturnAppointByInexistenceMedicoEPaciente() {
-            Page<Consulta> pagina = consultaRepository.findByMedicoAndPacienteAndStatus(medicoInexistente, pacienteInexistente, StatusConsulta.AGENDADA, ORDENAR_POR_MAIS_PROXIMO);
-
-            assertTrue(pagina.isEmpty());
-        }
-    }
-
-    @Nested
-    class findByDataAtendimentoAndStatusTests {
-        @Test
-        @DisplayName("Deve retornar consultas por data de atendimento e status")
-        void shouldReturnAppointmentsByDateAndStatus() {
-            var data = LocalDate.of(2025, 1, 1);
-            var status = StatusConsulta.AGENDADA;
-
-            Page<Consulta> pagina = consultaRepository.findByDataAtendimentoAndStatus(data, status, ORDENAR_POR_MAIS_PROXIMO);
-            var consultas = pagina.getContent();
-
-            assertEquals(1, pagina.getTotalElements());
-            assertEquals(data, consultas.get(0).getDataAtendimento());
-            assertEquals(status, consultas.get(0).getStatus());
-        }
-
-        @Test
-        @DisplayName("Não deve retornar consultas para data e status inexistentes")
-        void shouldNotReturnAppointmentsForNonexistentDateAndStatus() {
-            var dataInexistente = LocalDate.of(1500, 1, 1);
-            var status = StatusConsulta.AGENDADA;
-
-            Page<Consulta> pagina = consultaRepository.findByDataAtendimentoAndStatus(dataInexistente, status, ORDENAR_POR_MAIS_PROXIMO);
-
-            assertTrue(pagina.isEmpty());
-        }
-    }
 
     @Nested
     class findByDataAtendimentoBetweenAndStatusTests {

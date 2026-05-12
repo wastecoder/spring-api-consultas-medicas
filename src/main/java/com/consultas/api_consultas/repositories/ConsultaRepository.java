@@ -4,10 +4,9 @@ import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.entities.Medico;
 import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.StatusConsulta;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -17,24 +16,9 @@ import java.time.LocalTime;
 import java.util.List;
 
 @Repository
-public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
+public interface ConsultaRepository extends JpaRepository<Consulta, Long>, JpaSpecificationExecutor<Consulta> {
 
-    // Filtro por status
-    Page<Consulta> findByStatus(StatusConsulta status, Pageable pageable);
-
-    // Filtro por medico + status
-    Page<Consulta> findByMedicoAndStatus(Medico medico, StatusConsulta status, Pageable pageable);
-
-    // Filtro por paciente + status
-    Page<Consulta> findByPacienteAndStatus(Paciente paciente, StatusConsulta status, Pageable pageable);
-
-    // Filtro por medico + paciente + status
-    Page<Consulta> findByMedicoAndPacienteAndStatus(Medico medico, Paciente paciente, StatusConsulta status, Pageable pageable);
-
-    // Filtro por data de atendimento + status
-    Page<Consulta> findByDataAtendimentoAndStatus(LocalDate dataAtendimento, StatusConsulta status, Pageable pageable);
-
-    // Filtro entre datas + status
+    // Filtro entre datas + status (usado por relatórios)
     List<Consulta> findByDataAtendimentoBetweenAndStatus(LocalDate inicio, LocalDate fim, StatusConsulta status, Sort sort);
 
     // Retorna true se o médico possui ao menos uma consulta com o status especificado

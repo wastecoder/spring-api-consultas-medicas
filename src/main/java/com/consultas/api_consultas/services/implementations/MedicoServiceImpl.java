@@ -8,16 +8,16 @@ import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.mappers.MedicoMapper;
 import com.consultas.api_consultas.repositories.MedicoRepository;
+import com.consultas.api_consultas.repositories.specifications.MedicoSpecifications;
 import com.consultas.api_consultas.services.MedicoService;
 import com.consultas.api_consultas.services.rules.MedicoRules;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -69,37 +69,13 @@ public class MedicoServiceImpl implements MedicoService {
         log.info("Buscando médicos - Página: {}, Tamanho: {}, Nome: {}, CRM: {} {}, Ativo: {}",
                 pagina, tamanho, nome, crmSigla, crmDigitos, ativo);
 
-        boolean nomeInformado = nome != null && !nome.trim().isEmpty();
-        boolean crmInformado = crmSigla != null && crmDigitos != null && !crmDigitos.trim().isEmpty();
-        boolean filtroAtivo = (ativo != null) ? ativo : true;
-
         Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "nome"));
+        Specification<Medico> spec = Specification
+                .where(MedicoSpecifications.comAtivo(ativo))
+                .and(MedicoSpecifications.comNomeContendo(nome))
+                .and(MedicoSpecifications.comCrm(crmSigla, crmDigitos));
 
-        // Prioridade 1: ativo + nome
-        if (nomeInformado) {
-            log.debug("Filtro aplicado: nome + ativo");
-            return PageResponse.from(
-                    repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo, pageable)
-                            .map(medicoMapper::paraResposta)
-            );
-        }
-
-        // Prioridade 2: ativo + CRM (Sigla + Dígitos)
-        if (crmInformado) {
-            log.debug("Filtro aplicado: CRM completo");
-            return repository.findByCrmSiglaAndCrmDigitos(crmSigla, crmDigitos)
-                    .map(medico -> PageResponse.from(
-                            new PageImpl<>(List.of(medicoMapper.paraResposta(medico)), pageable, 1)
-                    ))
-                    .orElseGet(() -> PageResponse.from(Page.empty(pageable)));
-        }
-
-        // Prioridade 3: ativo ou nenhum filtro
-        log.debug("Filtro aplicado: apenas ativo ou nenhum filtro");
-        return PageResponse.from(
-                repository.findByAtivo(filtroAtivo, pageable)
-                        .map(medicoMapper::paraResposta)
-        );
+        return PageResponse.from(repository.findAll(spec, pageable).map(medicoMapper::paraResposta));
     }
 
     /**

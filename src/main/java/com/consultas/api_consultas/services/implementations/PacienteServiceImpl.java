@@ -4,22 +4,21 @@ import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.requisicoes.PacienteRequisicao;
 import com.consultas.api_consultas.dtos.respostas.PacienteResposta;
 import com.consultas.api_consultas.entities.Paciente;
-import com.consultas.api_consultas.entities.Usuario;
 import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.mappers.PacienteMapper;
 import com.consultas.api_consultas.repositories.PacienteRepository;
+import com.consultas.api_consultas.repositories.specifications.PacienteSpecifications;
 import com.consultas.api_consultas.services.PacienteService;
 import com.consultas.api_consultas.services.rules.PacienteRules;
 import com.consultas.api_consultas.utils.SecurityUtil;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -73,46 +72,14 @@ public class PacienteServiceImpl implements PacienteService {
         log.info("Buscando pacientes - Página: {}, Tamanho: {}, Nome: {}, CPF: {}, Sexo: {}, Ativo: {}",
                 pagina, tamanho, nome, cpf, sexo, ativo);
 
-        boolean nomeInformado = nome != null && !nome.trim().isEmpty();
-        boolean cpfInformado = cpf != null && !cpf.trim().isEmpty();
-        boolean sexoInformado = sexo != null;
-        boolean filtroAtivo = (ativo != null) ? ativo : true;
-
         Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "nome"));
+        Specification<Paciente> spec = Specification
+                .where(PacienteSpecifications.comAtivo(ativo))
+                .and(PacienteSpecifications.comNomeContendo(nome))
+                .and(PacienteSpecifications.comCpf(cpf))
+                .and(PacienteSpecifications.comSexo(sexo));
 
-        // Prioridade 1: ativo + nome
-        if (nomeInformado) {
-            log.debug("Filtro aplicado: nome + ativo");
-            return PageResponse.from(
-                    repository.findByNomeContainingIgnoreCaseAndAtivo(nome, filtroAtivo, pageable)
-                            .map(pacienteMapper::paraResposta)
-            );
-        }
-
-        // Prioridade 2: CPF
-        if (cpfInformado) {
-            log.debug("Filtro aplicado: CPF");
-            return repository.findByCpf(cpf)
-                    .map(paciente -> PageResponse.from(
-                            new PageImpl<>(List.of(pacienteMapper.paraResposta(paciente)), pageable, 1)
-                    ))
-                    .orElseGet(() -> PageResponse.from(Page.empty(pageable)));
-        }
-
-        // Prioridade 3: sexo
-        if (sexoInformado) {
-            log.debug("Filtro aplicado: sexo + ativo");
-            return PageResponse.from(
-                    repository.findBySexoAndAtivo(sexo, filtroAtivo, pageable)
-                            .map(pacienteMapper::paraResposta)
-            );
-        }
-
-        log.debug("Filtro aplicado: apenas ativo ou nenhum filtro");
-        return PageResponse.from(
-                repository.findByAtivo(filtroAtivo, pageable)
-                        .map(pacienteMapper::paraResposta)
-        );
+        return PageResponse.from(repository.findAll(spec, pageable).map(pacienteMapper::paraResposta));
     }
 
     /**

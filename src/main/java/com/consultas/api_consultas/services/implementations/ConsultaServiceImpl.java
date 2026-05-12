@@ -4,11 +4,10 @@ import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.requisicoes.ConsultaAtualizacaoDto;
 import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
 import com.consultas.api_consultas.entities.Consulta;
-import com.consultas.api_consultas.entities.Medico;
-import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.StatusConsulta;
 import com.consultas.api_consultas.mappers.ConsultaMapper;
 import com.consultas.api_consultas.repositories.ConsultaRepository;
+import com.consultas.api_consultas.repositories.specifications.ConsultaSpecifications;
 import com.consultas.api_consultas.services.ConsultaService;
 import com.consultas.api_consultas.services.MedicoService;
 import com.consultas.api_consultas.services.PacienteService;
@@ -20,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
@@ -83,9 +83,9 @@ public class ConsultaServiceImpl implements ConsultaService {
     }
 
     @Override
-    public PageResponse<ConsultaResposta> buscarConsultas(int pagina, int tamanho, Long medicoId, Long pacienteId, LocalDate dataAtendimento, StatusConsulta statusConsulta) {
+    public PageResponse<ConsultaResposta> buscarConsultas(int pagina, int tamanho, Long medicoId, Long pacienteId, LocalDate dataAtendimento, StatusConsulta status) {
         log.info("Buscando consultas - Página: {}, Tamanho: {}, Médico ID: {}, Paciente ID: {}, Data: {}, Status: {}",
-                pagina, tamanho, medicoId, pacienteId, dataAtendimento, statusConsulta);
+                pagina, tamanho, medicoId, pacienteId, dataAtendimento, status);
 
         if (securityUtil.isDoctor()) {
             medicoId = securityUtil.getLoggedDoctor().getId();
@@ -93,58 +93,14 @@ public class ConsultaServiceImpl implements ConsultaService {
             pacienteId = securityUtil.getLoggedPatient().getId();
         }
 
-        boolean temMedico = medicoId != null;
-        boolean temPaciente = pacienteId != null;
-        boolean temDataAtendimento = dataAtendimento != null;
-        StatusConsulta status = (statusConsulta != null) ? statusConsulta : StatusConsulta.AGENDADA;
-
         Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "dataAtendimento"));
+        Specification<Consulta> spec = Specification
+                .where(ConsultaSpecifications.comStatus(status))
+                .and(ConsultaSpecifications.comMedicoId(medicoId))
+                .and(ConsultaSpecifications.comPacienteId(pacienteId))
+                .and(ConsultaSpecifications.comDataAtendimento(dataAtendimento));
 
-        // Prioridade 1: data atendimento + status
-        if (temDataAtendimento) {
-            log.debug("Filtro aplicado: dataAtendimento + status");
-            return PageResponse.from(
-                    repository.findByDataAtendimentoAndStatus(dataAtendimento, status, pageable)
-                            .map(consultaMapper::paraResposta)
-            );
-        }
-
-        // Prioridade 2: medico + paciente + status
-        if (temMedico && temPaciente) {
-            log.debug("Filtro aplicado: medico + paciente + status");
-            Medico medico = medicoService.buscarPorId(medicoId);
-            Paciente paciente = pacienteService.buscarPorId(pacienteId);
-            return PageResponse.from(
-                    repository.findByMedicoAndPacienteAndStatus(medico, paciente, status, pageable)
-                            .map(consultaMapper::paraResposta)
-            );
-        }
-
-        // Prioridade 3: medico + status
-        if (temMedico) {
-            log.debug("Filtro aplicado: medico + status");
-            Medico medico = medicoService.buscarPorId(medicoId);
-            return PageResponse.from(
-                    repository.findByMedicoAndStatus(medico, status, pageable)
-                            .map(consultaMapper::paraResposta)
-            );
-        }
-
-        // Prioridade 4: paciente + status
-        if (temPaciente) {
-            log.debug("Filtro aplicado: paciente + status");
-            Paciente paciente = pacienteService.buscarPorId(pacienteId);
-            return PageResponse.from(
-                    repository.findByPacienteAndStatus(paciente, status, pageable)
-                            .map(consultaMapper::paraResposta)
-            );
-        }
-
-        log.debug("Filtro aplicado: apenas status ou nenhum filtro");
-        return PageResponse.from(
-                repository.findByStatus(status, pageable)
-                        .map(consultaMapper::paraResposta)
-        );
+        return PageResponse.from(repository.findAll(spec, pageable).map(consultaMapper::paraResposta));
     }
 
     @Override

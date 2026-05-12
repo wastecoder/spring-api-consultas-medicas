@@ -1,10 +1,8 @@
 package com.consultas.api_consultas.repositories;
 
 import com.consultas.api_consultas.entities.Medico;
-import com.consultas.api_consultas.enums.SiglaCrm;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -12,16 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface MedicoRepository extends JpaRepository<Medico, Long> {
-
-    // Filtro por ativo
-    Page<Medico> findByAtivo(boolean ativo, Pageable pageable);
-
-    // Filtro combinado: ativo + nome (parcial e ignorando maiúsculas/minúsculas)
-    Page<Medico> findByNomeContainingIgnoreCaseAndAtivo(String nome, boolean ativo, Pageable pageable);
-
-    // Filtro combinado: CRM (sigla + dígitos)
-    Optional<Medico> findByCrmSiglaAndCrmDigitos(SiglaCrm sigla, String digitos);
+public interface MedicoRepository extends JpaRepository<Medico, Long>, JpaSpecificationExecutor<Medico> {
 
     Optional<Medico> findByUsuarioUsernameAndAtivo(String username, Boolean ativo);
 

@@ -28,6 +28,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.util.List;
 import java.util.Optional;
@@ -40,6 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -197,88 +199,46 @@ class MedicoServiceImplTest {
         private final Pageable pageable = PageRequest.of(0, 10, Sort.by("nome").ascending());
 
         @Test
-        @DisplayName("Deve buscar por nome e ativo quando nome for informado")
-        void deveBuscarPorNomeEAtivo() {
-            String nome = "João";
-            boolean ativo = true;
-
-            when(repository.findByNomeContainingIgnoreCaseAndAtivo(nome, ativo, pageable))
+        @DisplayName("Deve combinar todos os filtros informados via Specification")
+        void deveCombinarTodosOsFiltros() {
+            when(repository.findAll(any(Specification.class), eq(pageable)))
                     .thenReturn(new PageImpl<>(List.of(medicoAtivo), pageable, 1));
 
             PageResponse<MedicoResposta> resultado =
-                    medicoService.buscarMedicos(0, 10, nome, null, null, ativo);
+                    medicoService.buscarMedicos(0, 10, "João", SiglaCrm.SP, "123456", true);
 
             assertNotNull(resultado);
             assertEquals(1, resultado.totalElements());
             assertEquals("João da Silva", resultado.content().get(0).getNome());
-            verify(repository).findByNomeContainingIgnoreCaseAndAtivo(nome, ativo, pageable);
+            verify(repository).findAll(any(Specification.class), eq(pageable));
         }
 
         @Test
-        @DisplayName("Deve buscar por CRM quando CRM for informado e nome não for")
-        void deveBuscarPorCrm() {
-            SiglaCrm sigla = medicoAtivo.getCrmSigla();
-            String digitos = medicoAtivo.getCrmDigitos();
-
-            when(repository.findByCrmSiglaAndCrmDigitos(sigla, digitos))
-                    .thenReturn(Optional.of(medicoAtivo));
-
-            PageResponse<MedicoResposta> resultado =
-                    medicoService.buscarMedicos(0, 10, null, sigla, digitos, true);
-
-            assertNotNull(resultado);
-            assertEquals(1, resultado.totalElements());
-            assertEquals(medicoAtivo.getNome(), resultado.content().get(0).getNome());
-            verify(repository).findByCrmSiglaAndCrmDigitos(sigla, digitos);
-        }
-
-        @Test
-        @DisplayName("Deve buscar por ativo quando apenas ativo for informado")
-        void deveBuscarPorAtivo() {
-            when(repository.findByAtivo(true, pageable))
-                    .thenReturn(new PageImpl<>(List.of(medicoAtivo), pageable, 1));
-
-            PageResponse<MedicoResposta> resultado =
-                    medicoService.buscarMedicos(0, 10, null, null, null, true);
-
-            assertNotNull(resultado);
-            assertEquals(1, resultado.totalElements());
-            assertEquals(medicoAtivo.getNome(), resultado.content().get(0).getNome());
-            verify(repository).findByAtivo(true, pageable);
-        }
-
-        @Test
-        @DisplayName("Deve buscar apenas médicos ativos quando nenhum filtro for informado")
-        void deveBuscarAtivosQuandoNenhumFiltroInformado() {
-            when(repository.findByAtivo(true, pageable))
-                    .thenReturn(new PageImpl<>(List.of(medicoAtivo), pageable, 1));
+        @DisplayName("Sem nenhum filtro: ainda chama findAll com Specification (que ignora cada null)")
+        void deveChamarFindAllQuandoNenhumFiltroInformado() {
+            when(repository.findAll(any(Specification.class), eq(pageable)))
+                    .thenReturn(new PageImpl<>(List.of(medicoAtivo, medicoInativo), pageable, 2));
 
             PageResponse<MedicoResposta> resultado =
                     medicoService.buscarMedicos(0, 10, null, null, null, null);
 
             assertNotNull(resultado);
-            assertEquals(1, resultado.totalElements());
-            assertEquals(medicoAtivo.getNome(), resultado.content().get(0).getNome());
-            verify(repository).findByAtivo(true, pageable);
+            assertEquals(2, resultado.totalElements());
+            verify(repository).findAll(any(Specification.class), eq(pageable));
         }
 
         @Test
-        @DisplayName("Deve buscar por ativo quando CRM estiver incompleto (apenas sigla ou apenas dígitos)")
-        void deveBuscarPorAtivoQuandoCrmIncompleto() {
-            // Apenas sigla informada, digitos nulo
-            SiglaCrm sigla = SiglaCrm.SP;
-            String digitos = null;
-
-            when(repository.findByAtivo(true, pageable))
+        @DisplayName("CRM apenas com sigla agora é filtro válido (sem prioridade)")
+        void deveAceitarCrmIncompleto() {
+            when(repository.findAll(any(Specification.class), eq(pageable)))
                     .thenReturn(new PageImpl<>(List.of(medicoAtivo), pageable, 1));
 
             PageResponse<MedicoResposta> resultado =
-                    medicoService.buscarMedicos(0, 10, null, sigla, digitos, true);
+                    medicoService.buscarMedicos(0, 10, null, SiglaCrm.SP, null, true);
 
             assertNotNull(resultado);
             assertEquals(1, resultado.totalElements());
-            assertEquals(medicoAtivo.getNome(), resultado.content().get(0).getNome());
-            verify(repository).findByAtivo(true, pageable);
+            verify(repository).findAll(any(Specification.class), eq(pageable));
         }
     }
 
