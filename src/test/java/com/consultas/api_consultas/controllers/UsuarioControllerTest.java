@@ -52,6 +52,7 @@ class UsuarioControllerTest {
     private UsuarioCadastroDto cadastroValido() {
         return UsuarioCadastroDto.builder()
                 .username("usuario_teste")
+                .email("usuario_teste@example.com")
                 .senha("senha123")
                 .funcao(Funcao.RECEPCIONISTA)
                 .idAssociado(null)
@@ -62,6 +63,7 @@ class UsuarioControllerTest {
         Usuario u = Usuario.builder()
                 .id(id)
                 .username("usuario_teste")
+                .email("usuario_teste@example.com")
                 .senha("hash-bcrypt")
                 .funcao(Funcao.RECEPCIONISTA)
                 .ativo(true)
@@ -184,7 +186,7 @@ class UsuarioControllerTest {
             when(usuarioService.atualizar(eq(3L), any(UsuarioAtualizacaoDto.class))).thenReturn(usuario);
 
             UsuarioAtualizacaoDto req = UsuarioAtualizacaoDto.builder()
-                    .username("novo_user").senha("senha123").build();
+                    .username("novo_user").email("novo_user@example.com").senha("senha123").build();
 
             mvc.perform(put("/usuarios/{id}", 3L)
                             .contentType(MediaType.APPLICATION_JSON)
@@ -198,7 +200,7 @@ class UsuarioControllerTest {
         @DisplayName("Deve retornar 403 quando recepcionista tenta editar (somente ADMIN)")
         void deveRetornar403QuandoRecepcionistaEdita() throws Exception {
             UsuarioAtualizacaoDto req = UsuarioAtualizacaoDto.builder()
-                    .username("novo_user").build();
+                    .username("novo_user").email("novo_user@example.com").build();
 
             mvc.perform(put("/usuarios/{id}", 3L)
                             .contentType(MediaType.APPLICATION_JSON)

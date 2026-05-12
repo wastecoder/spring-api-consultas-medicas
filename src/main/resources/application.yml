@@ -17,10 +17,14 @@ popular:
   banco: true
 
 # Rate limit aplicado em /auth/login (chave por par IP + username)
+# e em /auth/forgot-password (chave por par IP + email).
 rate-limit:
   login:
     capacidade: 10
     periodo-segundos: 60
+  password-recovery:
+    capacidade: 3
+    periodo-segundos: 3600
 
 # Cache de relatorios pesados (Caffeine, in-memory).
 # - ttl-segundos: por quanto tempo um resultado permanece em cache antes de ser
@@ -31,6 +35,10 @@ app:
   cache:
     ttl-segundos: 60
     tamanho-maximo: 500
+  # URL do front-end usada para montar o link enviado por email na recuperacao de senha.
+  frontend-url: ${APP_FRONTEND_URL:http://localhost:4200}
+  password-recovery:
+    email-remetente: ${APP_PASSWORD_RECOVERY_REMETENTE:noreply@consultas-medicas.local}
 
 # Observabilidade: Actuator + Micrometer (Prometheus)
 management:

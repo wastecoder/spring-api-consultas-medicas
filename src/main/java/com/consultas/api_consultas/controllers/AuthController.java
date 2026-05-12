@@ -1,10 +1,14 @@
 package com.consultas.api_consultas.controllers;
 
+import com.consultas.api_consultas.dtos.requisicoes.ForgotPasswordDto;
 import com.consultas.api_consultas.dtos.requisicoes.LoginDTO;
 import com.consultas.api_consultas.dtos.requisicoes.RefreshTokenRequestDTO;
+import com.consultas.api_consultas.dtos.requisicoes.ResetPasswordDto;
 import com.consultas.api_consultas.dtos.respostas.AuthTokenDTO;
 import com.consultas.api_consultas.security.AuthenticationService;
 import com.consultas.api_consultas.security.LoginRateLimitService;
+import com.consultas.api_consultas.security.PasswordRecoveryRateLimitService;
+import com.consultas.api_consultas.services.PasswordRecoveryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -34,6 +38,8 @@ public class AuthController {
     private final AuthenticationManager authenticationManager;
     private final AuthenticationService authService;
     private final LoginRateLimitService loginRateLimitService;
+    private final PasswordRecoveryService passwordRecoveryService;
+    private final PasswordRecoveryRateLimitService passwordRecoveryRateLimitService;
 
 
     @PostMapping("/login")
@@ -72,6 +78,28 @@ public class AuthController {
             @RequestBody @Valid RefreshTokenRequestDTO dto
     ) {
         authService.logout(jwt, dto.refreshToken());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Solicitar email com link de redefinição de senha")
+    @ApiResponse(responseCode = "204", description = "Solicitação recebida (não confirma existência do email)")
+    @ApiResponse(responseCode = "400", description = "Email inválido", content = @Content(schema = @Schema(hidden = true)))
+    @ApiResponse(responseCode = "429", description = "Muitas solicitações", content = @Content(schema = @Schema(hidden = true)))
+    public ResponseEntity<Void> forgotPassword(@RequestBody @Valid ForgotPasswordDto dto, HttpServletRequest request) {
+        String ip = LoginRateLimitService.extrairIpCliente(request);
+        passwordRecoveryRateLimitService.verificar(ip, dto.email());
+        passwordRecoveryService.solicitarRedefinicao(dto.email());
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Redefinir senha usando token recebido por email")
+    @ApiResponse(responseCode = "204", description = "Senha redefinida")
+    @ApiResponse(responseCode = "400", description = "Payload inválido", content = @Content(schema = @Schema(hidden = true)))
+    @ApiResponse(responseCode = "401", description = "Token inválido ou expirado", content = @Content(schema = @Schema(hidden = true)))
+    public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordDto dto) {
+        passwordRecoveryService.redefinirSenha(dto.token(), dto.novaSenha());
         return ResponseEntity.noContent().build();
     }
 

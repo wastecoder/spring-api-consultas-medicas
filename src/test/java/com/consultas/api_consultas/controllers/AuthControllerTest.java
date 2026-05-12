@@ -1,11 +1,15 @@
 package com.consultas.api_consultas.controllers;
 
 import com.consultas.api_consultas.constants.AppConstants;
+import com.consultas.api_consultas.dtos.requisicoes.ForgotPasswordDto;
 import com.consultas.api_consultas.dtos.requisicoes.LoginDTO;
 import com.consultas.api_consultas.dtos.requisicoes.RefreshTokenRequestDTO;
+import com.consultas.api_consultas.dtos.requisicoes.ResetPasswordDto;
 import com.consultas.api_consultas.dtos.respostas.AuthTokenDTO;
+import com.consultas.api_consultas.exceptions.PasswordResetTokenInvalidoException;
 import com.consultas.api_consultas.exceptions.RefreshTokenInvalidoException;
 import com.consultas.api_consultas.security.AuthenticationService;
+import com.consultas.api_consultas.services.PasswordRecoveryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -51,6 +55,9 @@ class AuthControllerTest {
 
     @MockBean
     private AuthenticationService authenticationService;
+
+    @MockBean
+    private PasswordRecoveryService passwordRecoveryService;
 
     private MockMvc mvc() {
         return MockMvcBuilders
@@ -197,5 +204,96 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(corpoRefresh("qualquer")))
                 .andExpect(status().isUnauthorized());
+    }
+
+
+    private String corpoForgotPassword(String email) throws Exception {
+        return objectMapper.writeValueAsString(new ForgotPasswordDto(email));
+    }
+
+    private String corpoResetPassword(String token, String novaSenha) throws Exception {
+        return objectMapper.writeValueAsString(new ResetPasswordDto(token, novaSenha));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 204 em forgot-password e delegar ao service")
+    void deveRetornar204AoSolicitarForgotPassword() throws Exception {
+        mvc().perform(post("/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoForgotPassword("usuario@example.com")))
+                .andExpect(status().isNoContent());
+
+        verify(passwordRecoveryService).solicitarRedefinicao("usuario@example.com");
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 quando email em forgot-password é inválido")
+    void deveRetornar400QuandoEmailForgotInvalido() throws Exception {
+        mvc().perform(post("/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoForgotPassword("nao-eh-email")))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 429 ao estourar rate limit de forgot-password")
+    void deveRetornar429AoEstourarRateLimitForgot() throws Exception {
+        MockMvc mvc = mvc();
+        String body = corpoForgotPassword("alvo.flood@example.com");
+
+        // Capacidade configurada em application-test.yml = 2
+        for (int i = 0; i < 2; i++) {
+            mvc.perform(post("/auth/forgot-password")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isNoContent());
+        }
+
+        // 3ª chamada é bloqueada pelo rate limit
+        mvc.perform(post("/auth/forgot-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().exists("Retry-After"))
+                .andExpect(jsonPath("$.message").value(
+                        org.hamcrest.Matchers.containsString("Muitas solicitacoes")
+                ));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 204 ao redefinir senha com token válido")
+    void deveRetornar204AoResetarSenha() throws Exception {
+        String token = "11111111-2222-3333-4444-555555555555";
+
+        mvc().perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoResetPassword(token, "novaSenha123")))
+                .andExpect(status().isNoContent());
+
+        verify(passwordRecoveryService).redefinirSenha(token, "novaSenha123");
+    }
+
+    @Test
+    @DisplayName("Deve retornar 401 ao redefinir senha com token inválido ou expirado")
+    void deveRetornar401AoResetarComTokenInvalido() throws Exception {
+        String token = "99999999-9999-9999-9999-999999999999";
+        org.mockito.Mockito.doThrow(new PasswordResetTokenInvalidoException("Token expirado"))
+                .when(passwordRecoveryService).redefinirSenha(token, "novaSenha123");
+
+        mvc().perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoResetPassword(token, "novaSenha123")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.message").value("Token de redefinição inválido ou expirado."));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 quando reset-password recebe payload inválido")
+    void deveRetornar400QuandoResetPayloadInvalido() throws Exception {
+        // token com tamanho fora de 36 caracteres
+        mvc().perform(post("/auth/reset-password")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoResetPassword("token-curto", "novaSenha123")))
+                .andExpect(status().isBadRequest());
     }
 }

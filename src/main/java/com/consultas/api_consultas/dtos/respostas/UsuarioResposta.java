@@ -11,6 +11,8 @@ public class UsuarioResposta {
 
     private final String username;
 
+    private final String email;
+
     private final Funcao funcao;
 
     private final boolean ativo;
@@ -18,6 +20,7 @@ public class UsuarioResposta {
     public UsuarioResposta(Usuario usuario) {
         this.id = usuario.getId();
         this.username = usuario.getUsername();
+        this.email = usuario.getEmail();
         this.funcao = usuario.getFuncao();
         this.ativo = usuario.getAtivo();
     }

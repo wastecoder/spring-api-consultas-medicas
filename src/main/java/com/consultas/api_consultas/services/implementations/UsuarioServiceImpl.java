@@ -35,10 +35,12 @@ public class UsuarioServiceImpl implements UsuarioService {
         log.info("Salvando novo usuário: {}", requisicao.getUsername());
 
         usuarioRules.validarUsernameDuplicado(requisicao.getUsername(), null);
+        usuarioRules.validarEmailDuplicado(requisicao.getEmail(), null);
         usuarioRules.validarRegrasDeAssociacao(requisicao);
 
         Usuario usuario = new Usuario();
         usuario.setUsername(requisicao.getUsername());
+        usuario.setEmail(requisicao.getEmail());
         usuario.setSenha(passwordEncoder.encode(requisicao.getSenha()));
         usuario.setFuncao(requisicao.getFuncao());
         usuario.setAtivo(true);
@@ -76,8 +78,10 @@ public class UsuarioServiceImpl implements UsuarioService {
         Usuario existente = buscarPorId(id);
 
         usuarioRules.validarUsernameDuplicado(req.getUsername(), id);
+        usuarioRules.validarEmailDuplicado(req.getEmail(), id);
 
         existente.setUsername(req.getUsername());
+        existente.setEmail(req.getEmail());
 
         if (req.getSenha() != null && !req.getSenha().isBlank()) {
             existente.setSenha(passwordEncoder.encode(req.getSenha()));

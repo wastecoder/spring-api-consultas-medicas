@@ -31,6 +31,16 @@ public class UsuarioRules {
         }
     }
 
+    public void validarEmailDuplicado(String email, Long idAtual) {
+        boolean existe = (idAtual == null)
+                ? usuarioRepository.existsByEmailIgnoreCase(email)
+                : usuarioRepository.existsByEmailIgnoreCaseAndIdNot(email, idAtual);
+
+        if (existe) {
+            throw new BusinessRuleException("Email já está em uso: " + email);
+        }
+    }
+
     public void validarRegrasDeAssociacao(UsuarioCadastroDto req) {
         if (req.getFuncao() == Funcao.RECEPCIONISTA && req.getIdAssociado() != null) {
             throw new BusinessRuleException("Recepcionista não pode estar associado a médico ou paciente.");

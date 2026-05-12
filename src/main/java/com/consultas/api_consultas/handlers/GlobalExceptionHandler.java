@@ -2,6 +2,7 @@ package com.consultas.api_consultas.handlers;
 
 import com.consultas.api_consultas.dtos.respostas.ErrorResponse;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
+import com.consultas.api_consultas.exceptions.PasswordResetTokenInvalidoException;
 import com.consultas.api_consultas.exceptions.RateLimitExcedidoException;
 import com.consultas.api_consultas.exceptions.RefreshTokenInvalidoException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -249,6 +250,23 @@ public class GlobalExceptionHandler {
 
         ErrorResponse response = new ErrorResponse(
                 mensagem,
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(response, status);
+    }
+
+    // Ocorre quando o token de redefinição enviado em /auth/reset-password é inválido, já usado ou expirou
+    // A mensagem é deliberadamente genérica para não revelar o motivo exato (oracle de existência)
+    @ExceptionHandler(PasswordResetTokenInvalidoException.class)
+    public ResponseEntity<ErrorResponse> handlePasswordResetTokenInvalido(PasswordResetTokenInvalidoException exception) {
+        var status = HttpStatus.UNAUTHORIZED;
+
+        log.warn("Token de redefinição inválido: {}", exception.getMessage());
+
+        ErrorResponse response = new ErrorResponse(
+                "Token de redefinição inválido ou expirado.",
                 status,
                 OffsetDateTime.now()
         );

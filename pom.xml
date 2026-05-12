@@ -129,6 +129,12 @@
 			<artifactId>logstash-logback-encoder</artifactId>
 			<version>7.4</version>
 		</dependency>
+
+		<!-- E-mail (recuperacao de senha): JavaMailSender via Spring Boot starter -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-mail</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -12,6 +12,11 @@ spring:
       ddl-auto: create-drop
     show-sql: true
     database-platform: org.hibernate.dialect.H2Dialect
+  # Host fake para que o auto-configure crie um JavaMailSender bean
+  # (testes que exercitam o envio mockam o EmailService, nao o sender)
+  mail:
+    host: localhost
+    port: 2525
 
 jwt:
   private-key-path: classpath:keys/jwt-test-private.key
@@ -20,9 +25,18 @@ jwt:
 admin:
   username: admin
   password: testpass
+  email: admin@consultas-medicas.local
 
-# Capacidade reduzida para tornar o teste de 429 rapido e deterministico
+app:
+  frontend-url: http://localhost:4200
+  password-recovery:
+    email-remetente: noreply@test.local
+
+# Capacidades reduzidas para tornar testes de 429 rapidos e deterministicos
 rate-limit:
   login:
     capacidade: 3
+    periodo-segundos: 60
+  password-recovery:
+    capacidade: 2
     periodo-segundos: 60

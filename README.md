@@ -50,6 +50,7 @@ classDiagram
     class Usuario {
         +Long id
         +String username
+        +String email
         +String senha
         +Funcao funcao
         +Boolean ativo
@@ -166,6 +167,7 @@ classDiagram
   - [x] Autenticação baseada em JWT, com criptografia assimétrica RSA.  
   - [x] Codificação de senhas com algoritmo seguro `BCrypt`.  
   - [x] Desabilitação do CSRF, por se tratar de uma API REST stateless (sem cookies).
+  - [x] Recuperação de senha por e-mail ("esqueci minha senha") — fluxo self-service com token opaco de uso único e TTL curto.
 - [x] Tratamento de erros:
   - [x] Apresentação de erros em mensagens informativas, contendo:
     - Mensagem descritiva
@@ -211,9 +213,56 @@ classDiagram
 - __Spring Data JPA:__ Para acesso e manipulação do banco de dados.
 - __H2 Database:__ Banco de dados em memória para testes.
 - __JUnit e Mockito:__ Testes unitários e mocks.
+- __spring-boot-starter-mail (Mailtrap em dev):__ Envio de e-mails de redefinição de senha.
 - __Angular:__ Front-end para interação com a API.
 - __Docker:__ Containerização da aplicação para facilitar deploy.
 - __Maven:__ Gerenciamento de dependências e build do projeto.
+
+
+---
+
+
+## 🔑 Recuperação de senha
+
+Fluxo self-service de "esqueci minha senha" — funciona para qualquer perfil (ADMIN, RECEPCIONISTA, MÉDICO, PACIENTE), desde que o `Usuario` tenha e-mail cadastrado.
+
+### Endpoints
+- `POST /auth/forgot-password` — body `{ "email": "..." }`. Sempre responde **204 No Content** (não revela se o e-mail está cadastrado). Se houver `Usuario` ativo com aquele e-mail, gera um token opaco (UUID, TTL **15 min**) e envia o link de redefinição por e-mail. Limitado a **3 solicitações/hora** por par IP+e-mail.
+- `POST /auth/reset-password` — body `{ "token": "...", "novaSenha": "..." }`. Valida o token (existe, não usado, não expirado), troca a senha (BCrypt) e **revoga todos os refresh tokens** do usuário, forçando logout das sessões abertas.
+
+### Configuração necessária
+
+Variáveis de ambiente (ver `.env.example`):
+
+```bash
+# URL pública do front-end (usada para montar o link no e-mail)
+APP_FRONTEND_URL=http://localhost:4200
+APP_PASSWORD_RECOVERY_REMETENTE=noreply@consultas-medicas.local
+
+# SMTP em dev: Mailtrap sandbox (https://mailtrap.io)
+MAILTRAP_USERNAME=...
+MAILTRAP_PASSWORD=...
+
+# SMTP em prod (ex.: SendGrid, AWS SES)
+SPRING_MAIL_HOST=smtp.sendgrid.net
+SPRING_MAIL_USERNAME=apikey
+SPRING_MAIL_PASSWORD=...
+```
+
+### Migration do campo `email` em `Usuario`
+
+A entidade `Usuario` ganhou o campo `email NOT NULL UNIQUE`. Em dev (`ddl-auto: update`) a coluna é criada automaticamente, mas falha se a tabela já estiver populada — recrie o schema local ou rode manualmente:
+
+```sql
+ALTER TABLE usuario ADD COLUMN email VARCHAR(100);
+UPDATE usuario u SET email = (SELECT m.email FROM medico m WHERE m.usuario_id = u.id) WHERE email IS NULL;
+UPDATE usuario u SET email = (SELECT p.email FROM paciente p WHERE p.usuario_id = u.id) WHERE email IS NULL;
+UPDATE usuario SET email = 'admin@consultas-medicas.local' WHERE email IS NULL AND username = 'admin';
+ALTER TABLE usuario ALTER COLUMN email SET NOT NULL;
+ALTER TABLE usuario ADD CONSTRAINT uk_usuario_email UNIQUE (email);
+```
+
+Em prod (`ddl-auto: validate`), executar o SQL acima manualmente antes do deploy.
 
 
 ---

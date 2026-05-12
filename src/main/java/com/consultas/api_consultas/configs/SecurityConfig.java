@@ -57,6 +57,9 @@ public class SecurityConfig {
     @Value("${admin.password}")
     private String adminPassword;
 
+    @Value("${admin.email:admin@consultas-medicas.local}")
+    private String adminEmail;
+
     @Bean
     public SecurityFilterChain securityFilterChain(
             HttpSecurity http,
@@ -82,7 +85,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/webjars/**",
                                 "/auth/login",
-                                "/auth/refresh"
+                                "/auth/refresh",
+                                "/auth/forgot-password",
+                                "/auth/reset-password"
                         ).permitAll()
 
                         // AUTH: logout precisa apenas de autenticação válida
@@ -174,13 +179,13 @@ public class SecurityConfig {
     public CommandLineRunner criarUsuarioInicial(UsuarioRepository repo, PasswordEncoder encoder) {
         return args -> repo
                 .findByUsername(adminUsername)
-                .orElseGet(() -> repo.save(new Usuario(
-                        null,
-                        adminUsername,
-                        encoder.encode(adminPassword),
-                        Funcao.ADMIN,
-                        true
-                )));
+                .orElseGet(() -> repo.save(Usuario.builder()
+                        .username(adminUsername)
+                        .email(adminEmail)
+                        .senha(encoder.encode(adminPassword))
+                        .funcao(Funcao.ADMIN)
+                        .ativo(true)
+                        .build()));
     }
 
     private RSAPublicKey readPublicKey(Resource resource) throws Exception {

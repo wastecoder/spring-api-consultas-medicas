@@ -23,4 +23,7 @@ public final class AppConstants {
     // Paginação default
     public static final String PAGINACAO_PAGINA_DEFAULT = "0";
     public static final String PAGINACAO_TAMANHO_DEFAULT = "5";
+
+    // Recuperação de senha
+    public static final long PASSWORD_RESET_TOKEN_EXPIRACAO_MINUTOS = 15L;
 }
