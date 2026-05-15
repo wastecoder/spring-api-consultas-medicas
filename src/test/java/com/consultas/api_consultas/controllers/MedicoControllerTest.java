@@ -140,7 +140,7 @@ class MedicoControllerTest {
                     List.of(medicoMapper.paraResposta(medicoSalvo(1L))),
                     0, 5, 1L, 1, true, true, false, false
             );
-            when(medicoService.buscarMedicos(eq(0), eq(5), any(), any(), any(), any(), any(), any())).thenReturn(page);
+            when(medicoService.buscarMedicos(eq(0), eq(5), any(), any(), any(), any(), any(), any(), any())).thenReturn(page);
 
             mvc.perform(get("/medicos"))
                     .andExpect(status().isOk())

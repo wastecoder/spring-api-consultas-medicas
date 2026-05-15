@@ -4,6 +4,7 @@ import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
 import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public interface MedicoService {
 
     Medico buscarPorId(Long id);
 
-    PageResponse<MedicoResposta> buscarMedicos(int pagina, int tamanho, String nome, SiglaCrm crmSigla, String crmDigitos, Boolean ativo, String ordenarPor, String direcao);
+    PageResponse<MedicoResposta> buscarMedicos(int pagina, int tamanho, String nome, SiglaCrm crmSigla, String crmDigitos, Especialidade especialidade, Boolean ativo, String ordenarPor, String direcao);
 
     Medico atualizar(Long id, MedicoRequisicao requisicao);
 

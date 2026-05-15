@@ -5,6 +5,7 @@ import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
 import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.mappers.MedicoMapper;
 import com.consultas.api_consultas.services.MedicoService;
@@ -56,7 +57,7 @@ public class MedicoController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
-    @Operation(summary = "Listar médicos, podendo filtrar por nome, CRM (sigla + dígitos) e ativo")
+    @Operation(summary = "Listar médicos, podendo filtrar por nome, CRM (sigla + dígitos), especialidade e ativo")
     @ApiResponse(responseCode = "200", description = "Lista de médicos retornada com sucesso")
     public ResponseEntity<PageResponse<MedicoResposta>> listarMedicos(
             @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
@@ -64,11 +65,12 @@ public class MedicoController {
             @RequestParam(value = "nome", required = false) String nome,
             @RequestParam(value = "crmSigla", required = false) SiglaCrm crmSigla,
             @RequestParam(value = "crmDigitos", required = false) String crmDigitos,
+            @RequestParam(value = "especialidade", required = false) Especialidade especialidade,
             @RequestParam(value = "ativo", required = false) Boolean ativo,
             @RequestParam(value = "ordenarPor", defaultValue = AppConstants.ORDENACAO_CAMPO_DEFAULT) String ordenarPor,
             @RequestParam(value = "direcao", defaultValue = AppConstants.ORDENACAO_DIRECAO_DEFAULT) String direcao
     ) {
-        PageResponse<MedicoResposta> medicos = medicoService.buscarMedicos(pagina, tamanho, nome, crmSigla, crmDigitos, ativo, ordenarPor, direcao);
+        PageResponse<MedicoResposta> medicos = medicoService.buscarMedicos(pagina, tamanho, nome, crmSigla, crmDigitos, especialidade, ativo, ordenarPor, direcao);
         return ResponseEntity.ok(medicos);
     }
 

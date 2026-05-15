@@ -4,6 +4,7 @@ import com.consultas.api_consultas.dtos.PageResponse;
 import com.consultas.api_consultas.dtos.requisicoes.MedicoRequisicao;
 import com.consultas.api_consultas.dtos.respostas.MedicoResposta;
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.mappers.MedicoMapper;
@@ -71,19 +72,21 @@ public class MedicoServiceImpl implements MedicoService {
             String nome,
             SiglaCrm crmSigla,
             String crmDigitos,
+            Especialidade especialidade,
             Boolean ativo,
             String ordenarPor,
             String direcao
     ) {
-        log.info("Buscando médicos - Página: {}, Tamanho: {}, Nome: {}, CRM: {} {}, Ativo: {}, OrdenarPor: {}, Direção: {}",
-                pagina, tamanho, nome, crmSigla, crmDigitos, ativo, ordenarPor, direcao);
+        log.info("Buscando médicos - Página: {}, Tamanho: {}, Nome: {}, CRM: {} {}, Especialidade: {}, Ativo: {}, OrdenarPor: {}, Direção: {}",
+                pagina, tamanho, nome, crmSigla, crmDigitos, especialidade, ativo, ordenarPor, direcao);
 
         Sort sort = construirOrdenacao(ordenarPor, direcao);
         Pageable pageable = PageRequest.of(pagina, tamanho, sort);
         Specification<Medico> spec = Specification
                 .where(MedicoSpecifications.comAtivo(ativo))
                 .and(MedicoSpecifications.comNomeContendo(nome))
-                .and(MedicoSpecifications.comCrm(crmSigla, crmDigitos));
+                .and(MedicoSpecifications.comCrm(crmSigla, crmDigitos))
+                .and(MedicoSpecifications.comEspecialidade(especialidade));
 
         return PageResponse.from(repository.findAll(spec, pageable).map(medicoMapper::paraResposta));
     }

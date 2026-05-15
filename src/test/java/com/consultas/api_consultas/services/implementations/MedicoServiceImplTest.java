@@ -205,7 +205,7 @@ class MedicoServiceImplTest {
                     .thenReturn(new PageImpl<>(List.of(medicoAtivo), pageable, 1));
 
             PageResponse<MedicoResposta> resultado =
-                    medicoService.buscarMedicos(0, 10, "João", SiglaCrm.SP, "123456", true, "nome", "asc");
+                    medicoService.buscarMedicos(0, 10, "João", SiglaCrm.SP, "123456", null, true, "nome", "asc");
 
             assertNotNull(resultado);
             assertEquals(1, resultado.totalElements());
@@ -220,7 +220,7 @@ class MedicoServiceImplTest {
                     .thenReturn(new PageImpl<>(List.of(medicoAtivo, medicoInativo), pageable, 2));
 
             PageResponse<MedicoResposta> resultado =
-                    medicoService.buscarMedicos(0, 10, null, null, null, null, "nome", "asc");
+                    medicoService.buscarMedicos(0, 10, null, null, null, null, null, "nome", "asc");
 
             assertNotNull(resultado);
             assertEquals(2, resultado.totalElements());
@@ -234,7 +234,21 @@ class MedicoServiceImplTest {
                     .thenReturn(new PageImpl<>(List.of(medicoAtivo), pageable, 1));
 
             PageResponse<MedicoResposta> resultado =
-                    medicoService.buscarMedicos(0, 10, null, SiglaCrm.SP, null, true, "nome", "asc");
+                    medicoService.buscarMedicos(0, 10, null, SiglaCrm.SP, null, null, true, "nome", "asc");
+
+            assertNotNull(resultado);
+            assertEquals(1, resultado.totalElements());
+            verify(repository).findAll(any(Specification.class), eq(pageable));
+        }
+
+        @Test
+        @DisplayName("Filtra por especialidade quando informada")
+        void deveFiltrarPorEspecialidade() {
+            when(repository.findAll(any(Specification.class), eq(pageable)))
+                    .thenReturn(new PageImpl<>(List.of(medicoAtivo), pageable, 1));
+
+            PageResponse<MedicoResposta> resultado =
+                    medicoService.buscarMedicos(0, 10, null, null, null, Especialidade.CARDIOLOGIA, null, "nome", "asc");
 
             assertNotNull(resultado);
             assertEquals(1, resultado.totalElements());

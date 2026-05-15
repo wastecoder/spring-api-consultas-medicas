@@ -96,4 +96,20 @@ class MedicoSpecificationsTest {
         assertEquals("Joao Pedro", achados.get(0).getNome());
     }
 
+    @Test
+    @DisplayName("comEspecialidade: filtra pela especialidade informada")
+    void comEspecialidadeFiltra() {
+        List<Medico> achados = repository.findAll(MedicoSpecifications.comEspecialidade(Especialidade.CARDIOLOGIA));
+        assertEquals(1, achados.size());
+        assertEquals("Joao Pedro", achados.get(0).getNome());
+    }
+
+    @Test
+    @DisplayName("comEspecialidade(null): não filtra")
+    void comEspecialidadeNulaNaoFiltra() {
+        Specification<Medico> spec = Specification
+                .where(MedicoSpecifications.comEspecialidade(null));
+        assertEquals(3, repository.findAll(spec).size());
+    }
+
 }

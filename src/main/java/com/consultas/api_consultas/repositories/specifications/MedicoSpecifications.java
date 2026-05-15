@@ -1,6 +1,7 @@
 package com.consultas.api_consultas.repositories.specifications;
 
 import com.consultas.api_consultas.entities.Medico;
+import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
@@ -34,6 +35,11 @@ public final class MedicoSpecifications {
             if (temDigitos) ps.add(cb.equal(root.get("crmDigitos"), digitos));
             return cb.and(ps.toArray(Predicate[]::new));
         };
+    }
+
+    public static Specification<Medico> comEspecialidade(Especialidade especialidade) {
+        if (especialidade == null) return null;
+        return (root, query, cb) -> cb.equal(root.get("especialidade"), especialidade);
     }
 
 }
