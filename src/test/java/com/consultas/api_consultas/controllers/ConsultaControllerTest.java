@@ -170,7 +170,7 @@ class ConsultaControllerTest {
                     List.of(consultaMapper.paraResposta(consultaSalva(1L))),
                     0, 5, 1L, 1, true, true, false, false
             );
-            when(consultaService.buscarConsultas(anyInt(), anyInt(), any(), any(), any(), any())).thenReturn(page);
+            when(consultaService.buscarConsultas(anyInt(), anyInt(), any(), any(), any(), any(), any(), any())).thenReturn(page);
 
             mvc.perform(get("/consultas"))
                     .andExpect(status().isOk())

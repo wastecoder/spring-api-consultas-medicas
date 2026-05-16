@@ -405,7 +405,7 @@ class ConsultaServiceImplTest {
                     .thenReturn(pageOf(consultaValida));
 
             PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(
-                    PAGINA, TAMANHO, medicoAtivo.getId(), pacienteAtivo.getId(), data, StatusConsulta.AGENDADA);
+                    PAGINA, TAMANHO, medicoAtivo.getId(), pacienteAtivo.getId(), data, StatusConsulta.AGENDADA, "dataAtendimento", "asc");
 
             assertEquals(1, result.totalElements());
             verify(consultaRepository).findAll(any(Specification.class), any(Pageable.class));
@@ -419,7 +419,7 @@ class ConsultaServiceImplTest {
             when(consultaRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOf(consultaValida));
 
-            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, null, null, null);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, null, null, null, "dataAtendimento", "asc");
 
             assertEquals(1, result.totalElements());
             verify(consultaRepository).findAll(any(Specification.class), any(Pageable.class));
@@ -433,7 +433,7 @@ class ConsultaServiceImplTest {
             when(consultaRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOf(consultaValida));
 
-            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, 99L, null, null, null);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, 99L, null, null, null, "dataAtendimento", "asc");
 
             assertEquals(1, result.totalElements());
             verify(securityUtil).getLoggedDoctor();
@@ -449,7 +449,7 @@ class ConsultaServiceImplTest {
             when(consultaRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(pageOf(consultaValida));
 
-            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, 99L, null, null);
+            PageResponse<ConsultaResposta> result = consultaService.buscarConsultas(PAGINA, TAMANHO, null, 99L, null, null, "dataAtendimento", "asc");
 
             assertEquals(1, result.totalElements());
             verify(securityUtil).getLoggedPatient();

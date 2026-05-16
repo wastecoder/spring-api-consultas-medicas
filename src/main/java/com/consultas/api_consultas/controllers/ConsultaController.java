@@ -58,9 +58,11 @@ public class ConsultaController {
             @RequestParam(required = false) LocalDate dataAtendimento,
             @RequestParam(required = false) @Min(1) Long medicoId,
             @RequestParam(required = false) @Min(1) Long pacienteId,
-            @RequestParam(required = false) StatusConsulta status
+            @RequestParam(required = false) StatusConsulta status,
+            @RequestParam(value = "ordenarPor", defaultValue = "dataAtendimento") String ordenarPor,
+            @RequestParam(value = "direcao", defaultValue = AppConstants.ORDENACAO_DIRECAO_DEFAULT) String direcao
     ) {
-        PageResponse<ConsultaResposta> consultas = consultaService.buscarConsultas(pagina, tamanho, medicoId, pacienteId, dataAtendimento, status);
+        PageResponse<ConsultaResposta> consultas = consultaService.buscarConsultas(pagina, tamanho, medicoId, pacienteId, dataAtendimento, status, ordenarPor, direcao);
         return ResponseEntity.ok(consultas);
     }
 

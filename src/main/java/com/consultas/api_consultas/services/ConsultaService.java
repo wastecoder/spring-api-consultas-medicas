@@ -17,7 +17,7 @@ public interface ConsultaService {
 
     Consulta buscarPorId(Long id);
 
-    PageResponse<ConsultaResposta> buscarConsultas(int pagina, int tamanho, Long medicoId, Long pacienteId, LocalDate dataAtendimento, StatusConsulta statusConsulta);
+    PageResponse<ConsultaResposta> buscarConsultas(int pagina, int tamanho, Long medicoId, Long pacienteId, LocalDate dataAtendimento, StatusConsulta statusConsulta, String ordenarPor, String direcao);
 
     Consulta atualizar(Long id, ConsultaAtualizacaoDto requisicao);
 

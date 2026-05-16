@@ -5,6 +5,7 @@ import com.consultas.api_consultas.dtos.requisicoes.ConsultaAtualizacaoDto;
 import com.consultas.api_consultas.dtos.respostas.ConsultaResposta;
 import com.consultas.api_consultas.entities.Consulta;
 import com.consultas.api_consultas.enums.StatusConsulta;
+import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.mappers.ConsultaMapper;
 import com.consultas.api_consultas.repositories.ConsultaRepository;
 import com.consultas.api_consultas.repositories.specifications.ConsultaSpecifications;
@@ -25,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -82,10 +84,21 @@ public class ConsultaServiceImpl implements ConsultaService {
         return consulta;
     }
 
+    private static final Map<String, String[]> CAMPOS_ORDENACAO = Map.of(
+            "dataAtendimento",    new String[] { "dataAtendimento", "horarioAtendimento" },
+            "horarioAtendimento", new String[] { "horarioAtendimento" },
+            "status",             new String[] { "status" },
+            "preco",              new String[] { "preco" }
+    );
+
     @Override
-    public PageResponse<ConsultaResposta> buscarConsultas(int pagina, int tamanho, Long medicoId, Long pacienteId, LocalDate dataAtendimento, StatusConsulta status) {
-        log.info("Buscando consultas - Página: {}, Tamanho: {}, Médico ID: {}, Paciente ID: {}, Data: {}, Status: {}",
-                pagina, tamanho, medicoId, pacienteId, dataAtendimento, status);
+    public PageResponse<ConsultaResposta> buscarConsultas(
+            int pagina, int tamanho,
+            Long medicoId, Long pacienteId, LocalDate dataAtendimento, StatusConsulta status,
+            String ordenarPor, String direcao
+    ) {
+        log.info("Buscando consultas - Página: {}, Tamanho: {}, Médico ID: {}, Paciente ID: {}, Data: {}, Status: {}, OrdenarPor: {}, Direção: {}",
+                pagina, tamanho, medicoId, pacienteId, dataAtendimento, status, ordenarPor, direcao);
 
         if (securityUtil.isDoctor()) {
             medicoId = securityUtil.getLoggedDoctor().getId();
@@ -93,7 +106,8 @@ public class ConsultaServiceImpl implements ConsultaService {
             pacienteId = securityUtil.getLoggedPatient().getId();
         }
 
-        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "dataAtendimento"));
+        Sort sort = construirOrdenacao(ordenarPor, direcao);
+        Pageable pageable = PageRequest.of(pagina, tamanho, sort);
         Specification<Consulta> spec = Specification
                 .where(ConsultaSpecifications.comStatus(status))
                 .and(ConsultaSpecifications.comMedicoId(medicoId))
@@ -101,6 +115,20 @@ public class ConsultaServiceImpl implements ConsultaService {
                 .and(ConsultaSpecifications.comDataAtendimento(dataAtendimento));
 
         return PageResponse.from(repository.findAll(spec, pageable).map(consultaMapper::paraResposta));
+    }
+
+    private Sort construirOrdenacao(String ordenarPor, String direcao) {
+        String[] campos = CAMPOS_ORDENACAO.get(ordenarPor);
+        if (campos == null) {
+            throw new BusinessRuleException("Campo de ordenação inválido: " + ordenarPor);
+        }
+        Sort.Direction direction;
+        try {
+            direction = Sort.Direction.fromString(direcao);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessRuleException("Direção de ordenação inválida: " + direcao);
+        }
+        return Sort.by(direction, campos);
     }
 
     @Override
