@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.transaction.TransactionSystemException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -250,6 +251,23 @@ public class GlobalExceptionHandler {
 
         ErrorResponse response = new ErrorResponse(
                 mensagem,
+                status,
+                OffsetDateTime.now()
+        );
+
+        return new ResponseEntity<>(response, status);
+    }
+
+    // Ocorre quando o usuário existe e a senha confere, mas a conta está inativa (UserDetails.isEnabled() = false)
+    // Mensagem explícita para que o front saiba diferenciar de credenciais inválidas
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> handleDisabledException(DisabledException exception) {
+        var status = HttpStatus.UNAUTHORIZED;
+
+        log.warn("Tentativa de login de usuário inativo");
+
+        ErrorResponse response = new ErrorResponse(
+                "Usuário inativo. Contate o administrador.",
                 status,
                 OffsetDateTime.now()
         );
