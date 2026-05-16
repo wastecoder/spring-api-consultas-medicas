@@ -87,7 +87,8 @@ public class SecurityConfig {
                                 "/auth/login",
                                 "/auth/refresh",
                                 "/auth/forgot-password",
-                                "/auth/reset-password"
+                                "/auth/reset-password",
+                                "/auth/signup"
                         ).permitAll()
 
                         // AUTH: logout precisa apenas de autenticação válida

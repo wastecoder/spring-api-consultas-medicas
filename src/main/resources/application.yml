@@ -50,14 +50,18 @@ admin:
 popular:
   banco: true
 
-# Rate limit aplicado em /auth/login (chave por par IP + username)
-# e em /auth/forgot-password (chave por par IP + email).
+# Rate limit aplicado em /auth/login (chave por par IP + username),
+# em /auth/forgot-password (chave por par IP + email)
+# e em /auth/signup (chave por par IP + email).
 rate-limit:
   login:
     capacidade: 10
     periodo-segundos: 60
   password-recovery:
     capacidade: 3
+    periodo-segundos: 3600
+  signup:
+    capacidade: 5
     periodo-segundos: 3600
 
 # Cache de relatorios pesados (Caffeine, in-memory).

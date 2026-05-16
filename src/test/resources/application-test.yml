@@ -44,3 +44,6 @@ rate-limit:
   password-recovery:
     capacidade: 2
     periodo-segundos: 60
+  signup:
+    capacidade: 2
+    periodo-segundos: 60

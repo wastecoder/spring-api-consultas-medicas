@@ -5,11 +5,15 @@ import com.consultas.api_consultas.dtos.requisicoes.ForgotPasswordDto;
 import com.consultas.api_consultas.dtos.requisicoes.LoginDTO;
 import com.consultas.api_consultas.dtos.requisicoes.RefreshTokenRequestDTO;
 import com.consultas.api_consultas.dtos.requisicoes.ResetPasswordDto;
+import com.consultas.api_consultas.dtos.requisicoes.SignupDto;
 import com.consultas.api_consultas.dtos.respostas.AuthTokenDTO;
+import com.consultas.api_consultas.enums.Sexo;
+import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.exceptions.PasswordResetTokenInvalidoException;
 import com.consultas.api_consultas.exceptions.RefreshTokenInvalidoException;
 import com.consultas.api_consultas.security.AuthenticationService;
 import com.consultas.api_consultas.services.PasswordRecoveryService;
+import com.consultas.api_consultas.services.SignupService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,6 +31,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -58,6 +63,9 @@ class AuthControllerTest {
 
     @MockBean
     private PasswordRecoveryService passwordRecoveryService;
+
+    @MockBean
+    private SignupService signupService;
 
     private MockMvc mvc() {
         return MockMvcBuilders
@@ -295,5 +303,113 @@ class AuthControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(corpoResetPassword("token-curto", "novaSenha123")))
                 .andExpect(status().isBadRequest());
+    }
+
+
+    private SignupDto signupDtoPadrao(String email) {
+        return new SignupDto(
+                "Joao da Silva",
+                "12345678901",
+                Sexo.MASCULINO,
+                LocalDate.of(1990, 1, 15),
+                "11987654321",
+                email,
+                "joaosilva",
+                "senha123"
+        );
+    }
+
+    @Test
+    @DisplayName("Deve retornar 201 e par de tokens quando signup é válido")
+    void deveRetornar201ComParDeTokensQuandoSignupValido() throws Exception {
+        AuthTokenDTO tokens = new AuthTokenDTO(
+                "access-signup",
+                "refresh-signup",
+                AppConstants.JWT_EXPIRACAO_SEGUNDOS,
+                "Bearer"
+        );
+        when(signupService.cadastrarPaciente(any())).thenReturn(tokens);
+
+        String body = objectMapper.writeValueAsString(signupDtoPadrao("novo.paciente@example.com"));
+
+        mvc().perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.accessToken").value("access-signup"))
+                .andExpect(jsonPath("$.refreshToken").value("refresh-signup"))
+                .andExpect(jsonPath("$.expiresIn").value(AppConstants.JWT_EXPIRACAO_SEGUNDOS))
+                .andExpect(jsonPath("$.tokenType").value("Bearer"));
+
+        verify(signupService).cadastrarPaciente(any());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 quando signup recebe payload inválido (CPF faltando)")
+    void deveRetornar400QuandoSignupPayloadInvalido() throws Exception {
+        SignupDto invalido = new SignupDto(
+                "Joao da Silva",
+                "",                  // CPF em branco
+                Sexo.MASCULINO,
+                LocalDate.of(1990, 1, 15),
+                "11987654321",
+                "novo@example.com",
+                "joaosilva",
+                "senha123"
+        );
+        String body = objectMapper.writeValueAsString(invalido);
+
+        mvc().perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Deve retornar 400 quando signup colide com username já cadastrado")
+    void deveRetornar400QuandoSignupUsernameDuplicado() throws Exception {
+        // UsuarioRules.validarUsernameDuplicado lanca BusinessRuleException, mapeada para 400
+        // pelo GlobalExceptionHandler. O front exibe a mensagem do back ao usuário.
+        when(signupService.cadastrarPaciente(any()))
+                .thenThrow(new BusinessRuleException("Nome de usuário já está em uso: joaosilva"));
+
+        String body = objectMapper.writeValueAsString(signupDtoPadrao("dup.user@example.com"));
+
+        mvc().perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value(
+                        org.hamcrest.Matchers.containsString("Nome de usuário já está em uso")
+                ));
+    }
+
+    @Test
+    @DisplayName("Deve retornar 429 ao estourar rate limit de signup")
+    void deveRetornar429AoEstourarRateLimitSignup() throws Exception {
+        AuthTokenDTO tokens = new AuthTokenDTO(
+                "a", "r", AppConstants.JWT_EXPIRACAO_SEGUNDOS, "Bearer");
+        when(signupService.cadastrarPaciente(any())).thenReturn(tokens);
+
+        MockMvc mvc = mvc();
+        String body = objectMapper.writeValueAsString(signupDtoPadrao("flood.signup@example.com"));
+
+        // Capacidade configurada em application-test.yml = 2
+        for (int i = 0; i < 2; i++) {
+            mvc.perform(post("/auth/signup")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(body))
+                    .andExpect(status().isCreated());
+        }
+
+        // 3ª chamada bloqueada pelo rate limit
+        mvc.perform(post("/auth/signup")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(body))
+                .andExpect(status().isTooManyRequests())
+                .andExpect(header().exists("Retry-After"))
+                .andExpect(jsonPath("$.message").value(
+                        org.hamcrest.Matchers.containsString("Muitas tentativas de cadastro")
+                ));
     }
 }

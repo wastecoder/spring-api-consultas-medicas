@@ -4,11 +4,14 @@ import com.consultas.api_consultas.dtos.requisicoes.ForgotPasswordDto;
 import com.consultas.api_consultas.dtos.requisicoes.LoginDTO;
 import com.consultas.api_consultas.dtos.requisicoes.RefreshTokenRequestDTO;
 import com.consultas.api_consultas.dtos.requisicoes.ResetPasswordDto;
+import com.consultas.api_consultas.dtos.requisicoes.SignupDto;
 import com.consultas.api_consultas.dtos.respostas.AuthTokenDTO;
 import com.consultas.api_consultas.security.AuthenticationService;
 import com.consultas.api_consultas.security.LoginRateLimitService;
 import com.consultas.api_consultas.security.PasswordRecoveryRateLimitService;
+import com.consultas.api_consultas.security.SignupRateLimitService;
 import com.consultas.api_consultas.services.PasswordRecoveryService;
+import com.consultas.api_consultas.services.SignupService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -17,6 +20,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -40,6 +44,8 @@ public class AuthController {
     private final LoginRateLimitService loginRateLimitService;
     private final PasswordRecoveryService passwordRecoveryService;
     private final PasswordRecoveryRateLimitService passwordRecoveryRateLimitService;
+    private final SignupService signupService;
+    private final SignupRateLimitService signupRateLimitService;
 
 
     @PostMapping("/login")
@@ -101,6 +107,20 @@ public class AuthController {
     public ResponseEntity<Void> resetPassword(@RequestBody @Valid ResetPasswordDto dto) {
         passwordRecoveryService.redefinirSenha(dto.token(), dto.novaSenha());
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/signup")
+    @Operation(summary = "Cadastro self-service de paciente com auto-login (cria Usuario + Paciente)")
+    @ApiResponse(responseCode = "201", description = "Paciente cadastrado e par de tokens emitido")
+    @ApiResponse(responseCode = "400", description = "Dados inválidos ou regra de negócio violada", content = @Content(schema = @Schema(hidden = true)))
+    @ApiResponse(responseCode = "409", description = "Username, e-mail ou CPF já cadastrados", content = @Content(schema = @Schema(hidden = true)))
+    @ApiResponse(responseCode = "429", description = "Muitas tentativas de cadastro", content = @Content(schema = @Schema(hidden = true)))
+    public ResponseEntity<AuthTokenDTO> signup(@RequestBody @Valid SignupDto dto, HttpServletRequest request) {
+        String ip = LoginRateLimitService.extrairIpCliente(request);
+        signupRateLimitService.verificar(ip, dto.email());
+
+        AuthTokenDTO tokens = signupService.cadastrarPaciente(dto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(tokens);
     }
 
 }
