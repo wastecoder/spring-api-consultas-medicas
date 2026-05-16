@@ -149,6 +149,15 @@
 			<artifactId>spring-boot-starter-mail</artifactId>
 		</dependency>
 
+		<!-- spring-dotenv: carrega .env do working dir e injeta as vars no Spring Environment,
+		     fazendo os placeholders ${VAR:default} resolverem sem precisar exportar no shell.
+		     Em prod (Docker/K8s) as env vars vem do orquestrador e o .env nem existe. -->
+		<dependency>
+			<groupId>me.paulschwarz</groupId>
+			<artifactId>spring-dotenv</artifactId>
+			<version>4.0.0</version>
+		</dependency>
+
 		<!-- Exportacao de relatorios em CSV (Apache Commons CSV) e PDF (OpenPDF, LGPL) -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
