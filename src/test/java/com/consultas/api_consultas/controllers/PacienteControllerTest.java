@@ -134,7 +134,7 @@ class PacienteControllerTest {
                     List.of(pacienteMapper.paraResposta(pacienteSalvo(1L))),
                     0, 5, 1L, 1, true, true, false, false
             );
-            when(pacienteService.buscarPacientes(eq(0), eq(5), any(), any(), any(), any())).thenReturn(page);
+            when(pacienteService.buscarPacientes(eq(0), eq(5), any(), any(), any(), any(), any(), any())).thenReturn(page);
 
             mvc.perform(get("/pacientes"))
                     .andExpect(status().isOk())

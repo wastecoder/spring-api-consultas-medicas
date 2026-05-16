@@ -248,7 +248,7 @@ class PacienteServiceImplTest {
                     .thenReturn(new PageImpl<>(List.of(pacienteAtivo), pageable, 1));
 
             PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(
-                    PAGINA, TAMANHO, "Ana", null, pacienteAtivo.getSexo(), true);
+                    PAGINA, TAMANHO, "Ana", null, pacienteAtivo.getSexo(), true, "nome", "asc");
 
             assertNotNull(resultado);
             assertEquals(1, resultado.totalElements());
@@ -262,7 +262,7 @@ class PacienteServiceImplTest {
             when(repository.findAll(any(Specification.class), eq(pageable)))
                     .thenReturn(new PageImpl<>(List.of(pacienteAtivo), pageable, 1));
 
-            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, cpf, null, null);
+            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, cpf, null, null, "nome", "asc");
 
             assertNotNull(resultado);
             assertEquals(1, resultado.totalElements());
@@ -275,7 +275,7 @@ class PacienteServiceImplTest {
             when(repository.findAll(any(Specification.class), eq(pageable)))
                     .thenReturn(new PageImpl<>(List.of(), pageable, 0));
 
-            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, "00000000000", null, null);
+            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, "00000000000", null, null, "nome", "asc");
 
             assertNotNull(resultado);
             assertEquals(0, resultado.totalElements());
@@ -288,7 +288,7 @@ class PacienteServiceImplTest {
             when(repository.findAll(any(Specification.class), eq(pageable)))
                     .thenReturn(new PageImpl<>(List.of(pacienteAtivo, pacienteComAcessoNegado), pageable, 2));
 
-            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, null, null, null);
+            PageResponse<PacienteResposta> resultado = pacienteService.buscarPacientes(PAGINA, TAMANHO, null, null, null, null, "nome", "asc");
 
             assertNotNull(resultado);
             assertEquals(2, resultado.totalElements());

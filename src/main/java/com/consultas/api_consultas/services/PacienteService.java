@@ -16,7 +16,7 @@ public interface PacienteService {
 
     Paciente buscarPorId(Long id);
 
-    PageResponse<PacienteResposta> buscarPacientes(int pagina, int tamanho, String nome, String cpf, Sexo sexo, Boolean ativo);
+    PageResponse<PacienteResposta> buscarPacientes(int pagina, int tamanho, String nome, String cpf, Sexo sexo, Boolean ativo, String ordenarPor, String direcao);
 
     Paciente atualizar(Long id, PacienteRequisicao requisicao);
 

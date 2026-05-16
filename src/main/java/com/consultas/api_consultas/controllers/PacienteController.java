@@ -55,9 +55,11 @@ public class PacienteController {
             @RequestParam(required = false) String nome,
             @RequestParam(required = false) String cpf,
             @RequestParam(required = false) Sexo sexo,
-            @RequestParam(required = false) Boolean ativo
+            @RequestParam(required = false) Boolean ativo,
+            @RequestParam(value = "ordenarPor", defaultValue = AppConstants.ORDENACAO_CAMPO_DEFAULT) String ordenarPor,
+            @RequestParam(value = "direcao", defaultValue = AppConstants.ORDENACAO_DIRECAO_DEFAULT) String direcao
     ) {
-        PageResponse<PacienteResposta> pacientes = pacienteService.buscarPacientes(pagina, tamanho, nome, cpf, sexo, ativo);
+        PageResponse<PacienteResposta> pacientes = pacienteService.buscarPacientes(pagina, tamanho, nome, cpf, sexo, ativo, ordenarPor, direcao);
         return ResponseEntity.ok(pacientes);
     }
 

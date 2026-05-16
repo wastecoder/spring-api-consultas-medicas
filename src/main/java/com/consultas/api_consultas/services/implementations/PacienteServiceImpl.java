@@ -23,6 +23,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AllArgsConstructor
@@ -67,12 +68,19 @@ public class PacienteServiceImpl implements PacienteService {
         return paciente;
     }
 
-    @Override
-    public PageResponse<PacienteResposta> buscarPacientes(int pagina, int tamanho, String nome, String cpf, Sexo sexo, Boolean ativo) {
-        log.info("Buscando pacientes - Página: {}, Tamanho: {}, Nome: {}, CPF: {}, Sexo: {}, Ativo: {}",
-                pagina, tamanho, nome, cpf, sexo, ativo);
+    private static final Map<String, String[]> CAMPOS_ORDENACAO = Map.of(
+            "nome", new String[] { "nome" },
+            "cpf",  new String[] { "cpf" },
+            "sexo", new String[] { "sexo" }
+    );
 
-        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "nome"));
+    @Override
+    public PageResponse<PacienteResposta> buscarPacientes(int pagina, int tamanho, String nome, String cpf, Sexo sexo, Boolean ativo, String ordenarPor, String direcao) {
+        log.info("Buscando pacientes - Página: {}, Tamanho: {}, Nome: {}, CPF: {}, Sexo: {}, Ativo: {}, OrdenarPor: {}, Direção: {}",
+                pagina, tamanho, nome, cpf, sexo, ativo, ordenarPor, direcao);
+
+        Sort sort = construirOrdenacao(ordenarPor, direcao);
+        Pageable pageable = PageRequest.of(pagina, tamanho, sort);
         Specification<Paciente> spec = Specification
                 .where(PacienteSpecifications.comAtivo(ativo))
                 .and(PacienteSpecifications.comNomeContendo(nome))
@@ -80,6 +88,20 @@ public class PacienteServiceImpl implements PacienteService {
                 .and(PacienteSpecifications.comSexo(sexo));
 
         return PageResponse.from(repository.findAll(spec, pageable).map(pacienteMapper::paraResposta));
+    }
+
+    private Sort construirOrdenacao(String ordenarPor, String direcao) {
+        String[] campos = CAMPOS_ORDENACAO.get(ordenarPor);
+        if (campos == null) {
+            throw new BusinessRuleException("Campo de ordenação inválido: " + ordenarPor);
+        }
+        Sort.Direction direction;
+        try {
+            direction = Sort.Direction.fromString(direcao);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessRuleException("Direção de ordenação inválida: " + direcao);
+        }
+        return Sort.by(direction, campos);
     }
 
     /**
