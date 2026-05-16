@@ -5,9 +5,11 @@ import com.consultas.api_consultas.dtos.requisicoes.UsuarioAtualizacaoDto;
 import com.consultas.api_consultas.dtos.requisicoes.UsuarioCadastroDto;
 import com.consultas.api_consultas.dtos.respostas.UsuarioResposta;
 import com.consultas.api_consultas.entities.Usuario;
+import com.consultas.api_consultas.enums.Funcao;
 import com.consultas.api_consultas.exceptions.BusinessRuleException;
 import com.consultas.api_consultas.mappers.UsuarioMapper;
 import com.consultas.api_consultas.repositories.UsuarioRepository;
+import com.consultas.api_consultas.repositories.specifications.UsuarioSpecifications;
 import com.consultas.api_consultas.services.UsuarioService;
 import com.consultas.api_consultas.services.rules.UsuarioRules;
 import jakarta.persistence.EntityNotFoundException;
@@ -17,8 +19,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -51,11 +56,47 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioMapper.paraResposta(usuario);
     }
 
+    private static final Map<String, String[]> CAMPOS_ORDENACAO = Map.of(
+            "username", new String[] { "username" },
+            "email",    new String[] { "email" },
+            "funcao",   new String[] { "funcao" }
+    );
+
     @Override
-    public PageResponse<UsuarioResposta> buscarTodos(int pagina, int tamanho) {
-        log.info("Buscando todos os usuários - Página: {}, Tamanho: {}", pagina, tamanho);
-        Pageable pageable = PageRequest.of(pagina, tamanho, Sort.by(Sort.Direction.ASC, "username"));
-        return PageResponse.from(usuarioRepository.findAll(pageable).map(usuarioMapper::paraResposta));
+    public PageResponse<UsuarioResposta> buscarUsuarios(
+            int pagina,
+            int tamanho,
+            String username,
+            Funcao funcao,
+            Boolean ativo,
+            String ordenarPor,
+            String direcao
+    ) {
+        log.info("Buscando usuários - Página: {}, Tamanho: {}, Username: {}, Funcao: {}, Ativo: {}, OrdenarPor: {}, Direção: {}",
+                pagina, tamanho, username, funcao, ativo, ordenarPor, direcao);
+
+        Sort sort = construirOrdenacao(ordenarPor, direcao);
+        Pageable pageable = PageRequest.of(pagina, tamanho, sort);
+        Specification<Usuario> spec = Specification
+                .where(UsuarioSpecifications.comAtivo(ativo))
+                .and(UsuarioSpecifications.comUsernameContendo(username))
+                .and(UsuarioSpecifications.comFuncao(funcao));
+
+        return PageResponse.from(usuarioRepository.findAll(spec, pageable).map(usuarioMapper::paraResposta));
+    }
+
+    private Sort construirOrdenacao(String ordenarPor, String direcao) {
+        String[] campos = CAMPOS_ORDENACAO.get(ordenarPor);
+        if (campos == null) {
+            throw new BusinessRuleException("Campo de ordenação inválido: " + ordenarPor);
+        }
+        Sort.Direction direction;
+        try {
+            direction = Sort.Direction.fromString(direcao);
+        } catch (IllegalArgumentException e) {
+            throw new BusinessRuleException("Direção de ordenação inválida: " + direcao);
+        }
+        return Sort.by(direction, campos);
     }
 
     @Override

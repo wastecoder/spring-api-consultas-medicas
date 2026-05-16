@@ -6,6 +6,7 @@ import com.consultas.api_consultas.dtos.requisicoes.UsuarioAtualizacaoDto;
 import com.consultas.api_consultas.dtos.requisicoes.UsuarioCadastroDto;
 import com.consultas.api_consultas.dtos.respostas.UsuarioResposta;
 import com.consultas.api_consultas.entities.Usuario;
+import com.consultas.api_consultas.enums.Funcao;
 import com.consultas.api_consultas.mappers.UsuarioMapper;
 import com.consultas.api_consultas.services.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -43,13 +44,20 @@ public class UsuarioController {
 
     @GetMapping
     @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
-    @Operation(summary = "Listar todos os usuários")
+    @Operation(summary = "Listar usuários com filtros e ordenação")
     @ApiResponse(responseCode = "200", description = "Lista de usuários retornada com sucesso")
     public ResponseEntity<PageResponse<UsuarioResposta>> listarUsuarios(
             @RequestParam(defaultValue = AppConstants.PAGINACAO_PAGINA_DEFAULT) @Min(0) int pagina,
-            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho
+            @RequestParam(defaultValue = AppConstants.PAGINACAO_TAMANHO_DEFAULT) @Min(1) int tamanho,
+            @RequestParam(value = "username", required = false) String username,
+            @RequestParam(value = "funcao", required = false) Funcao funcao,
+            @RequestParam(value = "ativo", required = false) Boolean ativo,
+            @RequestParam(value = "ordenarPor", defaultValue = "username") String ordenarPor,
+            @RequestParam(value = "direcao", defaultValue = "asc") String direcao
     ) {
-        return ResponseEntity.ok(usuarioService.buscarTodos(pagina, tamanho));
+        return ResponseEntity.ok(
+                usuarioService.buscarUsuarios(pagina, tamanho, username, funcao, ativo, ordenarPor, direcao)
+        );
     }
 
     @GetMapping("/{id}")

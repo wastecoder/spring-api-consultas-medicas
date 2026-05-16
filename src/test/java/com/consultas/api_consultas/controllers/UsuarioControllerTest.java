@@ -137,7 +137,7 @@ class UsuarioControllerTest {
                     java.util.List.of(respostaSalva(1L)),
                     0, 5, 1L, 1, true, true, false, false
             );
-            when(usuarioService.buscarTodos(0, 5)).thenReturn(page);
+            when(usuarioService.buscarUsuarios(0, 5, null, null, null, "username", "asc")).thenReturn(page);
 
             mvc.perform(get("/usuarios"))
                     .andExpect(status().isOk())

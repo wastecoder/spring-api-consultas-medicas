@@ -26,6 +26,7 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.Collections;
@@ -435,40 +436,62 @@ class UsuarioServiceImplTest {
     }
 
     @Nested
-    @DisplayName("Buscar todos os usuários")
-    class BuscarTodosUsuarios {
+    @DisplayName("Buscar usuários com filtros e ordenação")
+    class BuscarUsuarios {
 
         private static final int PAGINA = 0;
         private static final int TAMANHO = 5;
 
         @Test
         @DisplayName("Deve retornar página vazia quando não houver usuários")
+        @SuppressWarnings("unchecked")
         void deveRetornarPaginaVazia() {
-            when(usuarioRepository.findAll(any(Pageable.class)))
+            when(usuarioRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(Collections.emptyList()));
 
-            PageResponse<UsuarioResposta> usuarios = usuarioService.buscarTodos(PAGINA, TAMANHO);
+            PageResponse<UsuarioResposta> usuarios = usuarioService.buscarUsuarios(
+                    PAGINA, TAMANHO, null, null, null, "username", "asc"
+            );
 
             assertNotNull(usuarios);
             assertTrue(usuarios.content().isEmpty());
             assertEquals(0, usuarios.totalElements());
-            verify(usuarioRepository).findAll(any(Pageable.class));
+            verify(usuarioRepository).findAll(any(Specification.class), any(Pageable.class));
         }
 
         @Test
         @DisplayName("Deve retornar página com usuários")
+        @SuppressWarnings("unchecked")
         void deveRetornarPaginaComUsuarios() {
             List<Usuario> listaMock = List.of(usuarioAdmin, usuarioMedicoValido);
 
-            when(usuarioRepository.findAll(any(Pageable.class)))
+            when(usuarioRepository.findAll(any(Specification.class), any(Pageable.class)))
                     .thenReturn(new PageImpl<>(listaMock));
 
-            PageResponse<UsuarioResposta> usuarios = usuarioService.buscarTodos(PAGINA, TAMANHO);
+            PageResponse<UsuarioResposta> usuarios = usuarioService.buscarUsuarios(
+                    PAGINA, TAMANHO, null, null, null, "username", "asc"
+            );
 
             assertNotNull(usuarios);
             assertEquals(2, usuarios.totalElements());
             assertEquals(2, usuarios.content().size());
-            verify(usuarioRepository).findAll(any(Pageable.class));
+            verify(usuarioRepository).findAll(any(Specification.class), any(Pageable.class));
+        }
+
+        @Test
+        @DisplayName("Deve lançar BusinessRuleException para campo de ordenação inválido")
+        void deveRejeitarOrdenacaoInvalida() {
+            BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                    () -> usuarioService.buscarUsuarios(PAGINA, TAMANHO, null, null, null, "campoInvalido", "asc"));
+            assertTrue(ex.getMessage().contains("Campo de ordenação inválido"));
+        }
+
+        @Test
+        @DisplayName("Deve lançar BusinessRuleException para direção de ordenação inválida")
+        void deveRejeitarDirecaoInvalida() {
+            BusinessRuleException ex = assertThrows(BusinessRuleException.class,
+                    () -> usuarioService.buscarUsuarios(PAGINA, TAMANHO, null, null, null, "username", "diagonal"));
+            assertTrue(ex.getMessage().contains("Direção de ordenação inválida"));
         }
     }
 

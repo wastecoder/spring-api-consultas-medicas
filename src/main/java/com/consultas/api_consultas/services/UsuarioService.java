@@ -5,12 +5,21 @@ import com.consultas.api_consultas.dtos.requisicoes.UsuarioAtualizacaoDto;
 import com.consultas.api_consultas.dtos.requisicoes.UsuarioCadastroDto;
 import com.consultas.api_consultas.dtos.respostas.UsuarioResposta;
 import com.consultas.api_consultas.entities.Usuario;
+import com.consultas.api_consultas.enums.Funcao;
 
 public interface UsuarioService {
 
     UsuarioResposta salvar(UsuarioCadastroDto requisicao);
 
-    PageResponse<UsuarioResposta> buscarTodos(int pagina, int tamanho);
+    PageResponse<UsuarioResposta> buscarUsuarios(
+            int pagina,
+            int tamanho,
+            String username,
+            Funcao funcao,
+            Boolean ativo,
+            String ordenarPor,
+            String direcao
+    );
 
     Usuario buscarPorId(Long id);
 
