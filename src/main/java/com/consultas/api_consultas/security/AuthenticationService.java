@@ -35,7 +35,7 @@ public class AuthenticationService {
                 .orElseThrow(() -> new IllegalStateException(
                         "Usuário autenticado não encontrado no banco: " + authentication.getName()));
 
-        String accessToken = jwtService.generateToken(authentication);
+        String accessToken = jwtService.generateToken(authentication, usuario.getId());
         RefreshToken refreshToken = refreshTokenService.criar(usuario);
 
         return new AuthTokenDTO(
@@ -61,7 +61,7 @@ public class AuthenticationService {
                 List.of(new SimpleGrantedAuthority("ROLE_" + usuario.getFuncao().name()))
         );
 
-        String accessToken = jwtService.generateToken(auth);
+        String accessToken = jwtService.generateToken(auth, usuario.getId());
 
         return new AuthTokenDTO(
                 accessToken,
@@ -72,7 +72,7 @@ public class AuthenticationService {
     }
 
     public void logout(Jwt accessToken, String refreshTokenValor) {
-        log.debug("Logout do usuário {} (jti={})", accessToken.getSubject(), accessToken.getId());
+        log.debug("Logout do usuário {} (jti={})", accessToken.getClaimAsString("username"), accessToken.getId());
         tokenBlacklistService.blacklistar(accessToken);
         refreshTokenService.revogar(refreshTokenValor);
     }

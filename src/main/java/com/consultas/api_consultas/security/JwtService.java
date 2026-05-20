@@ -19,7 +19,12 @@ public class JwtService {
 
     private final JwtEncoder encoder;
 
-    public String generateToken(Authentication authentication) {
+    /**
+     * Gera o access token. O {@code sub} carrega o ID do usuário — identidade
+     * estável e comum a todos os perfis — enquanto o username vai no claim
+     * {@code username}.
+     */
+    public String generateToken(Authentication authentication, Long usuarioId) {
         Instant now = Instant.now();
 
         List<String> scopes = authentication.getAuthorities().stream()
@@ -31,7 +36,8 @@ public class JwtService {
                 .id(UUID.randomUUID().toString())
                 .issuedAt(now)
                 .expiresAt(now.plusSeconds(AppConstants.JWT_EXPIRACAO_SEGUNDOS))
-                .subject(authentication.getName())
+                .subject(String.valueOf(usuarioId))
+                .claim("username", authentication.getName())
                 .claim("scope", scopes)
                 .build();
 

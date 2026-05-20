@@ -94,7 +94,9 @@ public class SecurityConfig {
                         // AUTH: logout precisa apenas de autenticação válida
                         .requestMatchers("/auth/logout").authenticated()
 
-                        // MEDICO:
+                        // MEDICO: o próprio médico pode consultar seu cadastro (GET /medicos/{id});
+                        // a verificação de "é o próprio" fica no controller. Demais operações: ADMIN/RECEPCIONISTA.
+                        .requestMatchers(HttpMethod.GET, "/medicos/*").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO")
                         .requestMatchers("/medicos/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
                         // PACIENTE:
@@ -106,6 +108,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO", "PACIENTE")
                         .requestMatchers(HttpMethod.POST, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
                         .requestMatchers(HttpMethod.PUT, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
+                        .requestMatchers(HttpMethod.PATCH, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO")
                         .requestMatchers(HttpMethod.DELETE, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
                         // RELATÓRIO DE PACIENTE: paciente pode acessar consultas pessoais
@@ -172,6 +175,9 @@ public class SecurityConfig {
 
         JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
         jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(grantedAuthoritiesConverter);
+        // O 'sub' carrega o ID do usuário; o nome do principal vem do claim 'username',
+        // mantendo Authentication.getName() compatível com o resto do sistema.
+        jwtAuthenticationConverter.setPrincipalClaimName("username");
 
         return jwtAuthenticationConverter;
     }

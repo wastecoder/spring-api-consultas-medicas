@@ -11,6 +11,7 @@ import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
 import com.consultas.api_consultas.mappers.MedicoMapper;
 import com.consultas.api_consultas.mappers.MedicoMapperImpl;
 import com.consultas.api_consultas.services.MedicoService;
+import com.consultas.api_consultas.utils.SecurityUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
@@ -56,6 +57,9 @@ class MedicoControllerTest {
 
     @MockBean
     private MedicoService medicoService;
+
+    @MockBean
+    private SecurityUtil securityUtil;
 
     private MedicoRequisicao requisicaoValida() {
         MedicoRequisicao req = new MedicoRequisicao();
@@ -159,6 +163,7 @@ class MedicoControllerTest {
         @DisplayName("Deve retornar 200 e o médico encontrado")
         void deveBuscarPorIdComSucesso() throws Exception {
             when(medicoService.buscarPorId(7L)).thenReturn(medicoSalvo(7L));
+            when(securityUtil.canAccessDoctor(any())).thenReturn(true);
 
             mvc.perform(get("/medicos/{id}", 7L))
                     .andExpect(status().isOk())

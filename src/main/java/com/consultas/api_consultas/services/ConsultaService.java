@@ -21,6 +21,8 @@ public interface ConsultaService {
 
     Consulta atualizar(Long id, ConsultaAtualizacaoDto requisicao);
 
+    Consulta realizar(Long id);
+
     void removerPorId(Long id);
 
 }

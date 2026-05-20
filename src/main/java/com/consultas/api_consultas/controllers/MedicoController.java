@@ -9,6 +9,7 @@ import com.consultas.api_consultas.enums.Especialidade;
 import com.consultas.api_consultas.enums.SiglaCrm;
 import com.consultas.api_consultas.mappers.MedicoMapper;
 import com.consultas.api_consultas.services.MedicoService;
+import com.consultas.api_consultas.utils.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,6 +20,7 @@ import jakarta.validation.constraints.Min;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -41,6 +43,7 @@ public class MedicoController {
 
     private final MedicoService medicoService;
     private final MedicoMapper medicoMapper;
+    private final SecurityUtil securityUtil;
 
 
     @PostMapping
@@ -74,13 +77,30 @@ public class MedicoController {
         return ResponseEntity.ok(medicos);
     }
 
+    @GetMapping("/meu-perfil")
+    @PreAuthorize("hasRole('MEDICO')")
+    @Operation(summary = "Buscar o perfil do médico autenticado")
+    @ApiResponse(responseCode = "200", description = "Perfil do médico retornado com sucesso")
+    public ResponseEntity<MedicoResposta> buscarMeuPerfil() {
+        Medico medico = securityUtil.getLoggedDoctor();
+        MedicoResposta dto = medicoMapper.paraResposta(medico);
+        return ResponseEntity.ok(dto);
+    }
+
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA', 'MEDICO')")
     @Operation(summary = "Buscar médico por ID")
     @ApiResponse(responseCode = "200", description = "Médico encontrado")
+    @ApiResponse(responseCode = "403", description = "Sem permissão para acessar este médico", content = @Content(schema = @Schema(hidden = true)))
     @ApiResponse(responseCode = "404", description = "Médico não encontrado", content = @Content(schema = @Schema(hidden = true)))
     public ResponseEntity<MedicoResposta> buscarMedicoPorId(@PathVariable @Min(1) Long id) {
         Medico medico = medicoService.buscarPorId(id);
+
+        // ADMIN/RECEPCIONISTA acessam qualquer médico; o MÉDICO só o próprio cadastro.
+        if (!securityUtil.canAccessDoctor(medico)) {
+            throw new AccessDeniedException("Você não tem permissão para acessar este médico.");
+        }
+
         MedicoResposta dto = medicoMapper.paraRespostaComAuditoria(medico);
         return ResponseEntity.ok(dto);
     }

@@ -149,6 +149,22 @@ public class ConsultaServiceImpl implements ConsultaService {
     }
 
     @Override
+    public Consulta realizar(Long id) {
+        log.info("Marcando consulta ID {} como REALIZADA", id);
+
+        Consulta consulta = this.buscarPorId(id); // valida existência e autorização (médico só acessa as próprias)
+
+        if (consulta.getStatus() != StatusConsulta.AGENDADA) {
+            throw new BusinessRuleException("Apenas consultas agendadas podem ser marcadas como realizadas.");
+        }
+
+        consulta.setStatus(StatusConsulta.REALIZADA);
+        Consulta consultaSalva = repository.save(consulta);
+        log.info("Consulta ID {} marcada como REALIZADA com sucesso", id);
+        return consultaSalva;
+    }
+
+    @Override
     public void removerPorId(Long id) {
         log.info("Removendo consulta ID: {}", id);
 

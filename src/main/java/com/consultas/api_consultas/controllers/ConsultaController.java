@@ -89,6 +89,18 @@ public class ConsultaController {
         return ResponseEntity.ok(resposta);
     }
 
+    @PatchMapping("/{id}/realizar")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA', 'MEDICO')")
+    @Operation(summary = "Marcar uma consulta como realizada")
+    @ApiResponse(responseCode = "200", description = "Consulta marcada como realizada com sucesso")
+    @ApiResponse(responseCode = "400", description = "Consulta não pode ser marcada como realizada", content = @Content(schema = @Schema(hidden = true)))
+    @ApiResponse(responseCode = "404", description = "Consulta não encontrada", content = @Content(schema = @Schema(hidden = true)))
+    public ResponseEntity<ConsultaResposta> realizarConsultaPorId(@PathVariable @Min(1) Long id) {
+        Consulta consultaSalva = consultaService.realizar(id);
+        ConsultaResposta resposta = consultaMapper.paraResposta(consultaSalva);
+        return ResponseEntity.ok(resposta);
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
     @Operation(summary = "Excluir consulta por ID")
