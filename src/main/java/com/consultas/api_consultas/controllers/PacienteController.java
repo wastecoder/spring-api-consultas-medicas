@@ -8,6 +8,7 @@ import com.consultas.api_consultas.entities.Paciente;
 import com.consultas.api_consultas.enums.Sexo;
 import com.consultas.api_consultas.mappers.PacienteMapper;
 import com.consultas.api_consultas.services.PacienteService;
+import com.consultas.api_consultas.utils.SecurityUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -31,6 +32,7 @@ public class PacienteController {
 
     private final PacienteService pacienteService;
     private final PacienteMapper pacienteMapper;
+    private final SecurityUtil securityUtil;
 
 
     @PostMapping
@@ -61,6 +63,16 @@ public class PacienteController {
     ) {
         PageResponse<PacienteResposta> pacientes = pacienteService.buscarPacientes(pagina, tamanho, nome, cpf, sexo, ativo, ordenarPor, direcao);
         return ResponseEntity.ok(pacientes);
+    }
+
+    @GetMapping("/meu-perfil")
+    @PreAuthorize("hasRole('PACIENTE')")
+    @Operation(summary = "Buscar o perfil do paciente autenticado")
+    @ApiResponse(responseCode = "200", description = "Perfil do paciente retornado com sucesso")
+    public ResponseEntity<PacienteResposta> buscarMeuPerfil() {
+        Paciente paciente = securityUtil.getLoggedPatient();
+        PacienteResposta dto = pacienteMapper.paraResposta(paciente);
+        return ResponseEntity.ok(dto);
     }
 
     @GetMapping("/{id}")

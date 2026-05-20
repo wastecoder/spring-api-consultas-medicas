@@ -94,9 +94,10 @@ public class SecurityConfig {
                         // AUTH: logout precisa apenas de autenticação válida
                         .requestMatchers("/auth/logout").authenticated()
 
-                        // MEDICO: o próprio médico pode consultar seu cadastro (GET /medicos/{id});
-                        // a verificação de "é o próprio" fica no controller. Demais operações: ADMIN/RECEPCIONISTA.
-                        .requestMatchers(HttpMethod.GET, "/medicos/*").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO")
+                        // MEDICO: GET liberado a todos os perfis autenticados (médico vê o próprio
+                        // cadastro; paciente busca médicos para agendar) — o @PreAuthorize de cada
+                        // handler refina. Demais operações: ADMIN/RECEPCIONISTA.
+                        .requestMatchers(HttpMethod.GET, "/medicos/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO", "PACIENTE")
                         .requestMatchers("/medicos/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
                         // PACIENTE:

@@ -59,7 +59,7 @@ public class MedicoController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA', 'PACIENTE')")
     @Operation(summary = "Listar médicos, podendo filtrar por nome, CRM (sigla + dígitos), especialidade e ativo")
     @ApiResponse(responseCode = "200", description = "Lista de médicos retornada com sucesso")
     public ResponseEntity<PageResponse<MedicoResposta>> listarMedicos(

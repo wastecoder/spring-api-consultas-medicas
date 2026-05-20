@@ -10,6 +10,7 @@ import com.consultas.api_consultas.handlers.GlobalExceptionHandler;
 import com.consultas.api_consultas.mappers.PacienteMapper;
 import com.consultas.api_consultas.mappers.PacienteMapperImpl;
 import com.consultas.api_consultas.services.PacienteService;
+import com.consultas.api_consultas.utils.SecurityUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.DisplayName;
@@ -57,6 +58,9 @@ class PacienteControllerTest {
 
     @MockBean
     private PacienteService pacienteService;
+
+    @MockBean
+    private SecurityUtil securityUtil;
 
     private Map<String, Object> corpoValido() {
         Map<String, Object> corpo = new LinkedHashMap<>();
