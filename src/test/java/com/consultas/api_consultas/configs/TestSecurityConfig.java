@@ -50,11 +50,11 @@ public class TestSecurityConfig {
                                 "/auth/login"
                         ).permitAll()
                         .requestMatchers("/medicos/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
-                        .requestMatchers(HttpMethod.GET, "/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
+                        .requestMatchers(HttpMethod.GET, "/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO", "PACIENTE")
                         .requestMatchers(HttpMethod.PUT, "/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
                         .requestMatchers("/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(HttpMethod.GET, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO", "PACIENTE")
-                        .requestMatchers(HttpMethod.POST, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
+                        .requestMatchers(HttpMethod.POST, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO", "PACIENTE")
                         .requestMatchers(HttpMethod.PUT, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(HttpMethod.DELETE, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(HttpMethod.GET, "/relatorios/paciente/historico/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")

@@ -37,7 +37,7 @@ public class ConsultaController {
 
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA', 'PACIENTE')")
+    @PreAuthorize("hasAnyRole('ADMIN', 'RECEPCIONISTA', 'MEDICO', 'PACIENTE')")
     @Operation(summary = "Cadastrar nova consulta")
     @ApiResponse(responseCode = "201", description = "Consulta cadastrada com sucesso")
     @ApiResponse(responseCode = "400", description = "Dados inválidos para cadastro", content = @Content(schema = @Schema(hidden = true)))

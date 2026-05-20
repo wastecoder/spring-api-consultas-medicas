@@ -100,14 +100,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/medicos/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO", "PACIENTE")
                         .requestMatchers("/medicos/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
-                        // PACIENTE:
-                        .requestMatchers(HttpMethod.GET, "/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
+                        // PACIENTE: GET liberado também ao MEDICO (busca pacientes para
+                        // agendar consulta) — o @PreAuthorize de cada handler refina.
+                        .requestMatchers(HttpMethod.GET, "/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO", "PACIENTE")
                         .requestMatchers(HttpMethod.PUT, "/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
                         .requestMatchers("/pacientes/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
 
                         // CONSULTA:
                         .requestMatchers(HttpMethod.GET, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO", "PACIENTE")
-                        .requestMatchers(HttpMethod.POST, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "PACIENTE")
+                        .requestMatchers(HttpMethod.POST, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO", "PACIENTE")
                         .requestMatchers(HttpMethod.PUT, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA")
                         .requestMatchers(HttpMethod.PATCH, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA", "MEDICO")
                         .requestMatchers(HttpMethod.DELETE, "/consultas/**").hasAnyRole("ADMIN", "RECEPCIONISTA")

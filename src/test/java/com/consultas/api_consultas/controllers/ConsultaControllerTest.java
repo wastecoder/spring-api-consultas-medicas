@@ -134,12 +134,16 @@ class ConsultaControllerTest {
 
         @Test
         @WithMockUser(roles = "MEDICO")
-        @DisplayName("Deve retornar 403 quando médico tenta cadastrar consulta")
-        void deveRetornar403QuandoMedicoCadastra() throws Exception {
+        @DisplayName("Deve retornar 201 quando médico cadastra consulta")
+        void deveCadastrarComoMedico() throws Exception {
+            when(consultaService.salvar(any(Consulta.class))).thenReturn(consultaSalva(10L));
+
             mvc.perform(post("/consultas")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(corpoCadastroValido())))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isCreated())
+                    .andExpect(jsonPath("$.id").value(10))
+                    .andExpect(jsonPath("$.status").value("AGENDADA"));
         }
 
         @Test
